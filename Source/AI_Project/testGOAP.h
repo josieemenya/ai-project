@@ -98,8 +98,8 @@ class AI_PROJECT_API testGOAP
 public:
 	FGOAPGoal* CurrentGoal;
 
-	TArray<FGOAPAction*> Plan(TArray<FGOAPAction*> AvailableActions, FWorldState* CurrentState, FGOAPGoal* Goal);
-	bool BuildGraph(Node* Parent, TArray<Node*>& Leaves, TArray<FGOAPAction*> UsableActions, FGOAPGoal* Goal);
+	static TArray<FGOAPAction*> Plan(TArray<FGOAPAction*> AvailableActions, FWorldState* CurrentState, FGOAPGoal* Goal);
+	static bool BuildGraph(Node* Parent, TArray<Node*>& Leaves, TArray<FGOAPAction*> UsableActions, FGOAPGoal* Goal);
 	testGOAP();
 	~testGOAP();
 };

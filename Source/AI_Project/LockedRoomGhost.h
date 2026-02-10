@@ -7,6 +7,8 @@
 #include "GameFramework/Character.h"
 #include "LockedRoomGhost.generated.h"
 
+class AAIController; 
+
 // noteds for opening a locked door in ue5
 // go to Target
 // notiuce door is locked
@@ -42,7 +44,8 @@ public:
 
 	void MoveToDoor();
 
-	AActor* Door; 
+	AActor* Door;
+	AActor* DoorKey; 
 	FWorldState* WorldState;
 	
 	// Called to bind functionality to input
