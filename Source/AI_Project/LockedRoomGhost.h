@@ -17,7 +17,8 @@ class AAIController;
 // activate nav link
 // fcontiue to target
 
-
+class ADoor;
+class AKiey;
 UCLASS()
 class AI_PROJECT_API ALockedRoomGhost : public ACharacter
 {
@@ -44,8 +45,8 @@ public:
 
 	void MoveToDoor();
 
-	AActor* Door;
-	AActor* DoorKey; 
+	ADoor* Door;
+	AKiey* DoorKey; 
 	FWorldState* WorldState;
 	
 	// Called to bind functionality to input

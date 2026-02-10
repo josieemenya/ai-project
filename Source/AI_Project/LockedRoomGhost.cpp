@@ -5,6 +5,10 @@
 
 #include "AIController.h"
 #include "NavigationSystem.h"
+#include "Door.h"
+#include "Key.h"
+#include "Kismet/GameplayStatics.h"
+
 //#include "Runtime/AIModule/Classes/AIController.h"
 
 // Sets default values
@@ -39,8 +43,11 @@ void ALockedRoomGhost::BeginPlay()
 	};
 	OpenLockedDoor->Perform = [this]()
 	{
+		Door = Cast<ADoor>(
+			UGameplayStatics::GetActorOfClass(GetWorld(), ADoor::StaticClass())
+		);
 		AAIController* cController = Cast<AAIController>(GetController());
-		if (cController)
+		if (cController && Door)
 			cController->MoveToLocation(Door->GetActorLocation(), 10);
 	};
 
@@ -69,7 +76,12 @@ void ALockedRoomGhost::BeginPlay()
 	};
 	SearchForKey->Perform = [this]()
 	{
+		DoorKey = Cast<AKiey>(
+			UGameplayStatics::GetActorOfClass(GetWorld(), AKiey::StaticClass())
+		);
 		// key location
+		if (!DoorKey)
+			return;
 		if (GetDistanceTo(DoorKey) < 100.f )
 		{
 			WorldState->StateValues["HasKey"] = true;
