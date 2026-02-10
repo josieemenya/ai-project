@@ -19,7 +19,7 @@ TArray<FGOAPAction*> testGOAP::Plan(TArray<FGOAPAction*> AvailableActions, FWorl
 
 	for (auto A : AvailableActions )
 	{
-		if (A->isAchievable())
+		if (A->isAchievable()) // change to pass in world state
 		{
 			usableActions.Add(A);
 		}
@@ -73,8 +73,7 @@ bool testGOAP::BuildGraph(Node* Parent, TArray<Node*>& Leaves, TArray<FGOAPActio
 			
 			for (auto Effect : Action->Effects)
 			{
-				if (!NewState->StateValues.Contains(Effect.Key))
-					NewState->StateValues.Add(Effect.Key, Effect.Value);
+					NewState->StateValues[Effect.key] = Effect.Value;
 			}
 
 			Node* NewNode = new Node();
@@ -94,7 +93,7 @@ bool testGOAP::BuildGraph(Node* Parent, TArray<Node*>& Leaves, TArray<FGOAPActio
 				for (auto A : UsableActions)
 				{
 					if (A != Action)
-						SubSet.Add(A);
+						SubSet.Add(A); // keep in for now
 				}
 
 				bool bFound = BuildGraph(NewNode, Leaves, SubSet, Goal);
