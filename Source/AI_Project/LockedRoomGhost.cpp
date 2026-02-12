@@ -16,13 +16,21 @@ ALockedRoomGhost::ALockedRoomGhost()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+    AIControllerClass = AAIController::StaticClass();
 
+    AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 // Called when the game starts or when spawned
 void ALockedRoomGhost::BeginPlay()
 {
 	Super::BeginPlay();
+
+	WorldState = new FWorldState();
+	WorldState->StateValues.Add("HasKey", false);
+	WorldState->StateValues.Add("SearchedForKey", false);
+	WorldState->StateValues.Add("DoorOpen", false);
+
 
 	CurrentGoal = new FGOAPGoal{
 		"OpenDoor",
@@ -51,79 +59,61 @@ void ALockedRoomGhost::BeginPlay()
 			cController->MoveToLocation(Door->GetActorLocation(), 10);
 	};
 
+
+
 	FGOAPAction* FoundKey = new FGOAPAction();
-	FoundKey->Name = "FoundKey";
-	FoundKey->Preconditions = {
-		{"HasKey", false},
-		{"SearchedForKey", false}
-	};
-	FoundKey->Effects = {
-		{"HasKey", true},
-	};
-	FoundKey->Perform = [this]()
-	{
-		WorldState->StateValues["HasKey"] = true;
-	};
-	
-	auto SearchForKey = new FGOAPAction();
-	SearchForKey->Name = "SearchForKey";
-	SearchForKey->Preconditions = {
-		{"HasKey", false},
-		{"SearchedForKey", false}
-	};
-	SearchForKey->Effects = {
-		{"SearchedForKey", true},
-	};
-	SearchForKey->Perform = [this]()
-	{
-		DoorKey = Cast<AKiey>(
-			UGameplayStatics::GetActorOfClass(GetWorld(), AKiey::StaticClass())
-		);
-		// key location
-		if (!DoorKey)
-			return;
-		if (GetDistanceTo(DoorKey) < 100.f )
-		{
-			WorldState->StateValues["HasKey"] = true;
-			return;
-		}
 		
-		AAIController* cController = Cast<AAIController>(GetController());
-		if (cController)
-		{
-			FNavLocation RandomPoint;
-			UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+	auto SearchForKey = new FGOAPAction();
+	SearchForKey->Preconditions = { {"HasKey", false}, {"SearchedForKey", false} };
+	SearchForKey->Effects = { {"SearchedForKey", true} };
+	SearchForKey->Perform = [this]() { WorldState->StateValues["SearchedForKey"] = true; };
 
-			if (NavSys && NavSys->GetRandomReachablePointInRadius(
-				GetActorLocation(),
-				500.f,
-				RandomPoint))
-			{
-				cController->MoveToLocation(RandomPoint.Location);
-			}
-		}
-	};
+	FoundKey->Preconditions = { {"HasKey", false}, {"SearchedForKey", true} };
+	FoundKey->Effects = { {"HasKey", true}, {"SearchedForKey", true} };
+	FoundKey->Perform = [this]() { WorldState->StateValues["HasKey"] = true; WorldState->StateValues["SearchedForKey"] = true; };
 
-	AvailableActions.AddUnique(std::move(OpenLockedDoor));
-	AvailableActions.AddUnique(std::move(FoundKey));
-	AvailableActions.AddUnique(std::move(SearchForKey));
-}
+		AvailableActions.AddUnique(std::move(OpenLockedDoor));
+		AvailableActions.AddUnique(std::move(FoundKey));
+		AvailableActions.AddUnique(std::move(SearchForKey));
+	}
 
 // Called every frame
 void ALockedRoomGhost::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!CurrentAction && CurrentGoal)
+	if (!CurrentGoal)
+		return;
+
+	// If no current action, plan a new sequence
+	if (!CurrentAction)
 	{
 		TArray<FGOAPAction*> Plan = testGOAP::Plan(AvailableActions, WorldState, CurrentGoal);
 		if (Plan.Num() > 0)
 		{
 			CurrentAction = Plan[0];
+
+			// If it's a movement action, just start moving
 			CurrentAction->Perform();
 		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("No plan found!"));
+		}
+		return;
 	}
 
+	// Track progress for movement actions
+	AAIController* cController = Cast<AAIController>(GetController());
+	if (CurrentAction->Name == "OpenLockedDoor" && cController && Door)
+	{
+		if (GetDistanceTo(Door) < 100.f) // target reached
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Door reached! Action done."));
+			WorldState->StateValues["DoorOpen"] = true; // mark effect
+			CurrentAction = nullptr; // ready for next action
+		}
+	}
 }
 
 void ALockedRoomGhost::MoveToDoor()

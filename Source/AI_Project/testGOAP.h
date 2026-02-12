@@ -53,11 +53,16 @@ struct FGOAPAction
 
 	FWorldState* OwnBeliefs;
 	bool isAchievable() const {return true; }
-	bool isAchievableGiven(FWorldState* CurrentState)
+	bool isAchievableGiven(const FWorldState* CurrentState)
 	{
+		if (!CurrentState)
+		{
+			return false;
+		}
 		for (auto &Pre : Preconditions)
 		{
-			if (!CurrentState->StateValues.Contains(Pre.Key) || CurrentState->StateValues[Pre.Key] != Pre.Value)
+			const bool* Value = CurrentState->StateValues.Find(Pre.Key);
+			if (!Value || *Value != Pre.Value)
 			{
 				return false;
 			}
