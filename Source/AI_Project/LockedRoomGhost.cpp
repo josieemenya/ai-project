@@ -7,7 +7,10 @@
 #include "NavigationSystem.h"
 #include "Door.h"
 #include "Key.h"
+#include "FSMComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Misc/EnumClassFlags.h"
+
 
 //#include "Runtime/AIModule/Classes/AIController.h"
 
@@ -17,14 +20,24 @@ ALockedRoomGhost::ALockedRoomGhost()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
     AIControllerClass = AAIController::StaticClass();
+	FiniteMachine = CreateDefaultSubobject<UFSMComponent>(TEXT("FSM"));
+
 
     AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	
 }
 
 // Called when the game starts or when spawned
 void ALockedRoomGhost::BeginPlay()
 {
 	Super::BeginPlay();
+	FiniteMachine->CurrentState = EAIState::IDLE;
+	FiniteMachine->StateActions.Add(EAIState::IDLE, FSMAction{[]() { UE_LOG(LogTemp, Warning, TEXT("Idle...")); },"Idle"});
+	FiniteMachine->StateActions.Add(EAIState::SEARCHING,  FSMAction{ [](){ UE_LOG(LogTemp, Warning, TEXT("Searching for key...")); }, "Searching" });
+	FiniteMachine->StateActions.Add(EAIState::ATTACKING,  FSMAction{ [](){ UE_LOG(LogTemp, Warning, TEXT("Attacking!")); }, "Attacking" });
+	FiniteMachine->StateActions.Add(EAIState::DEFENDING,  FSMAction{ [](){ UE_LOG(LogTemp, Warning, TEXT("Defending!")); }, "Defending" });
+	FiniteMachine->AvailableStates = EAIState::IDLE | EAIState::SEARCHING | EAIState::ATTACKING | EAIState::DEFENDING;
+
 
 	WorldState = new FWorldState();
 	WorldState->StateValues.Add("HasKey", false);
@@ -82,38 +95,20 @@ void ALockedRoomGhost::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!CurrentGoal)
-		return;
+	FSMUpdate();
+}
 
-	// If no current action, plan a new sequence
-	if (!CurrentAction)
-	{
-		TArray<FGOAPAction*> Plan = testGOAP::Plan(AvailableActions, WorldState, CurrentGoal);
-		if (Plan.Num() > 0)
-		{
-			CurrentAction = Plan[0];
+void ALockedRoomGhost::FSMUpdate()
+{
+	
+	if (!FiniteMachine) return;
 
-			// If it's a movement action, just start moving
-			CurrentAction->Perform();
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("No plan found!"));
-		}
-		return;
-	}
+	// This function can be used to update the FSM state based on conditions
+	if (EnumHasAnyFlags(FiniteMachine->AvailableStates, FiniteMachine->CurrentState) && FiniteMachine->StateActions.Contains(FiniteMachine->CurrentState))
+		FiniteMachine->StateActions[FiniteMachine->CurrentState].DoAction();
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Current state is not available in FSM!"));
 
-	// Track progress for movement actions
-	AAIController* cController = Cast<AAIController>(GetController());
-	if (CurrentAction->Name == "OpenLockedDoor" && cController && Door)
-	{
-		if (GetDistanceTo(Door) < 100.f) // target reached
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Door reached! Action done."));
-			WorldState->StateValues["DoorOpen"] = true; // mark effect
-			CurrentAction = nullptr; // ready for next action
-		}
-	}
 }
 
 void ALockedRoomGhost::MoveToDoor()

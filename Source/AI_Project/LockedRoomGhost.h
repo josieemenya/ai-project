@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "testGOAP.h"
 #include "GameFramework/Character.h"
+#include "FSM.h"
 #include "LockedRoomGhost.generated.h"
 
 class AAIController; 
@@ -20,7 +21,7 @@ class AAIController;
 class ADoor;
 class AKiey;
 UCLASS()
-class AI_PROJECT_API ALockedRoomGhost : public ACharacter
+class AI_PROJECT_API ALockedRoomGhost : public ACharacter, public IFSM
 {
 	GENERATED_BODY()
 
@@ -42,6 +43,10 @@ public:
 	FGOAPGoal* CurrentGoal;
 	TArray<FGOAPGoal*> Goal;
 
+	FSMAction* FSMCurrentAction;	
+	EAIState AvailabeStates;
+	IFSM* FiniteMachine;
+	void FSMUpdate();
 
 	void MoveToDoor();
 

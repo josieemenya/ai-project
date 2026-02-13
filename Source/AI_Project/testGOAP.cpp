@@ -73,7 +73,7 @@ bool testGOAP::BuildGraph(Node* Parent, TArray<Node*>& Leaves, TArray<FGOAPActio
 			
 			for (auto Effect : Action->Effects)
 			{
-					NewState->StateValues[Effect.key] = Effect.Value;
+					//NewState->StateValues[Effect.key] = Effect.Value;
 			}
 
 			Node* NewNode = new Node();

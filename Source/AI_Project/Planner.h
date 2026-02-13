@@ -1,0 +1,73 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "UObject/Interface.h"
+#include "Planner.generated.h"
+
+
+struct FPlannerWorldState
+{
+	TMap<FString, bool> StateValues;
+};
+
+USTRUCT(BlueprintType)
+struct FPlannerAction
+{
+	GENERATED_BODY()
+	FName Name; // the name of the action, used for debugging and identification
+	FPlannerWorldState* Context; // context needed to perform action, such as target location, target actor, etc.
+	TFunction<bool(FPlannerWorldState*)> DoAction; // perform the action, returns true if action was successful, false otherwise
+	FPlannerWorldState* Effects; // the effects of the action on the world state, used for planning
+	float Cost; // the cost of performing the action, used for planning
+
+	bool operator==(const FPlannerAction& Other) const
+	{
+		return Name == Other.Name; // or whatever defines equality
+	}
+};
+
+struct FPlannerGoal
+{
+	FString Name;
+	TMap<FString, bool> DesiredState; // the desired world state that satisfies the goal
+	int32 Priority; // the priority of the goal, used for selecting between multiple goals
+};
+
+struct Node
+{
+	FPlannerAction Action;
+	Node* Parent;
+	float gCost, fCost, hCost;
+	Node() : Parent(nullptr), gCost(0), fCost(0), hCost(0) {}
+	Node(FPlannerAction Action, Node* Parent, float gCost, float fCost, float hCost) : Action(Action), Parent(Parent), gCost(gCost), fCost(fCost), hCost(hCost) {};
+	bool operator==(const Node& Other) const
+	{
+		return Action.Effects == Other.Action.Effects; // compare based on the resulting world state after performing the action
+	}
+};
+
+// This class does not need to be modified.
+UINTERFACE(MinimalAPI)
+class UPlanner : public UInterface
+{
+	GENERATED_BODY()
+};
+
+/**
+ * 
+ */
+class AI_PROJECT_API IPlanner
+{
+	GENERATED_BODY()
+
+	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
+	public:
+
+	TArray<FPlannerAction> PlanGoal(FPlannerWorldState* CurrentState, FPlannerWorldState* DesiredState);
+	TArray<FPlannerAction> BuildPlan(Node* Last);
+	TArray<FPlannerAction> AvailableActions; // the actions that the planner can use to achieve goals, this should be populated by the actor that implements the planner interfac
+	TArray<FPlannerAction> FilterAvailableActions(TArray<FPlannerAction> Actions, FPlannerWorldState* CurrentState);
+	TArray<FPlannerAction> GetSatisfyingActions(TArray<FPlannerAction> Actions, FPlannerWorldState* DesiredState);
+};
