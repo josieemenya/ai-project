@@ -50,6 +50,9 @@ AAI_ProjectCharacter::AAI_ProjectCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+
+	//CameraOffset = 45.f; // default value for camera offset, can be adjusted in blueprint, this is used to offset the camera from the character's forward direction, so that the camera is not directly behind the character, but slightly to the side, which can help with visibility and make it easier to see the character's animations and actions
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
@@ -86,6 +89,10 @@ void AAI_ProjectCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AAI_ProjectCharacter::Look);
+
+		// Changing camera view
+		EnhancedInputComponent->BindAction(ChangeViewActionE, ETriggerEvent::Started, this, &AAI_ProjectCharacter::ChangeViewE);
+		EnhancedInputComponent->BindAction(ChangeViewActionQ, ETriggerEvent::Started, this, &AAI_ProjectCharacter::ChangeViewQ);
 	}
 	else
 	{
@@ -101,14 +108,25 @@ void AAI_ProjectCharacter::Move(const FInputActionValue& Value)
 	if (Controller != nullptr)
 	{
 		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FRotator CameraRotation = FollowCamera->GetComponentRotation();
 
+		// for the orthgonal camera
+		//const auto InRoll = CameraOffset + Rotation.Yaw; 
+		
+		//const FRotator YawRotation(0, Rotation.Yaw, InRoll);
+
+		
 		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		FVector ForwardDirection = CameraRotation.Vector();
 	
 		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		FVector RightDirection = FRotationMatrix(CameraRotation).GetUnitAxis(EAxis::Y);
+
+		ForwardDirection.Z = 0.f;
+		RightDirection.Z   = 0.f;
+
+		ForwardDirection.Normalize();
+		RightDirection.Normalize();
 
 		// add movement 
 		AddMovementInput(ForwardDirection, MovementVector.Y);
@@ -126,5 +144,66 @@ void AAI_ProjectCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void AAI_ProjectCharacter::ChangeViewE(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("E ACTION FIRED"));
+
+	CameraPositionIndex = (CameraPositionIndex + 1) % 4;
+	// q is negate, e is positive
+	UE_LOG(LogTemp, Warning, TEXT("Camera Position Index: %d"), CameraPositionIndex);
+	switch (CameraPositionIndex)
+	{
+	case 0:
+		CameraBoom->TargetOffset = FVector(0.f, 200, 150.f);
+		FollowCamera->SetRelativeRotation(FRotator(-25, -45, 0));
+		break;
+	case 1:
+		CameraBoom->TargetOffset = FVector(400.f, 200, 150.f);
+		FollowCamera->SetRelativeRotation(FRotator(-25, -135, 0));
+		break;
+	case 2:
+		CameraBoom->TargetOffset = FVector(400.f, -200, 150.f);
+		FollowCamera->SetRelativeRotation(FRotator(-25, 135, 0));
+		break;
+	case 3:
+		CameraBoom->TargetOffset = FVector(0.f, -200, 150.f);
+		FollowCamera->SetRelativeRotation(FRotator(-25, 45, 0));
+		break;
+	default :
+		CameraPositionIndex = (CameraPositionIndex < 0) ? 3 : 0;
+		break; 
+	}
+}
+
+void AAI_ProjectCharacter::ChangeViewQ(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Q ACTION FIRED"));
+
+	CameraPositionIndex = (CameraPositionIndex + 3) % 4;
+	UE_LOG(LogTemp, Warning, TEXT("Camera Position Index: %d"), CameraPositionIndex);
+	switch (CameraPositionIndex)
+	{
+	case 0:
+		CameraBoom->TargetOffset = FVector(0.f, 200, 150.f);
+		FollowCamera->SetRelativeRotation(FRotator(-25, -45, 0));
+		break;
+	case 1:
+		CameraBoom->TargetOffset = FVector(400.f, 200, 150.f);
+		FollowCamera->SetRelativeRotation(FRotator(-25, -135, 0));
+		break;
+	case 2:
+		CameraBoom->TargetOffset = FVector(400.f, -200, 150.f);
+		FollowCamera->SetRelativeRotation(FRotator(-25, 135, 0));
+		break;
+	case 3:
+		CameraBoom->TargetOffset = FVector(0.f, -200, 150.f);
+		FollowCamera->SetRelativeRotation(FRotator(-25, 45, 0));
+		break;
+	default:
+		CameraPositionIndex = (CameraPositionIndex < 0) ? 3 : 0;
+		break;
 	}
 }

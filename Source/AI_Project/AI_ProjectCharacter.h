@@ -44,6 +44,12 @@ class AAI_ProjectCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ChangeViewActionE;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ChangeViewActionQ;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* SprintAction; // while shift is held down increase speed, otherwise, normal speed, also call stamina drain function;
 
@@ -51,6 +57,8 @@ class AAI_ProjectCharacter : public ACharacter
 	bool bIsSprinting; // whether the character is currently sprinting, if not use a delegate to set the speed back to normal when shift is released
 
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	int CameraPositionIndex; 
 	// two attacks, one just regu;lar attack,, differs wtih weapons
 	// one thropw attack, since character is a preiest, if holy water is available, then throw it, otherwise, do a regular attack, also differs with weapons, maybe have a staff attack and a fist attack or something
 	//UInputAction* HitAttackAction;
@@ -67,7 +75,9 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-			
+
+	void ChangeViewE(const FInputActionValue& Value);
+	void ChangeViewQ(const FInputActionValue& Value);
 
 protected:
 	// APawn interface
