@@ -18,7 +18,7 @@ struct FPlannerAction
 	GENERATED_BODY()
 	FName Name; // the name of the action, used for debugging and identification
 	FPlannerWorldState* Context; // context needed to perform action, such as target location, target actor, etc.
-	TFunction<bool(FPlannerWorldState*)> DoAction; // perform the action, returns true if action was successful, false otherwise
+	TFunction<bool()> DoAction; // perform the action, returns true if action was successful, false otherwise
 	FPlannerWorldState* Effects; // the effects of the action on the world state, used for planning
 	float Cost; // the cost of performing the action, used for planning
 
@@ -31,7 +31,7 @@ struct FPlannerAction
 struct FPlannerGoal
 {
 	FString Name;
-	TMap<FString, bool> DesiredState; // the desired world state that satisfies the goal
+	FPlannerWorldState DesiredState; // the desired world state that satisfies the goal
 	int32 Priority; // the priority of the goal, used for selecting between multiple goals
 };
 
@@ -70,4 +70,10 @@ class AI_PROJECT_API IPlanner
 	TArray<FPlannerAction> AvailableActions; // the actions that the planner can use to achieve goals, this should be populated by the actor that implements the planner interfac
 	TArray<FPlannerAction> FilterAvailableActions(TArray<FPlannerAction> Actions, FPlannerWorldState* CurrentState);
 	TArray<FPlannerAction> GetSatisfyingActions(TArray<FPlannerAction> Actions, FPlannerWorldState* DesiredState);
+	TArray<FPlannerAction> ToDoStack; 
+	FPlannerGoal DesiredGoal; 
+	TArray<FPlannerGoal> Goals;
+	
+	void UpdateStack(); 
+	FPlannerAction CurrentAction;
 };

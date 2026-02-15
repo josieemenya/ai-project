@@ -38,7 +38,7 @@ TArray<FPlannerAction> IPlanner::PlanGoal(FPlannerWorldState* CurrentState, FPla
 
 		for (auto possibleAction : satisfyingActions)
 		{
-			auto newWorld = new Node(FPlannerAction{"", CurrentNode.Action.Effects, [](FPlannerWorldState*)->bool {return false; }}, nullptr, 0, 0, 0);
+			auto newWorld = new Node(FPlannerAction{"", CurrentNode.Action.Effects, []()->bool {return false; }}, nullptr, 0, 0, 0);
 			for (auto& Effect : possibleAction.Effects->StateValues)
 			{
 				(*newWorld).Action.Effects->StateValues.Add(Effect.Key, Effect.Value);
@@ -79,6 +79,16 @@ TArray<FPlannerAction> IPlanner::GetSatisfyingActions(TArray<FPlannerAction> Act
 	}
 
 	return Actions;
+}
+
+void IPlanner::UpdateStack()
+{
+	if (ToDoStack.IsEmpty())
+		return;
+	
+	CurrentAction = ToDoStack.Pop();
+	FPlannerWorldState* CurrentWorldState = CurrentAction.Context;
+	CurrentAction.DoAction(); 
 }
 
 TArray<FPlannerAction> IPlanner::BuildPlan(Node* Last)

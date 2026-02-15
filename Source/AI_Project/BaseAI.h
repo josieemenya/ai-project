@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "PlannerComponent.h"
 #include "BaseAI.generated.h"
+
 
 USTRUCT(BlueprintType)
 struct FAIAction
@@ -15,6 +17,8 @@ struct FAIAction
 	bool isComplete = false;
 };
 
+class UPlannerComponent;
+
 UCLASS()
 class AI_PROJECT_API ABaseAI : public ACharacter
 {
@@ -23,9 +27,17 @@ class AI_PROJECT_API ABaseAI : public ACharacter
 public:
 	// Sets default values for this character's properties
 	ABaseAI();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPlannerComponent* PlannerComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	TArray<FAIAction> ActionStack;
+	
+	TArray<FPlannerGoal> GoalsToDo; 
+	
+
+	
 
 	FAIAction CurrentAction; 
 
@@ -42,5 +54,6 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
 
 };
