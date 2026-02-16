@@ -33,6 +33,11 @@ struct FPlannerGoal
 	FString Name;
 	FPlannerWorldState DesiredState; // the desired world state that satisfies the goal
 	int32 Priority; // the priority of the goal, used for selecting between multiple goals
+	
+	bool operator==(const FPlannerGoal& Other) const
+	{
+		return Name == Other.Name;
+	}
 };
 
 struct Node

@@ -7,6 +7,7 @@
 #include "PlannerComponent.h"
 #include "BaseAI.generated.h"
 
+class LockAndKey; 
 
 USTRUCT(BlueprintType)
 struct FAIAction
@@ -44,7 +45,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
+	LockAndKey* Lock; 
 
 public:	
 	// Called every frame

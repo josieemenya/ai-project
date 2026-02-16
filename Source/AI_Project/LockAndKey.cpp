@@ -22,6 +22,8 @@ void LockAndKey::SetActions() {
 		{},
 		1
 	};
+	LookForKey.Context = new FPlannerWorldState(); 
+	LookForKey.Effects = new FPlannerWorldState(); 
 	
 	LookForKey.Effects->StateValues.Add("HasKey", false);
 	LookForKey.DoAction = []()
@@ -38,7 +40,8 @@ void LockAndKey::SetActions() {
 		{}, 
 		1
 	};
-	
+	FoundKey.Context = new FPlannerWorldState();
+	FoundKey.Effects = new FPlannerWorldState();
 	FoundKey.Context->StateValues.Add("HasKey", false);
 	FoundKey.Effects->StateValues.Add("HasKey", true);
 	FoundKey.DoAction = [](){ GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::MakeRandomColor(), TEXT("FoundKey")); return true; };
@@ -52,7 +55,8 @@ void LockAndKey::SetActions() {
 		1
 	} ; 
 	
-	
+	OpenDoor.Context = new FPlannerWorldState();
+	OpenDoor.Effects = new FPlannerWorldState();
 	OpenDoor.Effects->StateValues.Add("Unlock Door", true);
 	OpenDoor.Context->StateValues.Add("HasKey", true);
 	OpenDoor.DoAction = [](){ GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Blue, TEXT("Opening Door")); return true; };
@@ -65,6 +69,8 @@ void LockAndKey::SetActions() {
 		{},
 		1
 	};
+	LeaveRoom.Context = new FPlannerWorldState();
+	LeaveRoom.Effects = new FPlannerWorldState();
 	
 	LeaveRoom.Context->StateValues.Add("HasKey", true);
 	LeaveRoom.Context->StateValues.Add("Unlock Door", true);
