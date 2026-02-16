@@ -11,7 +11,7 @@ struct FPlannerWorldState
 {
 	TMap<FString, bool> StateValues;
 	FPlannerWorldState() = default;
-	FPlannerWorldState (FPlannerWorldState &Other)
+	FPlannerWorldState (const FPlannerWorldState &Other)
 	{
 		StateValues = Other.StateValues;
 	}
@@ -47,16 +47,10 @@ struct FPlannerAction
 	FPlannerWorldState Effects; // the effects of the action on the world state, used for planning
 	float Cost; // the cost of performing the action, used for planning
 	
-	FPlannerAction(FPlannerAction &Other)
-	{
-		Name = Other.Name;
-		Context = Other.Context;
-		DoAction = Other.DoAction;
-		Cost = Other.Cost;
-		Effects = Other.Effects;
-	}
+	FPlannerAction(const FPlannerAction &Other) = default;
 	
 	FPlannerAction() = default;
+	
 	bool operator==(const FPlannerAction& Other) const
 	{
 		return Name == Other.Name; // or whatever defines equality
@@ -83,13 +77,13 @@ struct Node
 	float gCost, fCost, hCost;
 	Node() : State{}, Parent(nullptr), Action{}, gCost(0), fCost(0), hCost(0) {}
 	Node(FPlannerWorldState &State) : State(State) {}
-	Node(FPlannerWorldState State, FPlannerAction Action, Node* Parent, float gCost, float fCost, float hCost) : State(State), Action(Action), Parent(Parent), gCost(gCost), fCost(fCost), hCost(hCost) {};
+	Node(FPlannerWorldState State, FPlannerAction Action, Node* Parent, float gCost, float fCost, float hCost) : State(State), Parent(Parent), Action(Action), gCost(gCost), fCost(fCost), hCost(hCost) {};
 	bool operator==(const Node& Other) const
 	{
 		return Action.Effects == Other.Action.Effects; // compare based on the resulting world state after performing the action
 	}
 	
-	Node(Node &Other)
+	Node(const Node &Other)
 	{
 		State = Other.State;
 		Action = Other.Action;
@@ -130,7 +124,7 @@ class AI_PROJECT_API IPlanner
 	FPlannerAction CurrentAction;
 };
 
-int getHCost(Node A, FPlannerWorldState B)
+inline int getHCost(Node A, FPlannerWorldState B)
 {
 	int hCost = 0;
 	for (auto X : B.StateValues)
