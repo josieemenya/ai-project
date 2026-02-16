@@ -6,48 +6,71 @@
 #include <corecrt_io.h>
 
 // Add default functionality here for any IPlanner functions that are not pure virtual.
-TArray<FPlannerAction> IPlanner::PlanGoal(FPlannerWorldState* CurrentState, FPlannerWorldState* DesiredState)
+TArray<FPlannerAction> IPlanner::PlanGoal(FPlannerWorldState CurrentState, FPlannerWorldState DesiredState)
 {
 	TArray<Node> Open;
 	TArray<Node> Close;
+	
+	
 
-	auto Action = new FPlannerAction();
-	Action->Context = CurrentState;
-
-	auto CurrentNode = Node{*Action, nullptr, 0, 0, 0};
+	auto CurrentNode = Node {
+		CurrentState,
+		{},
+		nullptr,
+		0, 
+		0, 
+		0
+	}; 
+	
+	auto remainingActions = getHCost(CurrentNode, DesiredState);
+	
+	CurrentNode.hCost = remainingActions;
+	CurrentNode.fCost = remainingActions + CurrentNode.gCost;
 
 	Open.Add(CurrentNode);
 
 	while (!Open.IsEmpty())
 	{
+		// find lowestCost
 		Open.Sort([](const Node& A, const Node& B) { return A.fCost < B.fCost; });
 		CurrentNode = Open[0];
-		if (CurrentNode.Action.Effects == DesiredState)
+		Open.RemoveAt(0);
+		Close.Add(CurrentNode);
+		
+		// check for completion
+		if (CurrentNode.Action.Effects.Satisfies(DesiredState))
 		{
 			auto Path = BuildPlan(&CurrentNode);
 			//delete Open;
 			//delete Close;
 			return Path;
 		}
-
-		Open.Remove(CurrentNode);
-		Close.Add(CurrentNode);
-
+		
+		// filter against valid actions,  check against precomditions
 		auto validActions = FilterAvailableActions(AvailableActions, CurrentNode.Action.Context);
+		
+		// filter actions that satisfy our goal, 
 		auto satisfyingActions = GetSatisfyingActions(validActions, DesiredState);
 
 		for (auto possibleAction : satisfyingActions)
 		{
-			auto newWorld = new Node(FPlannerAction{"", CurrentNode.Action.Effects, []()->bool {return false; }}, nullptr, 0, 0, 0);
-			for (auto& Effect : possibleAction.Effects->StateValues)
+			//auto newWorld = new Node(FPlannerAction{"", CurrentNode.Action.Effects, []()->bool {return false; }}, nullptr, 0, 0, 0);
+			Node* newWorld = new Node(CurrentNode.State);
+			newWorld->Parent = &CurrentNode; // a heap node pointer
+			
+
+			
+			for (auto& Effect : possibleAction.Effects.StateValues)
 			{
-				(*newWorld).Action.Effects->StateValues.Add(Effect.Key, Effect.Value);
+				newWorld->State.StateValues[Effect.Key] = Effect.Value;
 			}
 
-			newWorld->Parent->Action = possibleAction;
-			newWorld->Parent->Action.Context = CurrentNode.Action.Context;
-			
+			newWorld->Action = possibleAction;
+			newWorld->Action.Context = CurrentNode.State; 
 			newWorld->gCost = CurrentNode.gCost + possibleAction.Cost;
+			newWorld->hCost = getHCost(*newWorld, DesiredState);
+			newWorld->fCost = newWorld->gCost + newWorld->hCost;
+			;
 			Open.Add(*newWorld); 
 		}
 	}
@@ -55,30 +78,32 @@ TArray<FPlannerAction> IPlanner::PlanGoal(FPlannerWorldState* CurrentState, FPla
 	return TArray<FPlannerAction>();
 }
 
-TArray<FPlannerAction> IPlanner::FilterAvailableActions(TArray<FPlannerAction> Actions, FPlannerWorldState* CurrentState)
+TArray<FPlannerAction> IPlanner::FilterAvailableActions(TArray<FPlannerAction> Actions, FPlannerWorldState CurrentState)
 { // positive that this isn't correct will assess tomorrow
+	TArray<FPlannerAction> ActionList;
 	for (auto action : Actions)
 	{
-		if ( action.Context == CurrentState) // check if the action is valid in the current world state
+		if (CurrentState.Satisfies(action.Context)) // check if the action is valid in the current world state
 		{
-			Actions.Remove(action);
+			ActionList.Add(action);
 		}
 	}
- 	return Actions;
+ 	return ActionList;
 }
 
 
-TArray<FPlannerAction> IPlanner::GetSatisfyingActions(TArray<FPlannerAction> Actions, FPlannerWorldState* DesiredState)
+TArray<FPlannerAction> IPlanner::GetSatisfyingActions(TArray<FPlannerAction> Actions, FPlannerWorldState DesiredState)
 { // positive that this isn't correct will assess tomorrow
+	TArray<FPlannerAction> ActionList;
 	for (auto action : Actions)
 	{
-		if (action.Effects == DesiredState) // check if the action's effects satisfy the desired world state
+		if (action.Effects.Satisfies(DesiredState)) // check if the action's effects satisfy the desired world state
 		{
-			Actions.Remove(action);
+			ActionList.Add(action);
 		}
 	}
 
-	return Actions;
+	return ActionList;
 }
 
 void IPlanner::UpdateStack()
@@ -87,7 +112,7 @@ void IPlanner::UpdateStack()
 		return;
 	
 	CurrentAction = ToDoStack.Pop();
-	FPlannerWorldState* CurrentWorldState = CurrentAction.Context;
+	FPlannerWorldState CurrentWorldState = CurrentAction.Context;
 	CurrentAction.DoAction(); 
 }
 
