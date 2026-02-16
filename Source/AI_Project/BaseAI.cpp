@@ -2,7 +2,7 @@
 
 
 #include "BaseAI.h"
-#include "LockAndKey.h"
+//#include "LockAndKey.h"
 #include "PlannerComponent.h"
 
 
@@ -19,7 +19,7 @@ ABaseAI::ABaseAI()
 void ABaseAI::BeginPlay()
 {
 	Super::BeginPlay();
-	Lock = new LockAndKey();
+	//Lock = new LockAndKey();
 	
 }
 
@@ -33,15 +33,6 @@ void ABaseAI::Tick(float DeltaTime)
 
 void ABaseAI::UpdateActions()
 {
-	
-	Lock->Owner = this;
-	Lock->SetGoal(); 
-	Lock->SetActions();
-	
-	for (auto &s : Lock->AvailableActions)
-		PlannerComponent->AvailableActions.Add(s);
-	
-	Lock->UpdateGoal(PlannerComponent);
 	PlannerComponent->UpdateStack(); 
 }
 
