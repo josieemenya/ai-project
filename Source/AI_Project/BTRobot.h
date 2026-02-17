@@ -43,5 +43,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UMoveAction* WalkTo; 
 	
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UConditionNode* Condition;
 };
