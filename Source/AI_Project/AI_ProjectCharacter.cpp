@@ -10,6 +10,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "RoomComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -18,6 +20,7 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 AAI_ProjectCharacter::AAI_ProjectCharacter()
 {
+	PlayerRoom = CreateDefaultSubobject<URoomComponent>(TEXT("PlayerRoom"));
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
@@ -61,6 +64,8 @@ void AAI_ProjectCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+	if (PlayerRoom)
+		PlayerRoom->ChangeRoom.AddUObject(this, &AAI_ProjectCharacter::GoToNewRoom);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -205,5 +210,14 @@ void AAI_ProjectCharacter::ChangeViewQ(const FInputActionValue& Value)
 	default:
 		CameraPositionIndex = (CameraPositionIndex < 0) ? 3 : 0;
 		break;
+	}
+}
+
+void AAI_ProjectCharacter::GoToNewRoom()
+{
+	if (PlayerRoom){
+		auto Room = PlayerRoom->CurrentRoom; 
+		if (Room)
+			UGameplayStatics::OpenLevel(GetWorld(), FName(Room->RoomLevel->GetName())); 
 	}
 }

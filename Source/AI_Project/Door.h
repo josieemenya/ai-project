@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Door.generated.h"
 
+
 UCLASS()
 class AI_PROJECT_API ADoor : public AActor
 {

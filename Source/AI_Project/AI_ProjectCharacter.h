@@ -12,8 +12,11 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
+class URoomComponent; 
+
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
+
 
 UCLASS(config=Game)
 class AAI_ProjectCharacter : public ACharacter
@@ -67,6 +70,7 @@ class AAI_ProjectCharacter : public ACharacter
 public:
 	AAI_ProjectCharacter();
 	
+	
 
 protected:
 
@@ -78,6 +82,7 @@ protected:
 
 	void ChangeViewE(const FInputActionValue& Value);
 	void ChangeViewQ(const FInputActionValue& Value);
+	void GoToNewRoom(); 
 
 protected:
 	// APawn interface
@@ -91,5 +96,8 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+	URoomComponent* PlayerRoom; 
 };
 
