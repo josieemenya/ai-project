@@ -66,11 +66,10 @@ TArray<FPlannerAction> IPlanner::PlanGoal(FPlannerWorldState CurrentState, FPlan
 			}
 
 			newWorld->Action = possibleAction;
-			newWorld->Action.Context = CurrentNode.State; 
+			newWorld->Action.Context = CurrentNode.State; // same as line 58?
 			newWorld->gCost = CurrentNode.gCost + possibleAction.Cost;
 			newWorld->hCost = getHCost(*newWorld, DesiredState);
 			newWorld->fCost = newWorld->gCost + newWorld->hCost;
-			;
 			Open.Add(*newWorld); 
 		}
 	}

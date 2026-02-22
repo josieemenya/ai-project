@@ -71,6 +71,7 @@ struct FPlannerGoal
 
 struct Node
 {
+// have an id for Node? use pointers
 	FPlannerWorldState State;
 	FPlannerAction Action;
 	Node* Parent;
