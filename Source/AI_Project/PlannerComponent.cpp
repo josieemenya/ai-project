@@ -32,3 +32,19 @@ void UPlannerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	// ...
 }
 
+void UPlannerComponent::SetGoal(const FString& Key, const bool Value, FName GoalName)
+{
+	FPlannerGoal NewGoal;
+	FPlannerWorldState GoalState; 
+	GoalState.StateValues.Add(Key, Value);
+	NewGoal.Name = GoalName.ToString();
+	NewGoal.DesiredState = GoalState;
+	NewGoal.Priority = 1; 
+	
+	Goals.Add(NewGoal); 
+}
+
+void UPlannerComponent::AddToAvailableActions(FPlannerAction NewAction)
+{
+		AvailableActions.Add(NewAction);
+}

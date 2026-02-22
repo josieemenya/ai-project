@@ -24,6 +24,11 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
+	
+	UFUNCTION(BlueprintCallable, Category="Planner")
+	virtual void SetGoal(const FString& Key, const bool Value, FName GoalName) override;
+	
+	UFUNCTION(BlueprintCallable, Category="Planner")
+	void AddToAvailableActions(FPlannerAction NewAction); 
 		
 };

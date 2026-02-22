@@ -6,24 +6,25 @@
 #include "UObject/Interface.h"
 #include "Planner.generated.h"
 
-
+USTRUCT(BlueprintType)
 struct FPlannerWorldState
 {
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<FString, bool> StateValues;
+	
+	
 	FPlannerWorldState() = default;
-	FPlannerWorldState (const FPlannerWorldState &Other)
-	{
-		StateValues = Other.StateValues;
-	}
+	FPlannerWorldState (const FPlannerWorldState &Other) = default;
 	
 	bool operator==(const FPlannerWorldState& Other) const
 	{
 		return StateValues.OrderIndependentCompareEqual(Other.StateValues);
 	}
 	
-	bool Satisfies(const FPlannerWorldState& Other)
+	bool Satisfies(const FPlannerWorldState& Other) const
 	{
-		for (auto X : Other.StateValues)
+		for (auto& X : Other.StateValues)
 		{
 			auto GoalKey = X.Key;
 			bool GoalValue = X.Value;
@@ -37,14 +38,35 @@ struct FPlannerWorldState
 	}
 };
 
+UCLASS()
+class AI_PROJECT_API UActionObject : public UObject
+{
+	GENERATED_BODY()
+	UActionObject() = default;
+	
+public: 
+	UFUNCTION(BlueprintNativeEvent)
+	bool Execute();
+};
+
 USTRUCT(BlueprintType)
 struct FPlannerAction
 {
 	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName Name; // the name of the action, used for debugging and identification
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FPlannerWorldState Context; // context needed to perform action, such as target location, target actor, etc.
-	TFunction<bool()> DoAction; // perform the action, returns true if action was successful, false otherwise
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UActionObject* ActionObject;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FPlannerWorldState Effects; // the effects of the action on the world state, used for planning
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Cost; // the cost of performing the action, used for planning
 	
 	FPlannerAction(const FPlannerAction &Other) = default;
@@ -57,10 +79,17 @@ struct FPlannerAction
 	}
 };
 
+USTRUCT(BlueprintType)
 struct FPlannerGoal
 {
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Name;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FPlannerWorldState DesiredState; // the desired world state that satisfies the goal
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Priority; // the priority of the goal, used for selecting between multiple goals
 	
 	bool operator==(const FPlannerGoal& Other) const
@@ -96,7 +125,7 @@ struct Node
 };
 
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI)
+UINTERFACE(NotBlueprintable)
 class UPlanner : public UInterface
 {
 	GENERATED_BODY()
@@ -114,7 +143,6 @@ class AI_PROJECT_API IPlanner
 
 	TArray<FPlannerAction> PlanGoal(FPlannerWorldState CurrentState, FPlannerWorldState DesiredState);
 	TArray<FPlannerAction> BuildPlan(Node* Last);
-	TArray<FPlannerAction> AvailableActions; // the actions that the planner can use to achieve goals, this should be populated by the actor that implements the planner interfac
 	TArray<FPlannerAction> FilterAvailableActions(TArray<FPlannerAction> Actions, FPlannerWorldState CurrentState);
 	TArray<FPlannerAction> GetSatisfyingActions(TArray<FPlannerAction> Actions, FPlannerWorldState DesiredState);
 	TArray<FPlannerAction> ToDoStack; 
@@ -123,6 +151,12 @@ class AI_PROJECT_API IPlanner
 	
 	void UpdateStack(); 
 	FPlannerAction CurrentAction;
+	
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FPlannerAction> AvailableActions; // the actions that the planner can use to achieve goals, this should be populated by the actor that implements the planner interfac
+	
+	UFUNCTION(BlueprintCallable, Category="Planner")
+	virtual void SetGoal(const FString& Key, const bool Value, FName GoalName) = 0;
 };
 
 inline int getHCost(Node A, FPlannerWorldState B)

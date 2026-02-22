@@ -112,7 +112,7 @@ void IPlanner::UpdateStack()
 	
 	CurrentAction = ToDoStack.Pop();
 	FPlannerWorldState CurrentWorldState = CurrentAction.Context;
-	CurrentAction.DoAction(); 
+	CurrentAction.ActionObject->Execute(); 
 }
 
 TArray<FPlannerAction> IPlanner::BuildPlan(Node* Last)
@@ -125,4 +125,13 @@ TArray<FPlannerAction> IPlanner::BuildPlan(Node* Last)
 	}
 
 	return Plan;
+}
+
+
+
+
+bool UActionObject::Execute_Implementation()
+{
+	// Default C++ behavior
+	return true;
 }
