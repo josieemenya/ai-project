@@ -31,7 +31,9 @@ void UTreeComponent::BeginPlay()
 void UTreeComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
+	
+	if (RootNode)
+		RootNode->StatusRun();
 	// ...
 }
 
