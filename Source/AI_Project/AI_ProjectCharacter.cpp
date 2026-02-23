@@ -52,7 +52,7 @@ AAI_ProjectCharacter::AAI_ProjectCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
-
+	GetCapsuleComponent()->SetGenerateOverlapEvents(true);
 
 	//CameraOffset = 45.f; // default value for camera offset, can be adjusted in blueprint, this is used to offset the camera from the character's forward direction, so that the camera is not directly behind the character, but slightly to the side, which can help with visibility and make it easier to see the character's animations and actions
 
