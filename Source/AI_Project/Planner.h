@@ -157,6 +157,7 @@ class AI_PROJECT_API IPlanner
 	
 	UFUNCTION(BlueprintCallable, Category="Planner")
 	virtual void SetGoal(const FString& Key, const bool Value, FName GoalName) = 0;
+
 };
 
 inline int getHCost(Node A, FPlannerWorldState B)
