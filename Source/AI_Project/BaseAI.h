@@ -34,9 +34,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	TArray<FAIAction> ActionStack;
-	
-	TArray<FPlannerGoal> GoalsToDo; 
-	
 
 	
 

@@ -3,6 +3,8 @@
 
 #include "PlannerComponent.h"
 
+#include "ComponentUtils.h"
+
 // Sets default values for this component's properties
 UPlannerComponent::UPlannerComponent()
 {
@@ -32,14 +34,14 @@ void UPlannerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	// ...
 }
 
-void UPlannerComponent::SetGoal(const FString& Key, const bool Value, FName GoalName)
+void UPlannerComponent::SetGoal(TMap<FString, bool> GoalValue, FName GoalName)
 {
-	FPlannerGoal NewGoal;
+	UPlannerGoal* NewGoal = NewObject<UPlannerGoal>();
 	FPlannerWorldState GoalState; 
-	GoalState.StateValues.Add(Key, Value);
-	NewGoal.Name = GoalName.ToString();
-	NewGoal.DesiredState = GoalState;
-	NewGoal.Priority = 1; 
+	GoalState.StateValues = GoalValue;
+	NewGoal->Name = GoalName.ToString();
+	NewGoal->DesiredState = GoalState;
+	NewGoal->Priority = 1; 
 	
 	Goals.Add(NewGoal); 
 }
@@ -48,3 +50,144 @@ void UPlannerComponent::AddToAvailableActions(FPlannerAction NewAction)
 {
 		AvailableActions.Add(NewAction);
 }
+
+TArray<FPlannerAction> UPlannerComponent::PlanGoal(FPlannerWorldState CurrentState, FPlannerWorldState DesiredState)
+{
+	TArray<Node*> Open;
+	TArray<Node*> Close;
+	
+	
+
+	auto StartNode = new Node {
+		CurrentState,
+		{},
+		nullptr,
+		0, 
+		0, 
+		0
+	}; 
+	
+	auto remainingActions = getHCost(StartNode, DesiredState);
+	
+	StartNode->hCost = remainingActions;
+	StartNode->fCost = remainingActions;
+
+	Open.Add(StartNode);
+
+	while (!Open.IsEmpty())
+	{
+		// find lowestCost
+		Open.Sort([](const Node& A, const Node& B) { return A.fCost < B.fCost; });
+		Node* CurrentNode = Open[0];
+		Open.RemoveAt(0);
+		Close.Add(CurrentNode);
+		
+		// check for completion
+		if (CurrentNode->State.Satisfies(DesiredState))
+		{
+			auto Path = BuildPlan(CurrentNode);
+			for (auto n : Open)
+				delete n;
+			for (auto n : Close) 
+				delete n; 
+			return Path;
+		}
+		
+		// filter against valid actions,  check against precomditions
+		auto validActions = FilterAvailableActions(AvailableActions, CurrentNode->State);
+		
+		// filter actions that satisfy our goal, 
+		//auto satisfyingActions = GetSatisfyingActions(validActions, DesiredState);
+
+		for (const auto &possibleAction : validActions)
+		{
+			//auto newWorld = new Node(FPlannerAction{"", CurrentNode.Action.Effects, []()->bool {return false; }}, nullptr, 0, 0, 0);
+			Node* Child = new Node(CurrentNode->State);
+			Child->Parent = CurrentNode; // a heap node pointer
+			
+
+			
+			for (auto& Effect : possibleAction.Effects.StateValues)
+			{
+				Child->State.StateValues[Effect.Key] = Effect.Value;
+			}
+
+			Child->Action = possibleAction;
+			//newWorld->Action.Context = CurrentNode->State; // same as line 58?
+			Child->gCost = CurrentNode->gCost + possibleAction.Cost;
+			Child->hCost = getHCost(Child, DesiredState);
+			Child->fCost = Child->gCost + Child->hCost;
+			Open.Add(Child); 
+		}
+	}
+
+	return TArray<FPlannerAction>();
+}
+
+TArray<FPlannerAction> UPlannerComponent::FilterAvailableActions(TArray<FPlannerAction> Actions, FPlannerWorldState CurrentState)
+{ // positive that this isn't correct will assess tomorrow
+	TArray<FPlannerAction> ActionList;
+	for (auto action : Actions)
+	{
+		if (CurrentState.Satisfies(action.Context)) // check if the action is valid in the current world state
+		{
+			ActionList.Add(action);
+		}
+	}
+	return ActionList;
+}
+
+TArray<FPlannerAction> UPlannerComponent::GetSatisfyingActions(TArray<FPlannerAction> Actions, FPlannerWorldState DesiredState)
+{ // positive that this isn't correct will assess tomorrow
+	TArray<FPlannerAction> ActionList;
+	for (auto action : Actions)
+	{
+		if (action.Effects.Satisfies(DesiredState)) // check if the action's effects satisfy the desired world state
+		{
+			ActionList.Add(action);
+		}
+	}
+
+	return ActionList;
+}
+
+void UPlannerComponent::UpdateStack()
+{
+	if (ToDoStack.IsEmpty())
+		return;
+	UE_LOG(LogTemp, Warning, TEXT("UpdateStack called"));
+	CurrentAction = ToDoStack[0];
+	ToDoStack.RemoveAt(0);
+	FPlannerWorldState CurrentWorldState = CurrentAction.Context;
+	if (CurrentAction.ActionObject)
+	{
+    	CurrentAction.ActionObject->Execute();
+	}
+
+	else
+	{
+    	UE_LOG(LogTemp, Error, TEXT("ActionObject is null for action %s"),
+        	*CurrentAction.Name.ToString());
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Executed action"));
+}
+
+TArray<FPlannerAction> UPlannerComponent::BuildPlan(Node* Last)
+{ // this however is correct, it builds the plan by backtracking from the goal node to the start node and collecting the actions along the way
+	TArray<FPlannerAction> Plan;
+	while (Last)
+	{
+	    Plan.Add(Last->Action);
+	    Last = Last->Parent;
+	}
+	Algo::Reverse(Plan);  // now it’s start -> goal
+		return Plan;
+}
+
+
+bool UActionObject::Execute_Implementation()
+{
+	// Default C++ behavior
+	return true;
+}
+
