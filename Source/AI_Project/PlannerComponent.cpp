@@ -3,7 +3,10 @@
 
 #include "PlannerComponent.h"
 
+#include "AIController.h"
 #include "ComponentUtils.h"
+#include "GameFramework/Actor.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
 UPlannerComponent::UPlannerComponent()
@@ -151,7 +154,7 @@ TArray<FPlannerAction> UPlannerComponent::GetSatisfyingActions(TArray<FPlannerAc
 	return ActionList;
 }
 
-void UPlannerComponent::UpdateStack()
+void UPlannerComponent::UpdateStack(AActor* OwningActor)
 {
 	if (ToDoStack.IsEmpty())
 		return;
@@ -161,7 +164,7 @@ void UPlannerComponent::UpdateStack()
 	FPlannerWorldState CurrentWorldState = CurrentAction.Context;
 	if (CurrentAction.ActionObject)
 	{
-    	CurrentAction.ActionObject->Execute();
+    	CurrentAction.ActionObject->Execute(OwningActor);
 	}
 
 	else
@@ -185,9 +188,74 @@ TArray<FPlannerAction> UPlannerComponent::BuildPlan(Node* Last)
 }
 
 
-bool UActionObject::Execute_Implementation()
+bool UActionObject::Execute(AActor* Actor)
 {
-	// Default C++ behavior
+	World = GetWorld(); // always get world context
 	return true;
 }
 
+UMoveActionObject::UMoveActionObject()
+{
+	UActionObject(); 
+}
+
+bool UMoveActionObject::Execute(AActor* Actor)
+{
+	Super::Execute(Actor); 
+	if (!Actor)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Owning Actor not valid!"));
+		return false;
+	}
+	APawn* Pawn = Cast<APawn>(Actor);
+	if (!Pawn)
+	{
+		return false;
+	}
+	
+	AAIController* Controller = Cast<AAIController>(Pawn->Controller);
+	
+	if (!Controller)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Controller not valid"));
+		return false;
+	}
+	
+	World = GEngine->GetWorldFromContextObject(this, EGetWorldErrorMode::LogAndReturnNull);
+	if (!World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("World not found!"));
+		return false;
+	}
+	
+	
+	switch(ActionValue.Type)
+	{
+		case EValueType::Actor:
+			{
+				TArray<AActor*> ActorsInWorld;
+				UGameplayStatics::GetAllActorsOfClass(GetWorld(), ActionValue.ActorVal, ActorsInWorld); 
+				
+				if (ActorsInWorld.Num() == 0)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("No actors of that class found"));
+					break;
+				}
+				
+				ActorsInWorld.Sort([Actor](auto& A, auto& B)
+					{
+						return FVector::Dist(A.GetActorLocation(), Actor->GetActorLocation()) <
+							FVector::Dist(B.GetActorLocation(), Actor->GetActorLocation());
+					}	
+				); 
+				Controller->MoveToActor(ActorsInWorld[0], 50.f); 
+				break;
+			}
+		
+		case EValueType::Vector:
+			Controller->MoveToLocation(ActionValue.vecVal, 50.f);
+			break;
+	}
+	
+	return true;
+}

@@ -8,6 +8,7 @@
 #include "PlannerComponent.generated.h"
 
 
+
 USTRUCT(BlueprintType)
 struct FPlannerWorldState
 {
@@ -40,24 +41,79 @@ struct FPlannerWorldState
   	}
 };
 
-////////////////////////////////////////////////////
 
-UCLASS(Blueprintable, BlueprintType)
-class AI_PROJECT_API UActionObject : public UActorComponent
+////////////////////////////////////////////////////
+///
+///
+
+UENUM(BlueprintType)
+enum class EValueType : uint8
+{
+	Int,
+	Float,
+	Bool,
+	Vector,
+	Actor
+};
+
+USTRUCT(BlueprintType)
+struct FTaggedValue
 {
 	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EValueType Type;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 intVal;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float floatVal;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool boolVal;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector vecVal;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<AActor> ActorVal;
+}; 
+
+UCLASS(Blueprintable, BlueprintType)
+class AI_PROJECT_API UActionObject : public UDataAsset
+{
+	GENERATED_BODY()
+public:
 	UActionObject() = default;
 	
 public: 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FTaggedValue ActionValue;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	AActor* Owner; 
 	
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	bool Execute();
+	UFUNCTION(BlueprintCallable)
+	virtual bool Execute(AActor* OwningActor);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UWorld* World;
+	
+};
+
+UCLASS(Blueprintable, BlueprintType)
+class AI_PROJECT_API UMoveActionObject : public UActionObject
+{
+	GENERATED_BODY()
+	UMoveActionObject(); 
+	
+public:
+	//UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	bool Execute(AActor* OwningActor) override;
 };
 
 //////////////////////////////////////////////////////////
-///
 USTRUCT(BlueprintType)
 struct FPlannerAction
 {
@@ -199,7 +255,7 @@ public:
 	TArray<UPlannerGoal*> Goals;
 	
 	UFUNCTION(BlueprintCallable)
-	void UpdateStack();
+	void UpdateStack(AActor* OwningActor);
 	
 	FPlannerAction CurrentAction;
 	
