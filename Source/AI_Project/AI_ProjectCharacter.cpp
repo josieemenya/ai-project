@@ -12,6 +12,7 @@
 #include "InputActionValue.h"
 #include "RoomComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Attack.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -58,6 +59,8 @@ AAI_ProjectCharacter::AAI_ProjectCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	
+	AttackComp = CreateDefaultSubobject<UAttack>(TEXT("Attack Component")); 
 }
 
 void AAI_ProjectCharacter::BeginPlay()
@@ -76,9 +79,11 @@ void AAI_ProjectCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	// Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		for (auto &Context : MappingContexts) {
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+			{
+				Subsystem->AddMappingContext(Context, 0);
+			}
 		}
 	}
 	
@@ -98,6 +103,14 @@ void AAI_ProjectCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		// Changing camera view
 		EnhancedInputComponent->BindAction(ChangeViewActionE, ETriggerEvent::Started, this, &AAI_ProjectCharacter::ChangeViewE);
 		EnhancedInputComponent->BindAction(ChangeViewActionQ, ETriggerEvent::Started, this, &AAI_ProjectCharacter::ChangeViewQ);
+		
+		if (AttackComp)
+		{
+			EnhancedInputComponent->BindAction(AttackComp->BaseAttack, ETriggerEvent::Triggered, AttackComp, &UAttack::Attack); 
+		} else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Attack Component Not Valid")); 
+		}
 	}
 	else
 	{
