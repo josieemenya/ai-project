@@ -3,7 +3,9 @@
 
 #include "PlannerComponent.h"
 
+#include "AbilitySystemInterface.h"
 #include "AIController.h"
+#include "BaseAI.h"
 #include "ComponentUtils.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
@@ -164,7 +166,16 @@ void UPlannerComponent::UpdateStack(AActor* OwningActor)
 	FPlannerWorldState CurrentWorldState = CurrentAction.Context;
 	if (CurrentAction.ActionObject)
 	{
-    	CurrentAction.ActionObject->Execute(OwningActor);
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(CurrentAction.ActionObject); 
+    	if (auto AI = Cast<ABaseAI>(GetOwner()))
+    	{
+    		if (UAbilitySystemComponent* ASC = AI->GetAbilitySystemComponent())
+    		{
+    			FGameplayAbilitySpec Spec(CurrentAction.ActionObject);
+    			FGameplayAbilitySpecHandle Handle = ASC->GiveAbility(Spec);
+    			ASC->TryActivateAbility(Handle);
+    		}
+    	}
 	}
 
 	else
@@ -194,10 +205,7 @@ bool UActionObject::Execute(AActor* Actor)
 	return true;
 }
 
-UMoveActionObject::UMoveActionObject()
-{
-	UActionObject(); 
-}
+
 
 bool UMoveActionObject::Execute(AActor* Actor)
 {

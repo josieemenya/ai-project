@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "AbilitySystemInterface.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "PlannerComponent.h"
@@ -9,19 +10,10 @@
 
 class LockAndKey; 
 
-USTRUCT(BlueprintType)
-struct FAIAction
-{
-	GENERATED_BODY()
-	FName ActionName;
-	TFunction<void()> DoAction;
-	bool isComplete = false;
-};
-
 class UPlannerComponent;
 
 UCLASS()
-class AI_PROJECT_API ABaseAI : public ACharacter
+class AI_PROJECT_API ABaseAI : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -32,16 +24,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UPlannerComponent* PlannerComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
-	TArray<FAIAction> ActionStack;
-
-	
-
-	FAIAction CurrentAction; 
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void PossessedBy(AController* NewController) override;
 	//LockAndKey* Lock; 
 
 public:	
@@ -53,5 +39,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
-
+	UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
+	void InitAbilities(); 
 };

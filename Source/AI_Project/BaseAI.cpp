@@ -4,6 +4,8 @@
 #include "BaseAI.h"
 //#include "LockAndKey.h"
 #include "PlannerComponent.h"
+#include "PlayerCharacterState.h"
+#include "GameplayAbilitySpec.h"
 
 
 // Sets default values
@@ -43,3 +45,24 @@ void ABaseAI::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
+UAbilitySystemComponent* ABaseAI::GetAbilitySystemComponent() const
+{
+	APlayerCharacterState* PS = Cast<APlayerCharacterState>(GetPlayerState());
+	if (!IsValid(PS)) return nullptr;
+	return PS->GetAbilitySystemComponent(); 
+}
+
+
+void ABaseAI::PossessedBy(AController* NewController)
+{
+	ACharacter::PossessedBy(NewController);
+	if (!GetAbilitySystemComponent() || !HasAuthority()) return;
+	
+	GetAbilitySystemComponent()->InitAbilityActorInfo(GetPlayerState(), this);
+	InitAbilities(); 
+}
+
+void ABaseAI::InitAbilities()
+{
+	if (!GetAbilitySystemComponent()) return;
+}

@@ -1,6 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "AI_ProjectCharacter.h"
+
+#include "AbilitySystemComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -10,6 +12,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "PlayerCharacterState.h"
 #include "RoomComponent.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -68,6 +71,13 @@ void AAI_ProjectCharacter::BeginPlay()
 		PlayerRoom->ChangeRoom.AddUObject(this, &AAI_ProjectCharacter::GoToNewRoom);
 }
 
+UAbilitySystemComponent* AAI_ProjectCharacter::GetAbilitySystemComponent() const
+{
+	APlayerCharacterState* PS = Cast<APlayerCharacterState>(GetPlayerState());
+	if (!IsValid(PS)) return nullptr;
+	return PS->GetAbilitySystemComponent(); 
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -78,7 +88,8 @@ void AAI_ProjectCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			for (auto& Context : MappingContexts)
+				Subsystem->AddMappingContext(Context, 0);
 		}
 	}
 	
@@ -98,10 +109,23 @@ void AAI_ProjectCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		// Changing camera view
 		EnhancedInputComponent->BindAction(ChangeViewActionE, ETriggerEvent::Started, this, &AAI_ProjectCharacter::ChangeViewE);
 		EnhancedInputComponent->BindAction(ChangeViewActionQ, ETriggerEvent::Started, this, &AAI_ProjectCharacter::ChangeViewQ);
+	
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AAI_ProjectCharacter::Attack);
 	}
 	else
 	{
 		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+	}
+}
+
+void AAI_ProjectCharacter::InitAbilities()
+{
+	if (!GetAbilitySystemComponent()) return;
+	
+	for (const auto& Ability : PlayerAbilities)
+	{
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Ability); 
+		GetAbilitySystemComponent()->GiveAbility(AbilitySpec); 
 	}
 }
 
@@ -213,6 +237,14 @@ void AAI_ProjectCharacter::ChangeViewQ(const FInputActionValue& Value)
 	}
 }
 
+void AAI_ProjectCharacter::Attack(const FInputActionValue& Value)
+{
+	// play anim 
+	// do the damage
+	UE_LOG(LogTemp, Warning, TEXT("Player is ATTACKING"));
+	
+}
+
 void AAI_ProjectCharacter::GoToNewRoom()
 {
 	if (PlayerRoom){
@@ -220,4 +252,13 @@ void AAI_ProjectCharacter::GoToNewRoom()
 		if (Room)
 			UGameplayStatics::OpenLevel(GetWorld(), FName(Room->RoomLevel->GetName())); 
 	}
+}
+
+void AAI_ProjectCharacter::PossessedBy(AController* NewController)
+{
+	ACharacter::PossessedBy(NewController);
+	if (!GetAbilitySystemComponent() || !HasAuthority()) return;
+	
+	GetAbilitySystemComponent()->InitAbilityActorInfo(GetPlayerState(), this);
+	InitAbilities(); 
 }

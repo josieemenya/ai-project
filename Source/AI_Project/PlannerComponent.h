@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Planner.h"
+#include "AbilitySystemComponent.h"
 #include "PlannerComponent.generated.h"
 
 
@@ -106,7 +107,7 @@ UCLASS(Blueprintable, BlueprintType)
 class AI_PROJECT_API UMoveActionObject : public UActionObject
 {
 	GENERATED_BODY()
-	UMoveActionObject(); 
+	UMoveActionObject() = default; 
 	
 public:
 	//UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
@@ -126,7 +127,7 @@ struct FPlannerAction
 	FPlannerWorldState Context; // context needed to perform action, such as target location, target actor, etc.
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UActionObject* ActionObject;
+	TSubclassOf<UGameplayAbility> ActionObject;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FPlannerWorldState Effects; // the effects of the action on the world state, used for planning

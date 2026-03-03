@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "AbilitySystemInterface.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
@@ -19,7 +20,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 
 UCLASS(config=Game)
-class AAI_ProjectCharacter : public ACharacter
+class AAI_ProjectCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -33,7 +34,7 @@ class AAI_ProjectCharacter : public ACharacter
 	
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputMappingContext* DefaultMappingContext;
+	TArray<UInputMappingContext*> MappingContexts;
 
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -57,6 +58,10 @@ class AAI_ProjectCharacter : public ACharacter
 	UInputAction* SprintAction; // while shift is held down increase speed, otherwise, normal speed, also call stamina drain function;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* AttackAction; 
+	
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	bool bIsSprinting; // whether the character is currently sprinting, if not use a delegate to set the speed back to normal when shift is released
 
 
@@ -67,22 +72,31 @@ class AAI_ProjectCharacter : public ACharacter
 	//UInputAction* HitAttackAction;
 	//UInputAction* ThrowAttackAction;
 	
+	
+	
 public:
 	AAI_ProjectCharacter();
 	
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Abilities)
+	TArray<TSubclassOf<class UGameplayAbility>> PlayerAbilities;
 
 protected:
-
+	
+	void InitAbilities(); 
+	
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+	
+	// Called for Attack Input 
+	void Attack(const FInputActionValue& Value);
 
 	void ChangeViewE(const FInputActionValue& Value);
 	void ChangeViewQ(const FInputActionValue& Value);
 	void GoToNewRoom(); 
+	virtual void PossessedBy(AController* NewController) override;
 
 protected:
 	// APawn interface
@@ -99,5 +113,7 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	URoomComponent* PlayerRoom; 
+	
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override; 
 };
 
