@@ -2,7 +2,7 @@
 
 
 #include "PlannerComponent.h"
-
+#include "GameFramework/Actor.h"
 #include "ComponentUtils.h"
 
 // Sets default values for this component's properties
@@ -159,9 +159,11 @@ void UPlannerComponent::UpdateStack()
 	CurrentAction = ToDoStack[0];
 	ToDoStack.RemoveAt(0);
 	FPlannerWorldState CurrentWorldState = CurrentAction.Context;
-	if (CurrentAction.ActionObject)
+	if (CurrentAction.ActionAsset)
 	{
-    	CurrentAction.ActionObject->Execute();
+    	auto Instance = NewObject<UActionObject>(GetOwner(), CurrentAction.ActionAsset);
+		if (Instance) 
+			Instance->Execute(GetOwner());
 	}
 
 	else
@@ -185,9 +187,9 @@ TArray<FPlannerAction> UPlannerComponent::BuildPlan(Node* Last)
 }
 
 
-bool UActionObject::Execute_Implementation()
+EExitSequenceType UActionObject::Execute_Implementation(AActor* Owning)
 {
 	// Default C++ behavior
-	return true;
+	return EExitSequenceType::SUCCESS;
 }
 

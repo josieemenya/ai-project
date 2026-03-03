@@ -5,8 +5,12 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Planner.h"
+#include "Engine/DataAsset.h"
+#include "ExitSequence.h"
 #include "PlannerComponent.generated.h"
 
+
+class UDataAsset;
 
 USTRUCT(BlueprintType)
 struct FPlannerWorldState
@@ -43,7 +47,7 @@ struct FPlannerWorldState
 ////////////////////////////////////////////////////
 
 UCLASS(Blueprintable, BlueprintType)
-class AI_PROJECT_API UActionObject : public UActorComponent
+class AI_PROJECT_API UActionObject : public UDataAsset
 {
 	GENERATED_BODY()
 	UActionObject() = default;
@@ -53,7 +57,7 @@ public:
 	AActor* Owner; 
 	
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	bool Execute();
+	EExitSequenceType Execute(AActor* OwningActor);
 };
 
 //////////////////////////////////////////////////////////
@@ -70,7 +74,7 @@ struct FPlannerAction
 	FPlannerWorldState Context; // context needed to perform action, such as target location, target actor, etc.
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UActionObject* ActionObject;
+	TSubclassOf<UActionObject> ActionAsset;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FPlannerWorldState Effects; // the effects of the action on the world state, used for planning
