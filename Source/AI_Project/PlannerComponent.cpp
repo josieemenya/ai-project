@@ -37,7 +37,7 @@ void UPlannerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 void UPlannerComponent::SetGoal(TMap<FString, bool> GoalValue, FName GoalName)
 {
 	UPlannerGoal* NewGoal = NewObject<UPlannerGoal>();
-	FPlannerWorldState GoalState; 
+	FWorldState GoalState =  FWorldState(); 
 	GoalState.StateValues = GoalValue;
 	NewGoal->Name = GoalName.ToString();
 	NewGoal->DesiredState = GoalState;
@@ -46,12 +46,12 @@ void UPlannerComponent::SetGoal(TMap<FString, bool> GoalValue, FName GoalName)
 	Goals.Add(NewGoal); 
 }
 
-void UPlannerComponent::AddToAvailableActions(FPlannerAction NewAction)
+void UPlannerComponent::AddToAvailableActions(UAction* NewAction)
 {
 		AvailableActions.Add(NewAction);
 }
 
-TArray<FPlannerAction> UPlannerComponent::PlanGoal(FPlannerWorldState CurrentState, FPlannerWorldState DesiredState)
+TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState CurrentState, FWorldState DesiredState)
 {
 	TArray<Node*> Open;
 	TArray<Node*> Close;
@@ -101,35 +101,35 @@ TArray<FPlannerAction> UPlannerComponent::PlanGoal(FPlannerWorldState CurrentSta
 
 		for (const auto &possibleAction : validActions)
 		{
-			//auto newWorld = new Node(FPlannerAction{"", CurrentNode.Action.Effects, []()->bool {return false; }}, nullptr, 0, 0, 0);
+			//auto newWorld = new Node(UAction{"", CurrentNode.Action.Effects, []()->bool {return false; }}, nullptr, 0, 0, 0);
 			Node* Child = new Node(CurrentNode->State);
 			Child->Parent = CurrentNode; // a heap node pointer
 			
 
 			
-			for (auto& Effect : possibleAction.Effects.StateValues)
+			for (auto& Effect : possibleAction->Effects.StateValues)
 			{
 				Child->State.StateValues[Effect.Key] = Effect.Value;
 			}
 
 			Child->Action = possibleAction;
 			//newWorld->Action.Context = CurrentNode->State; // same as line 58?
-			Child->gCost = CurrentNode->gCost + possibleAction.Cost;
+			Child->gCost = CurrentNode->gCost + possibleAction->Cost;
 			Child->hCost = getHCost(Child, DesiredState);
 			Child->fCost = Child->gCost + Child->hCost;
 			Open.Add(Child); 
 		}
 	}
 
-	return TArray<FPlannerAction>();
+	return TArray<UAction*>();
 }
 
-TArray<FPlannerAction> UPlannerComponent::FilterAvailableActions(TArray<FPlannerAction> Actions, FPlannerWorldState CurrentState)
+TArray<UAction*> UPlannerComponent::FilterAvailableActions(TArray<UAction*> Actions, FWorldState CurrentState)
 { // positive that this isn't correct will assess tomorrow
-	TArray<FPlannerAction> ActionList;
+	TArray<UAction*> ActionList;
 	for (auto action : Actions)
 	{
-		if (CurrentState.Satisfies(action.Context)) // check if the action is valid in the current world state
+		if (CurrentState.Satisfies(action->Context)) // check if the action is valid in the current world state
 		{
 			ActionList.Add(action);
 		}
@@ -137,12 +137,12 @@ TArray<FPlannerAction> UPlannerComponent::FilterAvailableActions(TArray<FPlanner
 	return ActionList;
 }
 
-TArray<FPlannerAction> UPlannerComponent::GetSatisfyingActions(TArray<FPlannerAction> Actions, FPlannerWorldState DesiredState)
+TArray<UAction*> UPlannerComponent::GetSatisfyingActions(TArray<UAction*> Actions, FWorldState DesiredState)
 { // positive that this isn't correct will assess tomorrow
-	TArray<FPlannerAction> ActionList;
+	TArray<UAction*> ActionList;
 	for (auto action : Actions)
 	{
-		if (action.Effects.Satisfies(DesiredState)) // check if the action's effects satisfy the desired world state
+		if (action->Effects.Satisfies(DesiredState)) // check if the action's effects satisfy the desired world state
 		{
 			ActionList.Add(action);
 		}
@@ -158,25 +158,26 @@ void UPlannerComponent::UpdateStack()
 	UE_LOG(LogTemp, Warning, TEXT("UpdateStack called"));
 	CurrentAction = ToDoStack[0];
 	ToDoStack.RemoveAt(0);
-	FPlannerWorldState CurrentWorldState = CurrentAction.Context;
-	if (CurrentAction.ActionAsset)
-	{
-    	auto Instance = NewObject<UActionObject>(GetOwner(), CurrentAction.ActionAsset);
+	FWorldState CurrentWorldState = CurrentAction->Context;
+	if (CurrentAction)
+	{ /*
+    	auto Instance = NewObject<UActionObject>(GetOwner(), CurrentAction);
 		if (Instance) 
 			Instance->Execute(GetOwner());
+			*/
 	}
 
 	else
 	{
     	UE_LOG(LogTemp, Error, TEXT("ActionObject is null for action %s"),
-        	*CurrentAction.Name.ToString());
+        	*CurrentAction->Name.ToString());
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Executed action"));
 }
 
-TArray<FPlannerAction> UPlannerComponent::BuildPlan(Node* Last)
+TArray<UAction*> UPlannerComponent::BuildPlan(Node* Last)
 { // this however is correct, it builds the plan by backtracking from the goal node to the start node and collecting the actions along the way
-	TArray<FPlannerAction> Plan;
+	TArray<UAction*> Plan;
 	while (Last)
 	{
 	    Plan.Add(Last->Action);
