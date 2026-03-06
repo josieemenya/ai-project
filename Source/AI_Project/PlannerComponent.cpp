@@ -3,9 +3,16 @@
 
 #include "PlannerComponent.h"
 
+<<<<<<< Updated upstream
 #include "AbilitySystemInterface.h"
 #include "AIController.h"
 #include "BaseAI.h"
+=======
+#include "AIController.h"
+#include "AudioMixerBlueprintLibrary.h"
+#include "BlackboardSystem.h"
+#include "GameFramework/Character.h"
+>>>>>>> Stashed changes
 #include "ComponentUtils.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
@@ -51,7 +58,37 @@ void UPlannerComponent::SetGoal(TMap<FString, bool> GoalValue, FName GoalName)
 	Goals.Add(NewGoal); 
 }
 
+<<<<<<< Updated upstream
 void UPlannerComponent::AddToAvailableActions(FPlannerAction NewAction)
+=======
+TArray<ASmartObject*> UPlannerComponent::FilterActionFromSmartObject(TArray<ASmartObject*> SmartObjects, FWorldState CurrentState)
+{
+	TArray<ASmartObject*> ObjectList; 
+	
+	for (auto obj : SmartObjects)
+	{
+		TArray<UAction*> DesiredActions;
+		for (auto Action : obj->PossibleActions)
+		{
+			if (CurrentState.Satisfies(Action->Context))
+			{
+				DesiredActions.Add(Action);
+				ObjectList.Add(obj);
+			}
+		}
+		
+		if (!DesiredActions.IsEmpty()){
+			DesiredActions.Sort([](const UAction& A, const UAction& B) { return A.Cost < B.Cost; });
+			obj->DesiredActionIndex = DesiredActions[0]; 
+		}
+	}
+	
+	return ObjectList;
+	
+}
+
+void UPlannerComponent::AddToAvailableActions(UAction* NewAction)
+>>>>>>> Stashed changes
 {
 		AvailableActions.Add(NewAction);
 }
@@ -60,9 +97,6 @@ TArray<FPlannerAction> UPlannerComponent::PlanGoal(FPlannerWorldState CurrentSta
 {
 	TArray<Node*> Open;
 	TArray<Node*> Close;
-	
-	
-
 	auto StartNode = new Node {
 		CurrentState,
 		{},
@@ -99,13 +133,20 @@ TArray<FPlannerAction> UPlannerComponent::PlanGoal(FPlannerWorldState CurrentSta
 		}
 		
 		// filter against valid actions,  check against precomditions
-		auto validActions = FilterAvailableActions(AvailableActions, CurrentNode->State);
+		TArray<UObject*> validActions = TArray<UObject*>();
+		auto ActionsArray = FilterAvailableActions(AvailableActions, CurrentNode->State);
+		auto ObjectsArray = FilterActionFromSmartObject(AIbBlackboardSystem->GetValueAllSmartObjects(), CurrentNode->State);
+		validActions.Reserve(ActionsArray.Num());
+		Algo::Transform(ActionsArray, validActions, [](UAction* Action){ return static_cast<UObject*>(Action); });
+		Algo::Transform(ObjectsArray, validActions, [](ASmartObject* Obj){ return static_cast<UObject*>(Obj); });
+
 		
 		// filter actions that satisfy our goal, 
 		//auto satisfyingActions = GetSatisfyingActions(validActions, DesiredState);
 
-		for (const auto &possibleAction : validActions)
+		for (auto &possibleAction : validActions)
 		{
+<<<<<<< Updated upstream
 			//auto newWorld = new Node(FPlannerAction{"", CurrentNode.Action.Effects, []()->bool {return false; }}, nullptr, 0, 0, 0);
 			Node* Child = new Node(CurrentNode->State);
 			Child->Parent = CurrentNode; // a heap node pointer
@@ -113,13 +154,51 @@ TArray<FPlannerAction> UPlannerComponent::PlanGoal(FPlannerWorldState CurrentSta
 
 			
 			for (auto& Effect : possibleAction.Effects.StateValues)
+=======
+			auto ObjPtr = possibleAction;
+			//auto newWorld = new Node(UAction{"", CurrentNode.Action.Effects, []()->bool {return false; }}, nullptr, 0, 0, 0);
+			Node* Child = new Node(CurrentNode->State);
+			Child->Parent = CurrentNode; // a heap node pointer
+			
+			if (auto Action = Cast<UAction>(ObjPtr))
+>>>>>>> Stashed changes
 			{
-				Child->State.StateValues[Effect.Key] = Effect.Value;
+				for (auto& Effect : Action->Effects.StateValues)
+				{
+					Child->State.StateValues[Effect.Key] = Effect.Value;
+				}
+				Child->Action = Action;
+				Child->gCost = CurrentNode->gCost + Action->Cost; 
 			}
+<<<<<<< Updated upstream
 
 			Child->Action = possibleAction;
 			//newWorld->Action.Context = CurrentNode->State; // same as line 58?
 			Child->gCost = CurrentNode->gCost + possibleAction.Cost;
+=======
+			
+			else if (AActor* actor = Cast<ASmartObject>(ObjPtr))
+			{
+				if (ASmartObject* SmartObj = Cast<ASmartObject>(actor)) {
+					if (SmartObj->DesiredActionIndex)
+					{
+						for (auto& Effect : SmartObj->DesiredActionIndex->Effects.StateValues)
+						{
+							Child->State.StateValues[Effect.Key] = Effect.Value;
+						}
+						Child->Action = SmartObj->DesiredActionIndex;
+						Child->gCost = CurrentNode->gCost + SmartObj->DesiredActionIndex->Cost;
+					}
+					
+					else
+					{
+						delete Child; // skip invalid smart object action
+						continue;
+					}
+				}
+			}
+			
+>>>>>>> Stashed changes
 			Child->hCost = getHCost(Child, DesiredState);
 			Child->fCost = Child->gCost + Child->hCost;
 			Open.Add(Child); 
@@ -134,10 +213,18 @@ TArray<FPlannerAction> UPlannerComponent::FilterAvailableActions(TArray<FPlanner
 	TArray<FPlannerAction> ActionList;
 	for (auto action : Actions)
 	{
+<<<<<<< Updated upstream
 		if (CurrentState.Satisfies(action.Context)) // check if the action is valid in the current world state
+=======
+		if (auto A = Cast<UAction>(action))
+>>>>>>> Stashed changes
 		{
-			ActionList.Add(action);
+			if (CurrentState.Satisfies(A->Context)) // check if the action is valid in the current world state
+			{
+				ActionList.Add(A);
+			}
 		}
+		
 	}
 	return ActionList;
 }
@@ -156,11 +243,16 @@ TArray<FPlannerAction> UPlannerComponent::GetSatisfyingActions(TArray<FPlannerAc
 	return ActionList;
 }
 
+<<<<<<< Updated upstream
 void UPlannerComponent::UpdateStack(AActor* OwningActor)
+=======
+void UPlannerComponent::UpdateStack(AActor* Owner)
+>>>>>>> Stashed changes
 {
 	if (ToDoStack.IsEmpty())
 		return;
 	UE_LOG(LogTemp, Warning, TEXT("UpdateStack called"));
+<<<<<<< Updated upstream
 	CurrentAction = ToDoStack[0];
 	ToDoStack.RemoveAt(0);
 	FPlannerWorldState CurrentWorldState = CurrentAction.Context;
@@ -176,8 +268,32 @@ void UPlannerComponent::UpdateStack(AActor* OwningActor)
     			ASC->TryActivateAbility(Handle);
     		}
     	}
+=======
+	
+	if (auto a  = Cast<UAction>(ToDoStack[0]))
+	{
+		ToDoStack.RemoveAt(0);
+		CurrentAction = a; 
+		FWorldState CurrentWorldState = CurrentAction->Context;
+	} 
+	else if (auto b  = Cast<ASmartObject>(ToDoStack[0]))
+	{
+		auto AIMoving = Cast<AAIController>(Cast<ACharacter>(Owner)->GetController()); 
+		if (AIMoving)
+		{
+			ToDoStack.RemoveAt(0);
+			AIMoving->MoveToActor(b); 
+			CurrentAction = b->DesiredActionIndex;
+			FWorldState CurrentWorldState = CurrentAction->Context;
+		}
 	}
-
+	
+	
+	if (CurrentAction)
+	{ 
+		CurrentAction->Execute(Owner); 
+>>>>>>> Stashed changes
+	}
 	else
 	{
     	UE_LOG(LogTemp, Error, TEXT("ActionObject is null for action %s"),

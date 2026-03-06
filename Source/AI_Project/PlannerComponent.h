@@ -237,7 +237,8 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UBlackboardSystem* AIbBlackboardSystem; 
 	
 	UFUNCTION(BlueprintCallable, Category="Planner")
 	void AddToAvailableActions(FPlannerAction NewAction); 
@@ -250,20 +251,35 @@ public:
 	TArray<FPlannerAction> GetSatisfyingActions(TArray<FPlannerAction> Actions, FPlannerWorldState DesiredState); // keep in planner
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+<<<<<<< Updated upstream
 	TArray<FPlannerAction> ToDoStack;  
+=======
+	TArray<UObject*> ToDoStack;  
+>>>>>>> Stashed changes
 
 	UPlannerGoal* DesiredGoal; 
 	TArray<UPlannerGoal*> Goals;
 	
 	UFUNCTION(BlueprintCallable)
+<<<<<<< Updated upstream
 	void UpdateStack(AActor* OwningActor);
+=======
+	void UpdateStack(AActor* Owner);
+>>>>>>> Stashed changes
 	
 	FPlannerAction CurrentAction;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FPlannerAction> AvailableActions; // the actions that the planner can use to achieve goals, this should be populated by the actor that implements the planner interfac
 	
+	
+	
 	UFUNCTION(BlueprintCallable, Category="Planner")
 	void SetGoal(TMap<FString, bool> GoalVal, FName GoalName);
+	
+	TArray<ASmartObject*> FilterActionFromSmartObject(TArray<ASmartObject*> SmartObjects, FWorldState CurrentState);
 		
 };
+
+
+
