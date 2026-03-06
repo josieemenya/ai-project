@@ -27,6 +27,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
+	UAction* DesiredActionIndex; 
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SmartObjects)
 	FName ObjectName;
 	

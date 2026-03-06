@@ -3,37 +3,53 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
 #include "SmartObject.h"
-#include "Engine/DataAsset.h"
-
+#include "Components/ActorComponent.h"
+#include "Planner.h"
 #include "PlannerComponent.generated.h"
 
-
-class UDataAsset;
-
+class ASmartObject; 
 
 
 ////////////////////////////////////////////////////
-
-UCLASS(Blueprintable, BlueprintType)
-class AI_PROJECT_API UActionObject : public UDataAsset
-{
-	GENERATED_BODY()
-	UActionObject() = default;
-	
-public: 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	AActor* Owner; 
-	
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	EExitSequenceType Execute(AActor* OwningActor);
-};
-
-//////////////////////////////////////////////////////////
+///
 ///
 
-////////////
+UENUM(BlueprintType)
+enum class EValueType : uint8
+{
+	Int,
+	Float,
+	Bool,
+	Vector,
+	Actor
+};
+
+USTRUCT(BlueprintType)
+struct FTaggedValue
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EValueType Type;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 intVal;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float floatVal;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool boolVal;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector vecVal;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<AActor> ActorVal;
+}; 
+
+
 
 UCLASS()
 class AI_PROJECT_API UPlannerGoal : public UObject
@@ -65,7 +81,7 @@ struct Node
 	Node* Parent;
 	float gCost, fCost, hCost;
 	Node() : State{}, Parent(nullptr), Action{}, gCost(0), fCost(0), hCost(0) {}
-	Node(FWorldState State) : State(State) {}
+	Node(FWorldState &State) : State(State) {}
 	Node(FWorldState State, UAction* Action, Node* Parent, float gCost, float fCost, float hCost) : State(State), Action(Action), Parent(Parent), gCost(gCost), fCost(fCost), hCost(hCost) {};
 	bool operator==(const Node& Other) const
 	{
@@ -110,7 +126,7 @@ inline int getHCost(Node* A, FWorldState B)
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class AI_PROJECT_API UPlannerComponent : public UActorComponent
+class AI_PROJECT_API UPlannerComponent : public UActorComponent, public IPlanner
 {
 	GENERATED_BODY()
 
@@ -126,7 +142,8 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UBlackboardSystem* AIbBlackboardSystem; 
 	
 	UFUNCTION(BlueprintCallable, Category="Planner")
 	void AddToAvailableActions(UAction* NewAction); 
@@ -139,20 +156,25 @@ public:
 	TArray<UAction*> GetSatisfyingActions(TArray<UAction*> Actions, FWorldState DesiredState); // keep in planner
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<UAction*> ToDoStack;  
+	TArray<UObject*> ToDoStack;  
 
 	UPlannerGoal* DesiredGoal; 
 	TArray<UPlannerGoal*> Goals;
 	
 	UFUNCTION(BlueprintCallable)
-	void UpdateStack();
+	void UpdateStack(AActor* OwningActor);
+
 	
 	UAction* CurrentAction;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<UAction*> AvailableActions; // the actions that the planner can use to achieve goals, this should be populated by the actor that implements the planner interfac
 	
+	
+	
 	UFUNCTION(BlueprintCallable, Category="Planner")
 	void SetGoal(TMap<FString, bool> GoalVal, FName GoalName);
+	
+	TArray<ASmartObject*> FilterActionFromSmartObject(TArray<ASmartObject*> SmartObjects, FWorldState CurrentState);
 		
 };

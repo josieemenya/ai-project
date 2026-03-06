@@ -33,7 +33,7 @@ void ABaseAI::Tick(float DeltaTime)
 
 void ABaseAI::UpdateActions()
 {
-	PlannerComponent->UpdateStack(); 
+	PlannerComponent->UpdateStack(this); 
 }
 
 // Called to bind functionality to input
