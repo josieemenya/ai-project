@@ -5,10 +5,13 @@
 
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 #include "AbilitySystemInterface.h"
 #include "AIController.h"
 #include "BaseAI.h"
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 #include "AIController.h"
@@ -16,6 +19,9 @@
 #include "BlackboardSystem.h"
 #include "GameFramework/Character.h"
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -66,8 +72,11 @@ void UPlannerComponent::SetGoal(TMap<FString, bool> GoalValue, FName GoalName)
 
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 void UPlannerComponent::AddToAvailableActions(FPlannerAction NewAction)
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 TArray<ASmartObject*> UPlannerComponent::FilterActionFromSmartObject(TArray<ASmartObject*> SmartObjects, FWorldState CurrentState)
@@ -157,6 +166,7 @@ TArray<FPlannerAction> UPlannerComponent::PlanGoal(FPlannerWorldState CurrentSta
 		{
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 			//auto newWorld = new Node(FPlannerAction{"", CurrentNode.Action.Effects, []()->bool {return false; }}, nullptr, 0, 0, 0);
 			Node* Child = new Node(CurrentNode->State);
 			Child->Parent = CurrentNode; // a heap node pointer
@@ -164,6 +174,14 @@ TArray<FPlannerAction> UPlannerComponent::PlanGoal(FPlannerWorldState CurrentSta
 
 			
 			for (auto& Effect : possibleAction.Effects.StateValues)
+=======
+			auto ObjPtr = possibleAction;
+			//auto newWorld = new Node(UAction{"", CurrentNode.Action.Effects, []()->bool {return false; }}, nullptr, 0, 0, 0);
+			Node* Child = new Node(CurrentNode->State);
+			Child->Parent = CurrentNode; // a heap node pointer
+			
+			if (auto Action = Cast<UAction>(ObjPtr))
+>>>>>>> Stashed changes
 =======
 			auto ObjPtr = possibleAction;
 			//auto newWorld = new Node(UAction{"", CurrentNode.Action.Effects, []()->bool {return false; }}, nullptr, 0, 0, 0);
@@ -190,11 +208,14 @@ TArray<FPlannerAction> UPlannerComponent::PlanGoal(FPlannerWorldState CurrentSta
 			}
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 			Child->Action = possibleAction;
 			//newWorld->Action.Context = CurrentNode->State; // same as line 58?
 			Child->gCost = CurrentNode->gCost + possibleAction.Cost;
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 			
@@ -220,6 +241,9 @@ TArray<FPlannerAction> UPlannerComponent::PlanGoal(FPlannerWorldState CurrentSta
 			}
 			
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -239,7 +263,11 @@ TArray<FPlannerAction> UPlannerComponent::FilterAvailableActions(TArray<FPlanner
 	{
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 		if (CurrentState.Satisfies(action.Context)) // check if the action is valid in the current world state
+=======
+		if (auto A = Cast<UAction>(action))
+>>>>>>> Stashed changes
 =======
 		if (auto A = Cast<UAction>(action))
 >>>>>>> Stashed changes
@@ -273,7 +301,11 @@ TArray<FPlannerAction> UPlannerComponent::GetSatisfyingActions(TArray<FPlannerAc
 
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 void UPlannerComponent::UpdateStack(AActor* OwningActor)
+=======
+void UPlannerComponent::UpdateStack(AActor* Owner)
+>>>>>>> Stashed changes
 =======
 void UPlannerComponent::UpdateStack(AActor* Owner)
 >>>>>>> Stashed changes
@@ -284,6 +316,7 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
 	if (ToDoStack.IsEmpty())
 		return;
 	UE_LOG(LogTemp, Warning, TEXT("UpdateStack called"));
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 	CurrentAction = ToDoStack[0];
@@ -302,6 +335,8 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
     		}
     	}
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 	
@@ -328,6 +363,9 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
 	{ 
 		CurrentAction->Execute(Owner); 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes

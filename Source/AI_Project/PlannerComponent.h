@@ -253,7 +253,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 	TArray<FPlannerAction> ToDoStack;  
+=======
+	TArray<UObject*> ToDoStack;  
+>>>>>>> Stashed changes
 =======
 	TArray<UObject*> ToDoStack;  
 >>>>>>> Stashed changes
@@ -267,7 +271,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 	void UpdateStack(AActor* OwningActor);
+=======
+	void UpdateStack(AActor* Owner);
+>>>>>>> Stashed changes
 =======
 	void UpdateStack(AActor* Owner);
 >>>>>>> Stashed changes
@@ -279,6 +287,8 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FPlannerAction> AvailableActions; // the actions that the planner can use to achieve goals, this should be populated by the actor that implements the planner interfac
+	
+	
 	
 	
 	
