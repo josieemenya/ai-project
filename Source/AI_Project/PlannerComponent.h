@@ -153,11 +153,15 @@ public:
 
 	TArray<UAction*> BuildPlan(Node* Last); // keep in planner
 	TArray<UAction*> FilterAvailableActions(TArray<UAction*> Actions, FWorldState CurrentState); // keep in planner
-	TArray<UAction*> GetSatisfyingActions(TArray<UAction*> Actions, FWorldState DesiredState); // keep in planner
+	
+	void UpdateSmartObjects(FWorldState Current);
+	
+	TArray<AActor*> AllSmartObjectsNearby; 
+	TArray<ASmartObject*> LastSmartObjectsNearby;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<UObject*> ToDoStack;  
-
+	TArray<UAction*> ToDoStack;  
+	
 	UPlannerGoal* DesiredGoal; 
 	TArray<UPlannerGoal*> Goals;
 	
@@ -175,6 +179,4 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Planner")
 	void SetGoal(TMap<FString, bool> GoalVal, FName GoalName);
 	
-	TArray<ASmartObject*> FilterActionFromSmartObject(TArray<ASmartObject*> SmartObjects, FWorldState CurrentState);
-		
 };

@@ -32,9 +32,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SmartObjects)
 	FName ObjectName;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SmartObjects)
-	TArray<UAction*> PossibleActions; 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FWorldState RepresentedState;
+	
+	UFUNCTION(BlueprintCallable)
+	void WriteToWorldState(FWorldState& TargetState); 
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SmartObjects)
 	int32 ObjectID; 
 };
+
+inline void ASmartObject::WriteToWorldState(FWorldState& TargetState)
+{
+	TargetState.StateValues.Add(ObjectName.ToString(), true);
+}
+

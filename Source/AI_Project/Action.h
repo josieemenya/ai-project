@@ -60,7 +60,5 @@ class AI_PROJECT_API UAction : public UDataAsset
 		return Name == Other.Name; // or whatever defines equality
 	}
 	
-	UFUNCTION(BlueprintCallable)
-	TSoftObjectPtr<ASmartObject> GetSmartObject(); 
 	
 };

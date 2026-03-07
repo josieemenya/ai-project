@@ -7,6 +7,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "Algo/Transform.h"
 #include "Algo/Reverse.h"
+#include "Editor/StatusBar/Private/SourceControlMenuHelpers.h"
+#include "Engine/SceneCapture2D.h"
+#include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISense_Sight.h"
+#include "Perception/PawnSensingComponent.h"
 
 // Sets default values for this component's properties
 UPlannerComponent::UPlannerComponent()
@@ -39,31 +44,6 @@ void UPlannerComponent::SetGoal(TMap<FString, bool> GoalValue, FName GoalName)
 	Goals.Add(NewGoal); 
 }
 
-TArray<ASmartObject*> UPlannerComponent::FilterActionFromSmartObject(TArray<ASmartObject*> SmartObjects, FWorldState CurrentState)
-{
-	TArray<ASmartObject*> ObjectList; 
-	
-	for (auto obj : SmartObjects)
-	{
-		TArray<UAction*> DesiredActions;
-		for (auto Action : obj->PossibleActions)
-		{
-			if (CurrentState.Satisfies(Action->Context))
-			{
-				DesiredActions.Add(Action);
-				ObjectList.Add(obj);
-			}
-		}
-		
-		if (!DesiredActions.IsEmpty())
-		{
-			DesiredActions.Sort([](const UAction& A, const UAction& B) { return A.Cost < B.Cost; });
-			obj->DesiredActionIndex = DesiredActions[0]; 
-		}
-	}
-	
-	return ObjectList;
-}
 
 void UPlannerComponent::AddToAvailableActions(UAction* NewAction)
 {
@@ -74,77 +54,77 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState CurrentState, FWorldSta
 {
 	TArray<Node*> Open;
 	TArray<Node*> Close;
+	
+	
 
-	Node* StartNode = new Node{ CurrentState, {}, nullptr, 0, 0, 0 }; 
-	StartNode->hCost = getHCost(StartNode, DesiredState);
-	StartNode->fCost = StartNode->hCost;
+	auto StartNode = new Node {
+		CurrentState,
+		{},
+		nullptr,
+		0, 
+		0, 
+		0
+	}; 
+	
+	auto remainingActions = getHCost(StartNode, DesiredState);
+	
+	StartNode->hCost = remainingActions;
+	StartNode->fCost = remainingActions;
 
 	Open.Add(StartNode);
 
 	while (!Open.IsEmpty())
 	{
-		// Find node with lowest fCost
+		// find lowestCost
 		Open.Sort([](const Node& A, const Node& B) { return A.fCost < B.fCost; });
 		Node* CurrentNode = Open[0];
 		Open.RemoveAt(0);
 		Close.Add(CurrentNode);
-
-		// Check if goal reached
+		
+		// check for completion
 		if (CurrentNode->State.Satisfies(DesiredState))
 		{
-			TArray<UAction*> Path = BuildPlan(CurrentNode);
-			for (auto n : Open) delete n;
-			for (auto n : Close) delete n;
+			auto Path = BuildPlan(CurrentNode);
+			for (auto n : Open)
+				delete n;
+			for (auto n : Close) 
+				delete n; 
 			return Path;
 		}
+		
+		UpdateSmartObjects(CurrentState);  
+		
+		// filter against valid actions,  check against precomditions
+		auto validActions = FilterAvailableActions(AvailableActions, CurrentNode->State);
+		
+		// filter actions that satisfy our goal, 
+		//auto satisfyingActions = GetSatisfyingActions(validActions, DesiredState);
 
-		// Filter valid actions
-		TArray<UObject*> ValidActions;
-		TArray<UAction*> ActionsArray = FilterAvailableActions(AvailableActions, CurrentNode->State);
-		TArray<ASmartObject*> ObjectsArray = FilterActionFromSmartObject(AIbBlackboardSystem->GetValueAllSmartObjects(), CurrentNode->State);
-
-		ValidActions.Reserve(ActionsArray.Num() + ObjectsArray.Num());
-		Algo::Transform(ActionsArray, ValidActions, [](UAction* Action){ return static_cast<UObject*>(Action); });
-		Algo::Transform(ObjectsArray, ValidActions, [](ASmartObject* Obj){ return static_cast<UObject*>(Obj); });
-
-		for (auto& PossibleAction : ValidActions)
+		for (const auto &possibleAction : validActions)
 		{
+			//auto newWorld = new Node(UAction{"", CurrentNode.Action.Effects, []()->bool {return false; }}, nullptr, 0, 0, 0);
 			Node* Child = new Node(CurrentNode->State);
-			Child->Parent = CurrentNode;
+			Child->Parent = CurrentNode; // a heap node pointer
+			
 
-			if (auto Action = Cast<UAction>(PossibleAction))
+			
+			for (auto& Effect : possibleAction->Effects.StateValues)
 			{
-				for (auto& Effect : Action->Effects.StateValues)
-					Child->State.StateValues[Effect.Key] = Effect.Value;
-
-				Child->Action = Action;
-				Child->gCost = CurrentNode->gCost + Action->Cost;
-			}
-			else if (ASmartObject* SmartObj = Cast<ASmartObject>(PossibleAction))
-			{
-				if (SmartObj->DesiredActionIndex)
-				{
-					for (auto& Effect : SmartObj->DesiredActionIndex->Effects.StateValues)
-						Child->State.StateValues[Effect.Key] = Effect.Value;
-
-					Child->Action = SmartObj->DesiredActionIndex;
-					Child->gCost = CurrentNode->gCost + SmartObj->DesiredActionIndex->Cost;
-				}
-				else
-				{
-					delete Child;
-					continue;
-				}
+				Child->State.StateValues[Effect.Key] = Effect.Value;
 			}
 
+			Child->Action = possibleAction;
+			//newWorld->Action.Context = CurrentNode->State; // same as line 58?
+			Child->gCost = CurrentNode->gCost + possibleAction->Cost;
 			Child->hCost = getHCost(Child, DesiredState);
 			Child->fCost = Child->gCost + Child->hCost;
 			Open.Add(Child); 
 		}
 	}
 
-	return {};
+	return TArray<UAction*>();
 }
+
 
 TArray<UAction*> UPlannerComponent::FilterAvailableActions(TArray<UAction*> Actions, FWorldState CurrentState)
 {
@@ -160,32 +140,57 @@ TArray<UAction*> UPlannerComponent::FilterAvailableActions(TArray<UAction*> Acti
 	return ActionList;
 }
 
+void UPlannerComponent::UpdateSmartObjects(FWorldState Current)
+{
+	AllSmartObjectsNearby.Empty();
+
+	
+	if (auto Senser = GetOwner()->FindComponentByClass<UAIPerceptionComponent>())
+	{
+		Senser->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), AllSmartObjectsNearby); 
+	}
+	
+	for (ASmartObject* SmartObj : LastSmartObjectsNearby)
+	{
+		Current.StateValues.Remove(SmartObj->ObjectName.ToString());
+	}
+	
+	LastSmartObjectsNearby.Empty();
+	
+	for (auto SObj : AllSmartObjectsNearby)
+	{
+		if (ASmartObject* SmartObj = Cast<ASmartObject>(SObj))
+		{
+			SmartObj->WriteToWorldState(Current);
+			LastSmartObjectsNearby.Add(SmartObj);
+		}
+	}
+	
+}
 
 
 void UPlannerComponent::UpdateStack(AActor* Owner)
 {
-	if (ToDoStack.IsEmpty()) return;
-
-	UObject* CurrentObject = ToDoStack[0];
+	if (ToDoStack.IsEmpty())
+		return;
+	UE_LOG(LogTemp, Warning, TEXT("UpdateStack called"));
+	CurrentAction = ToDoStack[0];
 	ToDoStack.RemoveAt(0);
-
-	if (UAction* Action = Cast<UAction>(CurrentObject))
-	{
-		CurrentAction = Action;
-		FWorldState CurrentWorldState = CurrentAction->Context;
+	FWorldState CurrentWorldState = CurrentAction->Context;
+	if (CurrentAction)
+	{ 
 		CurrentAction->Execute(Owner);
 	}
-	else if (ASmartObject* SmartObj = Cast<ASmartObject>(CurrentObject))
+
+	else
 	{
-		if (AAIController* AIMoving = Cast<AAIController>(Cast<ACharacter>(Owner)->GetController()))
-		{
-			AIMoving->MoveToActor(SmartObj);
-			CurrentAction = SmartObj->DesiredActionIndex;
-			FWorldState CurrentWorldState = CurrentAction->Context;
-			CurrentAction->Execute(Owner);
-		}
+		UE_LOG(LogTemp, Error, TEXT("ActionObject is null for action %s"),
+			*CurrentAction->Name.ToString());
 	}
+	UE_LOG(LogTemp, Warning, TEXT("Executed action"));
 }
+
+
 
 TArray<UAction*> UPlannerComponent::BuildPlan(Node* Last)
 {
