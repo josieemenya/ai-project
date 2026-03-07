@@ -7,7 +7,7 @@
 #include "Action.h"
 #include "SmartObject.generated.h"
 
-
+class UBlackboardCustom; 
 
 UCLASS()
 class AI_PROJECT_API ASmartObject : public AActor
@@ -42,12 +42,18 @@ public:
 	int32 ObjectID; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SmartObjects)
-	class UAIPerceptionStimuliSourceComponent* SeeObject; 
+	class UAIPerceptionStimuliSourceComponent* SeeObject;
+	
+	UFUNCTION(BlueprintCallable)
+	void RegisterInBlackboard(UBlackboardCustom* BB); 
+	
 };
 
 inline void ASmartObject::WriteToWorldState(FWorldState& TargetState)
 {
-	if (!TargetState.StateValues.Find(ObjectName.ToString()))
+	auto AlreadyFound = TargetState.StateValues.Find(ObjectName.ToString()); 
+	if (!AlreadyFound)
 		TargetState.StateValues.Add(ObjectName.ToString(), true);
+	else TargetState.StateValues[ObjectName.ToString()] = true;
 }
 

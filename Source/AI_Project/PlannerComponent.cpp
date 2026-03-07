@@ -1,5 +1,6 @@
 #include "PlannerComponent.h"
 #include "AIController.h"
+#include "BaseAI.h"
 #include "BlackboardSystem.h"
 #include "GameFramework/Character.h"
 #include "ComponentUtils.h"
@@ -23,6 +24,8 @@ UPlannerComponent::UPlannerComponent()
 void UPlannerComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	AIbBlackboardSystem = NewObject<UBlackboardSystem>(this);
+	AIbBlackboardSystem->Blackboard = NewObject<UBlackboardCustom>(this);
 }
 
 // Called every frame
@@ -31,26 +34,18 @@ void UPlannerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void UPlannerComponent::SetGoal(TMap<FString, bool> GoalValue, FName GoalName)
+void UPlannerComponent::SetGoal(TSubclassOf<UGoal> GoalClass)
 {
-	UPlannerGoal* NewGoal = NewObject<UPlannerGoal>();
-	FWorldState GoalState; 
-	GoalState.StateValues = GoalValue;
-
-	NewGoal->Name = GoalName.ToString();
-	NewGoal->DesiredState = GoalState;
-	NewGoal->Priority = 1; 
-	
-	Goals.Add(NewGoal); 
+	Goals.Add(GoalClass); 
 }
 
 
 void UPlannerComponent::AddToAvailableActions(UAction* NewAction)
 {
-	AvailableActions.Add(NewAction);
+	//AvailableActions.Add(NewAction);
 }
 
-TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState CurrentState, FWorldState DesiredState)
+TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldState DesiredState)
 {
 	TArray<Node*> Open;
 	TArray<Node*> Close;
@@ -85,14 +80,14 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState CurrentState, FWorldSta
 		if (CurrentNode->State.Satisfies(DesiredState))
 		{
 			auto Path = BuildPlan(CurrentNode);
+			
+			ToDoStack = Path; 
 			for (auto n : Open)
 				delete n;
 			for (auto n : Close) 
 				delete n; 
 			return Path;
 		}
-		
-		UpdateSmartObjects(CurrentState);  
 		
 		// filter against valid actions,  check against precomditions
 		auto validActions = FilterAvailableActions(AvailableActions, CurrentNode->State);
@@ -126,21 +121,26 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState CurrentState, FWorldSta
 }
 
 
-TArray<UAction*> UPlannerComponent::FilterAvailableActions(TArray<UAction*> Actions, FWorldState CurrentState)
+TArray<UAction*> UPlannerComponent::FilterAvailableActions(TArray<TSubclassOf<UAction>> Actions, FWorldState CurrentState)
 {
 	TArray<UAction*> ActionList;
-	for (auto Action : Actions)
+
+	for (TSubclassOf<UAction> ActionClass : Actions)
 	{
-		if (UAction* A = Cast<UAction>(Action))
+		if (!ActionClass) continue;
+
+		UAction* A = NewObject<UAction>(this, ActionClass.Get());
+
+		if (CurrentState.Satisfies(A->Context))
 		{
-			if (CurrentState.Satisfies(A->Context))
-				ActionList.Add(A);
+			ActionList.Add(A);
 		}
 	}
+
 	return ActionList;
 }
 
-void UPlannerComponent::UpdateSmartObjects(FWorldState Current)
+void UPlannerComponent::UpdateSmartObjects(FWorldState& Current)
 {
 	AllSmartObjectsNearby.Empty();
 
@@ -170,9 +170,22 @@ void UPlannerComponent::UpdateSmartObjects(FWorldState Current)
 	{
 		if (ASmartObject* SmartObj = Cast<ASmartObject>(SObj))
 		{
-			SmartObj->WriteToWorldState(Current);
 			UE_LOG(LogTemp, Warning, TEXT("Writing to World State"));
+			SmartObj->WriteToWorldState(Current);
+			
 			LastSmartObjectsNearby.Add(SmartObj);
+			if (!AIbBlackboardSystem)
+			{
+				UE_LOG(LogTemp, Error, TEXT("AIbBlackboardSystem is null"));
+				return;
+			}
+
+			if (!AIbBlackboardSystem->Blackboard)
+			{
+				UE_LOG(LogTemp, Error, TEXT("Blackboard is null"));
+				return;
+			}
+			SmartObj->RegisterInBlackboard(AIbBlackboardSystem->Blackboard);
 		}
 	}
 	
@@ -184,25 +197,35 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
 	if (ToDoStack.IsEmpty() && !CurrentAction)
 	{
 		OnPlanInvalid.Broadcast();
-	}
-	
-	if (ToDoStack.IsEmpty())
 		return;
-	UE_LOG(LogTemp, Warning, TEXT("UpdateStack called"));
-	CurrentAction = ToDoStack[0];
-	ToDoStack.RemoveAt(0);
-	FWorldState CurrentWorldState = CurrentAction->Context;
-	if (CurrentAction)
-	{ 
-		CurrentAction->Execute(Owner);
 	}
 
-	else
+	if (ToDoStack.IsEmpty())
+		return;
+
+	CurrentAction = ToDoStack[0];
+	ToDoStack.RemoveAt(0);
+
+	if (!CurrentAction)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ActionObject is null for action %s"),
-			*CurrentAction->Name.ToString());
+		UE_LOG(LogTemp, Error, TEXT("CurrentAction is null"));
+		return;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Executed action"));
+
+	UE_LOG(LogTemp, Warning, TEXT("Executing action: %s"), *CurrentAction->Name.ToString());
+
+	if (CurrentAction->Execute(Owner) == EExitSequenceType::INVALID)
+	{
+		OnPlanInvalid.Broadcast();
+		return;
+	}
+
+	for (auto& Effect : CurrentAction->Effects.StateValues)
+	{
+		if (auto Bot = Cast<ABaseAI>(GetOwner()))
+			Bot->CurrentState.StateValues[Effect.Key] = Effect.Value;
+		UE_LOG(LogTemp, Warning, TEXT("Updated CurrentState: %s = %s"), *Effect.Key, Effect.Value ? TEXT("true") : TEXT("false"));
+	}
 }
 
 

@@ -20,12 +20,12 @@ void ABaseAI::BeginPlay()
 {
 	Super::BeginPlay();
 	//Lock = new LockAndKey();
-	CurrentState = FWorldState();
-	CurrentState.StateValues = TMap<FString, bool>();
 	
 	PlannerComponent->OnPlanInvalid.AddUObject(this, &ABaseAI::Replan);
-	GetWorldTimerManager().SetTimerForNextTick(this, &ABaseAI::StartPlanning);
-	
+	GetWorldTimerManager().SetTimerForNextTick([this](){
+		PlannerComponent->UpdateSmartObjects(CurrentState);
+		StartPlanning();
+	});
 	
 }
 
@@ -34,9 +34,17 @@ void ABaseAI::StartPlanning()
 	
 	if (!Goals.IsEmpty())
 	{
-		PlannerComponent->PlanGoal(CurrentState, Goals[0]->DesiredState);
+		UGoal* CurrentGoal = NewObject<UGoal>(this, Goals[0]);
+
+		UE_LOG(LogTemp, Warning, TEXT("Planning for goal"));
+	
+		PlannerComponent->UpdateSmartObjects(CurrentState);
+		PlannerComponent->PlanGoal(CurrentState, CurrentGoal->DesiredState);
+
 		if (PlannerComponent->ToDoStack.Num() > 0)
+		{
 			Goals.RemoveAt(0);
+		}
 	}
 }
 
@@ -46,6 +54,11 @@ void ABaseAI::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (PlannerComponent->ToDoStack.Num() > 0)
 		UpdateActions();
+	
+	if (PlannerComponent->ToDoStack.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Planning failed"));
+	}
 }
 
 void ABaseAI::UpdateActions()
@@ -66,7 +79,9 @@ void ABaseAI::Replan()
 
 	if (Goals.Num() > 0)
 	{
-		PlannerComponent->PlanGoal(CurrentState, Goals[0]->DesiredState);
+		UGoal* CurrentGoal = NewObject<UGoal>(this, Goals[0]);
+
+		PlannerComponent->PlanGoal(CurrentState, CurrentGoal->DesiredState);
 	}
 }
 

@@ -33,7 +33,7 @@ public:
 	UPlannerComponent* PlannerComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<UPlannerGoal*> Goals;
+	TArray<TSubclassOf<UGoal>> Goals;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FWorldState CurrentState; 

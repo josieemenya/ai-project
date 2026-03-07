@@ -4,6 +4,7 @@
 #include "SmartObject.h"
 #include "SmartObjectManager.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "BlackboardSystem.h"
 #include "Perception/AISense_Sight.h"
 
 
@@ -40,12 +41,19 @@ void ASmartObject::BeginPlay()
 	{
 		SeeObject->RegisterWithPerceptionSystem();
 	}
+	
 }
 
 // Called every frame
 void ASmartObject::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
 
+void ASmartObject::RegisterInBlackboard(UBlackboardCustom* BB)
+{
+	FBlackboardCustomEntry Obj = FBlackboardCustomEntry(ObjectName, EBlackboardKey::SmartObject);
+	Obj.SmartObjectValue = this;
+	BB->BlackboardEntries.Add(Obj);
 }
 

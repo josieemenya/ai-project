@@ -51,8 +51,8 @@ struct FTaggedValue
 
 
 
-UCLASS()
-class AI_PROJECT_API UPlannerGoal : public UObject
+UCLASS(Blueprintable, BlueprintType)
+class AI_PROJECT_API UGoal : public UDataAsset
 {
 public : 
 	GENERATED_BODY()
@@ -65,7 +65,7 @@ public :
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Priority; // the priority of the goal, used for selecting between multiple goals
 	
-	bool operator==(const UPlannerGoal& Other) const
+	bool operator==(const UGoal& Other) const
 	{
 		return Name == Other.Name;
 	}
@@ -149,13 +149,13 @@ public:
 	void AddToAvailableActions(UAction* NewAction); 
 	
 	UFUNCTION(BlueprintCallable, Category="Planner")
-	TArray<UAction*> PlanGoal(FWorldState CurrentState, FWorldState DesiredState); // keep in planner
+	TArray<UAction*> PlanGoal(FWorldState& CurrentState, FWorldState DesiredState); // keep in planner
 
 	TArray<UAction*> BuildPlan(Node* Last); // keep in planner
-	TArray<UAction*> FilterAvailableActions(TArray<UAction*> Actions, FWorldState CurrentState); // keep in planner
+	TArray<UAction*> FilterAvailableActions(TArray<TSubclassOf<UAction>> Actions, FWorldState CurrentState); // keep in planner
 	
 	UFUNCTION(BlueprintCallable)
-	void UpdateSmartObjects(FWorldState Current);
+	void UpdateSmartObjects(FWorldState& Current);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<AActor*> AllSmartObjectsNearby; 
@@ -165,8 +165,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<UAction*> ToDoStack;  
 	
-	UPlannerGoal* DesiredGoal; 
-	TArray<UPlannerGoal*> Goals;
+	UGoal* DesiredGoal; 
+	TArray<TSubclassOf<UGoal>> Goals;
 	
 	UFUNCTION(BlueprintCallable)
 	void UpdateStack(AActor* OwningActor);
@@ -177,11 +177,11 @@ public:
 	UAction* CurrentAction;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<UAction*> AvailableActions; // the actions that the planner can use to achieve goals, this should be populated by the actor that implements the planner interfac
+	TArray<TSubclassOf<UAction>> AvailableActions; // the actions that the planner can use to achieve goals, this should be populated by the actor that implements the planner interfac
 	
 	
 	
 	UFUNCTION(BlueprintCallable, Category="Planner")
-	void SetGoal(TMap<FString, bool> GoalVal, FName GoalName);
+	void SetGoal(TSubclassOf<UGoal> GoalClass);
 	
 };
