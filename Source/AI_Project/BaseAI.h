@@ -32,12 +32,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UPlannerComponent* PlannerComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
-	TArray<FAIAction> ActionStack;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<UPlannerGoal*> Goals;
 	
-
-	FAIAction CurrentAction; 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FWorldState CurrentState; 
+	
+	UFUNCTION(BlueprintCallable)
+	void StartPlanning();
+	
+	UFUNCTION(BlueprintCallable)
+	void Replan(); 
 
 protected:
 	// Called when the game starts or when spawned

@@ -154,9 +154,12 @@ public:
 	TArray<UAction*> BuildPlan(Node* Last); // keep in planner
 	TArray<UAction*> FilterAvailableActions(TArray<UAction*> Actions, FWorldState CurrentState); // keep in planner
 	
+	UFUNCTION(BlueprintCallable)
 	void UpdateSmartObjects(FWorldState Current);
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<AActor*> AllSmartObjectsNearby; 
+
 	TArray<ASmartObject*> LastSmartObjectsNearby;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -167,7 +170,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void UpdateStack(AActor* OwningActor);
-
+	
+	DECLARE_MULTICAST_DELEGATE(FOnPlanInvalid);
+	FOnPlanInvalid OnPlanInvalid;
 	
 	UAction* CurrentAction;
 	

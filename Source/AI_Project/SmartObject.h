@@ -40,10 +40,14 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SmartObjects)
 	int32 ObjectID; 
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SmartObjects)
+	class UAIPerceptionStimuliSourceComponent* SeeObject; 
 };
 
 inline void ASmartObject::WriteToWorldState(FWorldState& TargetState)
 {
-	TargetState.StateValues.Add(ObjectName.ToString(), true);
+	if (!TargetState.StateValues.Find(ObjectName.ToString()))
+		TargetState.StateValues.Add(ObjectName.ToString(), true);
 }
 

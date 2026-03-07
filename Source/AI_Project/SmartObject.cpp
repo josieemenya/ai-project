@@ -3,7 +3,8 @@
 
 #include "SmartObject.h"
 #include "SmartObjectManager.h"
-
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
 
 
 int ASmartObject::InstanceNumber = 0;
@@ -13,7 +14,10 @@ ASmartObject::ASmartObject()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	SeeObject = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>("SeeObject");
+	SeeObject->bAutoRegister = true;
+	SeeObject->RegisterForSense(UAISense_Sight::StaticClass());
+	;
 }
 
 // Called when the game starts or when spawned
@@ -23,7 +27,19 @@ void ASmartObject::BeginPlay()
 	InstanceNumber++;
 	
 	ObjectID = InstanceNumber;
-	GetWorld()->GetGameInstance<USmartObjectManager>()->SmartObjects[ObjectID] = this; 
+
+	if (UWorld* World = GetWorld())
+	{
+	    if (auto GI = World->GetGameInstance<USmartObjectManager>())
+	    {
+	        GI->SmartObjects.Add(ObjectID, this);
+	    }
+	}
+	
+	if (SeeObject)
+	{
+		SeeObject->RegisterWithPerceptionSystem();
+	}
 }
 
 // Called every frame

@@ -144,10 +144,19 @@ void UPlannerComponent::UpdateSmartObjects(FWorldState Current)
 {
 	AllSmartObjectsNearby.Empty();
 
-	
-	if (auto Senser = GetOwner()->FindComponentByClass<UAIPerceptionComponent>())
+	if (auto AI = Cast<APawn>(GetOwner())) {
+		auto Steer =  AI->GetController(); 
+		if (auto Senser = Steer->FindComponentByClass<UAIPerceptionComponent>())
+		{
+			Senser->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), AllSmartObjectsNearby); 
+			UE_LOG(LogTemp, Warning, TEXT("Collected All Smart Objects"));
+		}	else
+		{
+			UE_LOG(LogTemp, Error, TEXT("No PerceptionComponent on BaseAI"));
+		}
+	} else
 	{
-		Senser->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), AllSmartObjectsNearby); 
+		UE_LOG(LogTemp, Error, TEXT("Owning AI is not a pawn"));
 	}
 	
 	for (ASmartObject* SmartObj : LastSmartObjectsNearby)
@@ -162,6 +171,7 @@ void UPlannerComponent::UpdateSmartObjects(FWorldState Current)
 		if (ASmartObject* SmartObj = Cast<ASmartObject>(SObj))
 		{
 			SmartObj->WriteToWorldState(Current);
+			UE_LOG(LogTemp, Warning, TEXT("Writing to World State"));
 			LastSmartObjectsNearby.Add(SmartObj);
 		}
 	}
@@ -171,6 +181,11 @@ void UPlannerComponent::UpdateSmartObjects(FWorldState Current)
 
 void UPlannerComponent::UpdateStack(AActor* Owner)
 {
+	if (ToDoStack.IsEmpty() && !CurrentAction)
+	{
+		OnPlanInvalid.Broadcast();
+	}
+	
 	if (ToDoStack.IsEmpty())
 		return;
 	UE_LOG(LogTemp, Warning, TEXT("UpdateStack called"));
