@@ -24,6 +24,6 @@ struct FWorldState
 	
 	bool operator==(const FWorldState& Other) const;
 	
-	bool Satisfies(const FWorldState Other) const;
+	bool Satisfies(const FWorldState& Other) const;
 	
 };

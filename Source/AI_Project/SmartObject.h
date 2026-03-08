@@ -51,9 +51,19 @@ public:
 
 inline void ASmartObject::WriteToWorldState(FWorldState& TargetState)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Writing %s to StateValues"), *ObjectName.ToString());
 	auto AlreadyFound = TargetState.StateValues.Find(ObjectName.ToString()); 
 	if (!AlreadyFound)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Map count before (Adding): %d"), TargetState.StateValues.Num());
 		TargetState.StateValues.Add(ObjectName.ToString(), true);
-	else TargetState.StateValues[ObjectName.ToString()] = true;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Map count before(Updating): %d"), TargetState.StateValues.Num());
+		TargetState.StateValues[ObjectName.ToString()] = true;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Map count after: %d"), TargetState.StateValues.Num());
+
 }
 

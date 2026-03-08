@@ -39,6 +39,13 @@ void ABaseAI::StartPlanning()
 		UE_LOG(LogTemp, Warning, TEXT("Planning for goal"));
 	
 		PlannerComponent->UpdateSmartObjects(CurrentState);
+
+    	if (PlannerComponent->AllSmartObjectsNearby.Num() == 0)
+    	{
+        	UE_LOG(LogTemp, Warning, TEXT("Skipping planning: no smart objects yet"));
+        	return;
+   	 	}
+
 		PlannerComponent->PlanGoal(CurrentState, CurrentGoal->DesiredState);
 
 		if (PlannerComponent->ToDoStack.Num() > 0)
@@ -58,6 +65,7 @@ void ABaseAI::Tick(float DeltaTime)
 	if (PlannerComponent->ToDoStack.Num() == 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Planning failed"));
+		PlannerComponent->OnPlanInvalid.Broadcast();
 	}
 }
 

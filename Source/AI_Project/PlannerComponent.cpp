@@ -32,6 +32,7 @@ void UPlannerComponent::BeginPlay()
 void UPlannerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
 }
 
 void UPlannerComponent::SetGoal(TSubclassOf<UGoal> GoalClass)
@@ -47,6 +48,8 @@ void UPlannerComponent::AddToAvailableActions(UAction* NewAction)
 
 TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldState DesiredState)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Planning"));
+
 	TArray<Node*> Open;
 	TArray<Node*> Close;
 	
@@ -90,6 +93,7 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 		}
 		
 		// filter against valid actions,  check against precomditions
+		UE_LOG(LogTemp, Warning, TEXT("PlanGoal running, CurrentNode->State keys = %d"), CurrentNode->State.StateValues.Num());
 		auto validActions = FilterAvailableActions(AvailableActions, CurrentNode->State);
 		
 		// filter actions that satisfy our goal, 
@@ -105,7 +109,7 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 			
 			for (auto& Effect : possibleAction->Effects.StateValues)
 			{
-				Child->State.StateValues[Effect.Key] = Effect.Value;
+				Child->State.StateValues.Add(Effect.Key, Effect.Value);
 			}
 
 			Child->Action = possibleAction;
@@ -123,6 +127,8 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 
 TArray<UAction*> UPlannerComponent::FilterAvailableActions(TArray<TSubclassOf<UAction>> Actions, FWorldState CurrentState)
 {
+	UE_LOG(LogTemp, Warning, TEXT("FilterAvailableActions called, AvailableActions.Num() = %d"), Actions.Num());
+	
 	TArray<UAction*> ActionList;
 
 	for (TSubclassOf<UAction> ActionClass : Actions)
@@ -130,11 +136,24 @@ TArray<UAction*> UPlannerComponent::FilterAvailableActions(TArray<TSubclassOf<UA
 		if (!ActionClass) continue;
 
 		UAction* A = NewObject<UAction>(this, ActionClass.Get());
+		UE_LOG(LogTemp, Warning, TEXT("Checking action %s"), *A->Name.ToString());
+
+		for (auto& Pair : CurrentState.StateValues)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("CurrentState: %s = %s"), *Pair.Key, Pair.Value ? TEXT("true") : TEXT("false"));
+		}
+
 
 		if (CurrentState.Satisfies(A->Context))
 		{
 			ActionList.Add(A);
+			UE_LOG(LogTemp, Warning, TEXT("Action %s is valid"), *A->Name.ToString());
+
+		} else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Action %s rejected"), *A->Name.ToString());
 		}
+			
 	}
 
 	return ActionList;
@@ -223,7 +242,7 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
 	for (auto& Effect : CurrentAction->Effects.StateValues)
 	{
 		if (auto Bot = Cast<ABaseAI>(GetOwner()))
-			Bot->CurrentState.StateValues[Effect.Key] = Effect.Value;
+			Bot->CurrentState.StateValues.FindOrAdd(Effect.Key) = Effect.Value;
 		UE_LOG(LogTemp, Warning, TEXT("Updated CurrentState: %s = %s"), *Effect.Key, Effect.Value ? TEXT("true") : TEXT("false"));
 	}
 }
