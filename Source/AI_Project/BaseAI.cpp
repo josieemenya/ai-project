@@ -3,8 +3,12 @@
 
 #include "BaseAI.h"
 //#include "LockAndKey.h"
+#include "BlackboardSystem.h"
 #include "PlannerComponent.h"
+#include "Damage.h"
+#include "Kismet/GameplayStatics.h"
 #include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISense_Sight.h"
 
 
 // Sets default values
@@ -13,6 +17,7 @@ ABaseAI::ABaseAI()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	PlannerComponent = CreateDefaultSubobject<UPlannerComponent>("PlannerComponent");
+	DamageComp = CreateDefaultSubobject<UDamage>("Damage Component");
 }
 
 // Called when the game starts or when spawned
@@ -41,7 +46,8 @@ void ABaseAI::StartPlanning()
 		UGoal* CurrentGoal = NewObject<UGoal>(this, Goals[0]);
 
 		UE_LOG(LogTemp, Warning, TEXT("Planning for goal"));
-	
+		
+		RegisterSeePlayer(PlannerComponent);
 		PlannerComponent->UpdateSmartObjects(CurrentState);
 
     	if (PlannerComponent->AllSmartObjectsNearby.Num() == 0)
@@ -102,3 +108,27 @@ void ABaseAI::Replan()
 	}
 }
 
+bool ABaseAI::RegisterSeePlayer(UPlannerComponent* Planner)
+{
+	TArray<AActor*> SeeActors;
+	if (auto HasPerception = FindComponentByClass<UAIPerceptionComponent>())
+	{
+		HasPerception->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), SeeActors);
+	}
+	
+	if (SeeActors.Num() > 0)
+	{
+		auto Player = SeeActors.Find(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+		if (Player != INDEX_NONE)
+		{
+			FBlackboardCustomEntry PlayerEntry = FBlackboardCustomEntry();
+			PlayerEntry.EntryName = "Player";
+			PlayerEntry.ValueType = EBlackboardKey::Actor;
+			PlayerEntry.ActorValue = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+			PlannerComponent->AIbBlackboardSystem->Blackboard->BlackboardEntries.Add(PlayerEntry);
+			return true;
+		}
+	}
+	
+	return false;
+}

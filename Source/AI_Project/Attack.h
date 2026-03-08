@@ -20,12 +20,24 @@ public:
 	UPROPERTY(EditAnywhere, Category = PlayerAttack)
 	UInputAction* BaseAttack; 
 	
+	
+	UPROPERTY(EditAnywhere, Category = AttackAnimations)
+	TArray<UAnimMontage*> AttackMontages; 
+	
+	
 	UPROPERTY(EditAnywhere, Category = PlayerAttack)
 	UAnimationAsset* AttackAnim;
 	
 	UFUNCTION(BlueprintCallable)
 	void Attack(); 
 
+	
+	UPROPERTY(BlueprintReadWrite)
+	int32 MontageIndex; 
+	
+	UFUNCTION(BlueprintNativeEvent)
+	void TriggerAttackAnim(int32 Index); 
+	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

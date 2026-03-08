@@ -4,6 +4,7 @@
 #include "Attack.h"
 #include "GameFramework/Character.h"
 #include "Animation/AnimationAsset.h"
+#include "Animation/AnimMontage.h"
 
 // Sets default values for this component's properties
 UAttack::UAttack()
@@ -36,11 +37,21 @@ void UAttack::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponen
 
 void UAttack::Attack()
 {
+	
 	auto Mesh = Cast<ACharacter>(GetOwner())->GetMesh(); 
 	if (Mesh)
 	{
-		if (AttackAnim)
+		if (!AttackMontages.IsEmpty())
+		{
+			TriggerAttackAnim(MontageIndex); 
+		}
+		if (AttackAnim && AttackMontages.IsEmpty())
 			Mesh->PlayAnimation(AttackAnim, false); // anim notify
 	}
 	UE_LOG(LogTemp, Warning, TEXT("woo bam bam")); 
+}
+
+void UAttack::TriggerAttackAnim_Implementation(int32 Index)
+{
+	
 }

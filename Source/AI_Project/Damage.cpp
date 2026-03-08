@@ -2,6 +2,9 @@
 
 
 #include "Damage.h"
+
+#include "AI_ProjectGameMode.h"
+#include "BaseAI.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "ProfilingDebugging/CookStats.h"
@@ -95,9 +98,15 @@ void UDamage::SetCharacterStamina(float stamina)
 
 void UDamage::HandleDeath()
 {
-	if (!OnDeathScreen) return; 
 	
-	UUserWidget* DScreen = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), OnDeathScreen);
-	if (DScreen)
-		DScreen->AddToViewport(); 
+	if (!OnDeathScreen) return; 
+	if (GetOwner() == UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
+	{
+		UUserWidget* DScreen = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), OnDeathScreen);
+		if (DScreen)
+			DScreen->AddToViewport();
+	} else if (auto Bot = Cast<ABaseAI>(GetOwner()))
+	{
+		// do bot death anim and others
+	}
 }
