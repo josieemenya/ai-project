@@ -7,6 +7,7 @@
 #include "Logging/LogMacros.h"
 #include "AI_ProjectCharacter.generated.h"
 
+class UAttack;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
@@ -33,7 +34,7 @@ class AAI_ProjectCharacter : public ACharacter
 	
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputMappingContext* DefaultMappingContext;
+	TArray<UInputMappingContext*> MappingContexts;
 
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -59,6 +60,8 @@ class AAI_ProjectCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	bool bIsSprinting; // whether the character is currently sprinting, if not use a delegate to set the speed back to normal when shift is released
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UAttack* AttackComp; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	int CameraPositionIndex; 
