@@ -42,6 +42,6 @@ Through the editor : In the Project Directory, run the .uproject "AI_Project", t
 
 ---
 <video width="640" height="360" controls>
-  <source src="Small Demonstration Video.mp4" type="video/mp4">
+  <source src="Small Video Demonstration.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
