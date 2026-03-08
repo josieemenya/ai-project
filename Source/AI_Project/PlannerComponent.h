@@ -60,6 +60,9 @@ public :
 	FString Name;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bRequiresSmartObject; 
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FWorldState DesiredState; // the desired world state that satisfies the goal
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

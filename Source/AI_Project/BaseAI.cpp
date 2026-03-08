@@ -43,20 +43,25 @@ void ABaseAI::StartPlanning()
 	
 	if (!Goals.IsEmpty())
 	{
-		UGoal* CurrentGoal = NewObject<UGoal>(this, Goals[0]);
+		
 
 		UE_LOG(LogTemp, Warning, TEXT("Planning for goal"));
 		
+		auto BaseCurrentState = CurrentState; 
+		
 		RegisterSeePlayer(PlannerComponent);
-		PlannerComponent->UpdateSmartObjects(CurrentState);
-
-    	if (PlannerComponent->AllSmartObjectsNearby.Num() == 0)
+		PlannerComponent->UpdateSmartObjects(BaseCurrentState);
+		UGoal* CurrentGoal = NewObject<UGoal>(this, Goals[0]);
+		
+    	if (CurrentGoal->bRequiresSmartObject && PlannerComponent->AllSmartObjectsNearby.Num() == 0)
     	{
         	UE_LOG(LogTemp, Warning, TEXT("Skipping planning: no smart objects yet"));
         	return;
    	 	}
+		
+		
 
-		PlannerComponent->PlanGoal(CurrentState, CurrentGoal->DesiredState);
+		PlannerComponent->PlanGoal(BaseCurrentState, CurrentGoal->DesiredState);
 
 		if (PlannerComponent->ToDoStack.Num() > 0)
 		{
@@ -70,12 +75,15 @@ void ABaseAI::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	if (PlannerComponent->ToDoStack.Num() > 0)
+	{
 		UpdateActions();
+		return;
+	}
 	
-	else if (Goals.Num() > 0)
+	if (Goals.Num() > 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Planning finished or Invalidates"));
-		PlannerComponent->OnPlanInvalid.Broadcast();
+		StartPlanning();
 	}
 }
 
@@ -111,16 +119,22 @@ void ABaseAI::Replan()
 bool ABaseAI::RegisterSeePlayer(UPlannerComponent* Planner)
 {
 	TArray<AActor*> SeeActors;
-	if (auto HasPerception = FindComponentByClass<UAIPerceptionComponent>())
+	if (auto HasPerception = GetController()->FindComponentByClass<UAIPerceptionComponent>())
 	{
 		HasPerception->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), SeeActors);
+	} else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No Perception Component"));
 	}
 	
 	if (SeeActors.Num() > 0)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Registering SeeActors"));
 		auto Player = SeeActors.Find(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 		if (Player != INDEX_NONE)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Cam See Player"));
+			CurrentState.StateValues.FindOrAdd("Player", true); 
 			FBlackboardCustomEntry PlayerEntry = FBlackboardCustomEntry();
 			PlayerEntry.EntryName = "Player";
 			PlayerEntry.ValueType = EBlackboardKey::Actor;
@@ -128,6 +142,9 @@ bool ABaseAI::RegisterSeePlayer(UPlannerComponent* Planner)
 			PlannerComponent->AIbBlackboardSystem->Blackboard->BlackboardEntries.Add(PlayerEntry);
 			return true;
 		}
+	} else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No player found"));
 	}
 	
 	return false;

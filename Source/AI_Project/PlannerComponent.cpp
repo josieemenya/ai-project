@@ -222,14 +222,12 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
 
 	if (ToDoStack.IsEmpty())
 		return;
-
-	CurrentAction = ToDoStack[0];
+	
 	
 
 	if (!CurrentAction && ToDoStack.Num() > 0)
 	{
 		CurrentAction = ToDoStack[0];
-		ToDoStack.RemoveAt(0);
 	}
 	
 	if (!CurrentAction)
@@ -272,7 +270,8 @@ TArray<UAction*> UPlannerComponent::BuildPlan(Node* Last)
 	TArray<UAction*> Plan;
 	while (Last)
 	{
-		Plan.Add(Last->Action);
+		if (Last->Action)
+			Plan.Add(Last->Action);
 		Last = Last->Parent;
 	}
 	Algo::Reverse(Plan);
