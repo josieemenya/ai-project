@@ -31,13 +31,21 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UPlannerComponent* PlannerComponent;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
-	TArray<FAIAction> ActionStack;
-
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UDamage* DamageComp;
 
-	FAIAction CurrentAction; 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<TSubclassOf<UGoal>> Goals;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FWorldState CurrentState; 
+	
+	UFUNCTION(BlueprintCallable)
+	void StartPlanning();
+	
+	UFUNCTION(BlueprintCallable)
+	void Replan(); 
 
 protected:
 	// Called when the game starts or when spawned
@@ -52,6 +60,5 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-
+	bool RegisterSeePlayer(UPlannerComponent* Planner); 
 };
