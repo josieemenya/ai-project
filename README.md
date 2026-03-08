@@ -39,3 +39,9 @@ How To Run :
 As An Application : Navigate to the Build->Windows Folder of the project directory. Run the executable titled AI_Project.
 
 Through the editor : In the Project Directory, run the .uproject "AI_Project", the compatible editor to run the project is Unreal Engine 5.4.4
+
+---
+<video width="640" height="360" controls>
+  <source src="Small Demonstration Video.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
