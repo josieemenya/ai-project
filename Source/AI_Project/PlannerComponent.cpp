@@ -14,6 +14,9 @@
 #include "Perception/AISense_Sight.h"
 #include "Perception/PawnSensingComponent.h"
 
+int NodeCount = 0;
+int MaxNodes = 1000;
+
 // Sets default values for this component's properties
 UPlannerComponent::UPlannerComponent()
 {
@@ -70,6 +73,11 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 
 	while (!Open.IsEmpty())
 	{
+		if (++NodeCount > MaxNodes)
+    	{
+        	UE_LOG(LogTemp, Error, TEXT("PlanGoal exceeded max nodes — aborting to prevent freeze!"));
+        	return TArray<UAction*>();
+   		}
 		// find lowestCost
 		Open.Sort([](const Node& A, const Node& B) { return A.fCost < B.fCost; });
 		Node* CurrentNode = Open[0];
@@ -91,6 +99,9 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 		
 		// filter against valid actions,  check against precomditions
 		auto validActions = FilterAvailableActions(AvailableActions, CurrentNode->State);
+		
+		if (validActions.IsEmpty())
+			UE_LOG(LogTemp, Warning, TEXT("No valid actions found"));
 		
 		// filter actions that satisfy our goal, 
 		//auto satisfyingActions = GetSatisfyingActions(validActions, DesiredState);
@@ -123,21 +134,37 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 
 TArray<UAction*> UPlannerComponent::FilterAvailableActions(TArray<TSubclassOf<UAction>> Actions, FWorldState CurrentState)
 {
-	TArray<UAction*> ActionList;
+    TArray<UAction*> ActionList;
 
-	for (TSubclassOf<UAction> ActionClass : Actions)
-	{
-		if (!ActionClass) continue;
+    for (TSubclassOf<UAction> ActionClass : Actions)
+    {
+        UClass* ActionUClass = ActionClass.Get();
 
-		UAction* A = NewObject<UAction>(this, ActionClass.Get());
+        if (!IsValid(ActionUClass))
+        {
+            UE_LOG(LogTemp, Error, TEXT("ActionClass is invalid or abstract!"));
+            continue;
+        }
 
-		if (CurrentState.Satisfies(A->Context))
-		{
-			ActionList.Add(A);
-		}
-	}
+        UAction* A = NewObject<UAction>(this, ActionUClass);
 
-	return ActionList;
+		if (CurrentState.StateValues.Num() <= 0)
+			UE_LOG(LogTemp, Warning, TEXT("No State Values"));			
+
+        for (auto& State : CurrentState.StateValues)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("CurrentState: %s = %s"),
+                *State.Key,
+                State.Value ? TEXT("true") : TEXT("false"));
+        }
+
+        if (CurrentState.Satisfies(A->Context))
+        {
+            ActionList.Add(A);
+        }
+    }
+
+    return ActionList;
 }
 
 void UPlannerComponent::UpdateSmartObjects(FWorldState& Current)

@@ -31,9 +31,12 @@ void ABaseAI::BeginPlay()
 
 void ABaseAI::StartPlanning()
 {
-	
-	if (!Goals.IsEmpty())
+	if (bIsPlanning) return;
+    bIsPlanning = true;
+
+	if (!Goals.IsEmpty() & IsValid(Goals[0].Get()))
 	{
+
 		UGoal* CurrentGoal = NewObject<UGoal>(this, Goals[0]);
 
 		UE_LOG(LogTemp, Warning, TEXT("Planning for goal"));
@@ -46,6 +49,7 @@ void ABaseAI::StartPlanning()
 			Goals.RemoveAt(0);
 		}
 	}
+	bIsPlanning = false;
 }
 
 // Called every frame
@@ -75,6 +79,10 @@ void ABaseAI::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ABaseAI::Replan()
 {
+	if (bIsPlanning) return;
+	
+	bIsPlanning = true;
+
 	PlannerComponent->UpdateSmartObjects(CurrentState);
 
 	if (Goals.Num() > 0)
@@ -83,5 +91,8 @@ void ABaseAI::Replan()
 
 		PlannerComponent->PlanGoal(CurrentState, CurrentGoal->DesiredState);
 	}
+	
+	bIsPlanning = false;
+
 }
 

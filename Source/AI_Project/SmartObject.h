@@ -51,9 +51,15 @@ public:
 
 inline void ASmartObject::WriteToWorldState(FWorldState& TargetState)
 {
-	auto AlreadyFound = TargetState.StateValues.Find(ObjectName.ToString()); 
-	if (!AlreadyFound)
-		TargetState.StateValues.Add(ObjectName.ToString(), true);
-	else TargetState.StateValues[ObjectName.ToString()] = true;
+    FString KeyString = ObjectName.ToString(); 
+
+    if (TargetState.StateValues.Contains(KeyString))
+    {
+        TargetState.StateValues[KeyString] = true;
+    }
+    else
+    {
+        TargetState.StateValues.Add(KeyString, true);
+    }
 }
 
