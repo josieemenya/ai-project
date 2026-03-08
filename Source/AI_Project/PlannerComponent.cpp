@@ -8,7 +8,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "Algo/Transform.h"
 #include "Algo/Reverse.h"
-#include "Editor/StatusBar/Private/SourceControlMenuHelpers.h"
 #include "Engine/SceneCapture2D.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISense_Sight.h"

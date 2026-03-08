@@ -3,7 +3,6 @@
 
 #include "Planner.h"
 
-#include <corecrt_io.h>
 
 // Add default functionality here for any IPlanner functions that are not pure virtual.
 
