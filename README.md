@@ -1,4 +1,4 @@
-#Silent Mansion
+# Silent Mansion
 Made in Unreal Engine 5.4.4
 
 Silent Mansion is my take on the Escape brief. It is a survival horror game taking place in an abandoned haunted mansion where the main character is inside and must eventually defeat the malevolent spirit holding them captive to escape, while also fighting against other spirits in the mansion.
