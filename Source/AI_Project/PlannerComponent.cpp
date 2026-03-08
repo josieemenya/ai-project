@@ -48,6 +48,7 @@ void UPlannerComponent::AddToAvailableActions(UAction* NewAction)
 
 TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldState DesiredState)
 {
+	
 	UE_LOG(LogTemp, Warning, TEXT("Planning"));
 
 	TArray<Node*> Open;
@@ -223,28 +224,45 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
 		return;
 
 	CurrentAction = ToDoStack[0];
-	ToDoStack.RemoveAt(0);
+	
 
+	if (!CurrentAction && ToDoStack.Num() > 0)
+	{
+		CurrentAction = ToDoStack[0];
+		ToDoStack.RemoveAt(0);
+	}
+	
 	if (!CurrentAction)
-	{
-		UE_LOG(LogTemp, Error, TEXT("CurrentAction is null"));
-		return;
-	}
+        return; 
 
-	UE_LOG(LogTemp, Warning, TEXT("Executing action: %s"), *CurrentAction->Name.ToString());
+    UE_LOG(LogTemp, Warning, TEXT("Executing action: %s"), *CurrentAction->Name.ToString());
 
-	if (CurrentAction->Execute(Owner) == EExitSequenceType::INVALID)
-	{
-		OnPlanInvalid.Broadcast();
-		return;
-	}
+    EExitSequenceType Result = CurrentAction->Execute(Owner);
 
-	for (auto& Effect : CurrentAction->Effects.StateValues)
-	{
-		if (auto Bot = Cast<ABaseAI>(GetOwner()))
-			Bot->CurrentState.StateValues.FindOrAdd(Effect.Key) = Effect.Value;
-		UE_LOG(LogTemp, Warning, TEXT("Updated CurrentState: %s = %s"), *Effect.Key, Effect.Value ? TEXT("true") : TEXT("false"));
-	}
+    switch (Result)
+    {
+        case EExitSequenceType::RUNNING:
+            return;
+
+        case EExitSequenceType::INVALID:
+            OnPlanInvalid.Broadcast();
+            CurrentAction = nullptr;
+            return;
+
+        case EExitSequenceType::SUCCESS:
+            if (auto Bot = Cast<ABaseAI>(GetOwner()))
+            {
+                for (auto& Effect : CurrentAction->Effects.StateValues)
+                {
+                    Bot->CurrentState.StateValues.FindOrAdd(Effect.Key) = Effect.Value;
+                    UE_LOG(LogTemp, Warning, TEXT("Updated CurrentState: %s = %s"),
+                        *Effect.Key, Effect.Value ? TEXT("true") : TEXT("false"));
+                }
+            }
+			ToDoStack.RemoveAt(0);
+            CurrentAction = nullptr;
+            break;
+    }
 }
 
 

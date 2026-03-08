@@ -15,7 +15,8 @@ enum class EExitSequenceType : uint8
 	SUCCESS,
 	FAILURE,
 	INTERRUPTED,
-	INVALID
+	INVALID,
+	RUNNING
 };
 
 UCLASS()

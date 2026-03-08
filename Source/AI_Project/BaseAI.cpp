@@ -31,6 +31,10 @@ void ABaseAI::BeginPlay()
 
 void ABaseAI::StartPlanning()
 {
+	if (PlannerComponent->ToDoStack.Num() > 0)
+	{
+		return;
+	}
 	
 	if (!Goals.IsEmpty())
 	{
@@ -62,9 +66,9 @@ void ABaseAI::Tick(float DeltaTime)
 	if (PlannerComponent->ToDoStack.Num() > 0)
 		UpdateActions();
 	
-	if (PlannerComponent->ToDoStack.Num() == 0)
+	else if (Goals.Num() > 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Planning failed"));
+		UE_LOG(LogTemp, Warning, TEXT("Planning finished or Invalidates"));
 		PlannerComponent->OnPlanInvalid.Broadcast();
 	}
 }
@@ -83,13 +87,18 @@ void ABaseAI::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ABaseAI::Replan()
 {
+	if (PlannerComponent->ToDoStack.Num() > 0)
+	{
+		return;
+	}
+
 	PlannerComponent->UpdateSmartObjects(CurrentState);
 
 	if (Goals.Num() > 0)
 	{
 		UGoal* CurrentGoal = NewObject<UGoal>(this, Goals[0]);
 
-		PlannerComponent->PlanGoal(CurrentState, CurrentGoal->DesiredState);
+		StartPlanning(); 
 	}
 }
 

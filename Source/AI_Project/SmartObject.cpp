@@ -52,6 +52,7 @@ void ASmartObject::Tick(float DeltaTime)
 
 void ASmartObject::RegisterInBlackboard(UBlackboardCustom* BB)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Registering smart object key: %s"), *ObjectName.ToString());
 	FBlackboardCustomEntry Obj = FBlackboardCustomEntry(ObjectName, EBlackboardKey::SmartObject);
 	Obj.SmartObjectValue = this;
 	BB->BlackboardEntries.Add(Obj);
