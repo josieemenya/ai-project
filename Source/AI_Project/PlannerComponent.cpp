@@ -64,7 +64,7 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 		0
 	}; 
 	
-	auto remainingActions = getHCost(StartNode, DesiredState);
+	auto remainingActions = getHCost(StartNode, DesiredState); // this is wrong omg
 	
 	StartNode->hCost = remainingActions;
 	StartNode->fCost = remainingActions;

@@ -9,6 +9,7 @@
 
 class UBlackboardCustom; 
 
+
 UCLASS()
 class AI_PROJECT_API ASmartObject : public AActor
 {
@@ -52,17 +53,12 @@ public:
 inline void ASmartObject::WriteToWorldState(FWorldState& TargetState)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Writing %s to StateValues"), *ObjectName.ToString());
-	auto AlreadyFound = TargetState.StateValues.Find(ObjectName.ToString()); 
-	if (!AlreadyFound)
+	
+	for (auto States : RepresentedState)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Map count before (Adding): %d"), TargetState.StateValues.Num());
-		TargetState.StateValues.Add(ObjectName.ToString(), true);
+		TargetState.StateValues.FindOrAdd(States.Key).SetValue(States.Value);
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Map count before(Updating): %d"), TargetState.StateValues.Num());
-		TargetState.StateValues[ObjectName.ToString()] = true;
-	}
+	
 	UE_LOG(LogTemp, Warning, TEXT("Map count after: %d"), TargetState.StateValues.Num());
 
 }

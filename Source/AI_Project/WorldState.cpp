@@ -8,21 +8,27 @@ bool FWorldState::operator==(const FWorldState& Other) const
 	return StateValues.OrderIndependentCompareEqual(Other.StateValues);
 }
 
-bool FWorldState::Satisfies(const FWorldState& Other) const
+bool FWorldState::Satisfies(const FWorldState& Other)
 {
-		for (auto& X : Other.StateValues)
+	for (const auto& State : Other.StateValues)
+	{
+		auto GoalKey = State.Key;
+		auto GoalValue = State.Value;
+		
+		auto InKey = StateValues.Find(GoalKey);
+		
+		if (!InKey)
+			return false;
+		
+		if (! Visit([this](const auto& a, const auto& b)
 		{
-			auto GoalKey = X.Key;
-			bool GoalValue = X.Value;
-			
-			auto CurrentValue = StateValues.Find(X.Key);
-  			bool Val = (CurrentValue) ? *CurrentValue : false; 
-			
-			if (GoalValue != Val)
-			{
-				return false;
-			}
+			return a == b;
+		}, *InKey, GoalValue))
+		{
+			return false; 
 		}
-		return true;
+		
+	}
+	return true;
 }
 

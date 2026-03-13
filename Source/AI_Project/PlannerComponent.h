@@ -15,39 +15,6 @@ class ASmartObject;
 ///
 ///
 
-UENUM(BlueprintType)
-enum class EValueType : uint8
-{
-	Int,
-	Float,
-	Bool,
-	Vector,
-	Actor
-};
-
-USTRUCT(BlueprintType)
-struct FTaggedValue
-{
-	GENERATED_BODY()
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EValueType Type;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 intVal;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float floatVal;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool boolVal;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector vecVal;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<AActor> ActorVal;
-}; 
 
 
 
@@ -106,17 +73,19 @@ struct Node
 ///////
 ///
 ///
+///
+///
 inline int getHCost(Node* A, FWorldState B)
 {
 	int hCost = 0;
 	for (auto X : B.StateValues)
 	{
 		auto GoalKey = X.Key;
-		bool GoalValue = X.Value;
+		auto GoalValue = X.Value;
 		
-		bool* CurrentValue = A->State.StateValues.Find(GoalKey);
+		auto* CurrentValue = A->State.StateValues.Find(GoalKey);
 		
-		if (!CurrentValue || *CurrentValue != GoalValue)
+		if (!CurrentValue || !Visit([](const auto& a, const auto& b){ return a == b; }, *CurrentValue, GoalValue))
 		{
 			hCost++;
 		}
