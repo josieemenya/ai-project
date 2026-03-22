@@ -57,9 +57,22 @@ void UFSMComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	InitStates(); 
-	
+	StartTransition.AddUObject(this, &UFSMComponent::SwitchAndRun); 
 }
 
+void UFSMComponent::SwitchAndRun()
+{
+	auto Owner = GetOwner();
+	if (LastState && LastState != CurrentState)
+	{
+		LastState->OnExit(Owner); 
+	}
+	
+	
+	if (CurrentState)
+		CurrentState->OnEnter(Owner);
+	
+}
 
 void UFSMComponent::InitStates() {
 	for (auto State : States)
@@ -74,7 +87,13 @@ void UFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	if (!CurrentState)
+		return;
+	
+	if (CurrentState->OnRun(GetOwner()) != EExitSequenceType::RUNNING)
+	{
+		CurrentState->OnExit(GetOwner());
+	}
 }
 
 float UConsideration::Evaluate_Implementation()
@@ -114,6 +133,9 @@ TMap<UFSMState*, float> UFSMComponent::FilterAvailableStates(TArray<UFSMState*> 
 {
 	TMap<UFSMState*, float> validStates;
 	
+
+	UpdateAllStates(AvailableStates);
+
 	for (auto State : AvailableStates)
 	{
 		if (State->bCanRun)
@@ -124,13 +146,27 @@ TMap<UFSMState*, float> UFSMComponent::FilterAvailableStates(TArray<UFSMState*> 
 	return validStates;
 }
 
-void UFSMComponent::UpdateState() {
+void UFSMComponent::UpdateCurrentState() {
 	auto ValidStates = FilterAvailableStates(AllStates);
 	UUtilityTree::Get()->ScoreStates(ValidStates);
 	ValidStates.ValueSort([](auto State1, auto State2) { return State1 > State2; });// should sort like heap top
 	
 	if (!ValidStates.IsEmpty())
 	{
+		LastState = CurrentState;
 		CurrentState = ValidStates.CreateConstIterator().Key(); 
+		StartTransition.Broadcast(); 
+	}
+}
+
+
+void UFSMComponent::UpdateAllStates(TArray<UFSMState*> All) {
+	for (auto State : All) {
+		for (auto Condition : State->Conditions) {
+			auto NewCondition = NewObject<UCondition>(this, Condition);
+			if (!NewCondition->Evaluate()) {
+				State->bCanRun = false; 
+			} 
+		}
 	}
 }

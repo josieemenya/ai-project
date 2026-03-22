@@ -31,6 +31,8 @@ class AI_PROJECT_API UFSMState : public UObject
 public: 
 	UFSMState(); 
 	
+	DECLARE_DELEGATE(FOnCurrentStateChanged);
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	TArray<TSubclassOf<UCondition>> Conditions;
 	
@@ -66,6 +68,11 @@ public:
 	// Sets default values for this component's properties
 	UFSMComponent();
 	
+	DECLARE_MULTICAST_DELEGATE(FOnCurrentStateChanged);
+	
+	FOnCurrentStateChanged StartTransition;
+	
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	TArray<TSubclassOf<UFSMState>> States;
 	
@@ -75,12 +82,21 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	UFSMState* CurrentState;
 	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UFSMState* LastState;
+	
 	void InitStates(); 
 	
 	UFUNCTION(BlueprintCallable)
-	void UpdateState(); 
+	void UpdateCurrentState(); 
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateAllStates(TArray<UFSMState*> All); 
 	
 	TMap<UFSMState*, float> FilterAvailableStates(TArray<UFSMState*> AvailableStates);
+	
+	UFUNCTION(BlueprintCallable)
+	void SwitchAndRun(); 
 
 protected:
 	// Called when the game starts
