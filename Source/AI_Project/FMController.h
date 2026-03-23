@@ -13,16 +13,21 @@
 UCLASS()
 class AI_PROJECT_API AFMController : public AAIController
 {
+protected:
+	void BeginPlay() override;
+
+private:
 	GENERATED_BODY()
+
+public:
 	
-	public:
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<class UFSMComponent> FSMComponent;
+	AFMController();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UBlackboardComponent* BBlackboard;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UFSMComponent* Comp;
 };
 
 

@@ -29,16 +29,16 @@ void UUtilityTree::ScoreStates(TMap<UFSMState*, float>& States)
 
 void UFSMState::EvaluateConditions()
 {
-	for (auto Sub : Conditions)
+	bCanRun = true;
+
+	for (auto Sub : InstancedConditions)
 	{
-		UCondition* Condition = NewObject<UCondition>(this, Sub);
-		if (!Condition && !Condition->Evaluate())
+		if (!Sub || !Sub->Evaluate())
 		{
 			bCanRun = false;
 			return;
 		}
 	}
-	bCanRun = true;
 }
 
 // Sets default values for this component's properties
@@ -77,7 +77,8 @@ void UFSMComponent::SwitchAndRun()
 void UFSMComponent::InitStates() {
 	for (auto State : States)
 	{
-		auto NewState = NewObject<UFSMState>(State);
+		auto NewState = NewObject<UFSMState>(this, State);
+		NewState->InstanceStates(); 
 		AllStates.Add(NewState);
 	}
 }
@@ -88,11 +89,27 @@ void UFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	if (!CurrentState)
+	{
+		UpdateCurrentState();
 		return;
-	
+	}
+
 	if (CurrentState->OnRun(GetOwner()) != EExitSequenceType::RUNNING)
 	{
-		CurrentState->OnExit(GetOwner());
+		UpdateCurrentState();
+	}
+}
+
+void UFSMState::InstanceStates()
+{
+	for (auto Sub : Conditions)
+	{
+		InstancedConditions.Add(NewObject<UCondition>(this, Sub));
+	}
+
+	for (auto Consider : Considerations)
+	{
+		InstancedConsiderations.Add(NewObject<UConsideration>(this, Consider));
 	}
 }
 
@@ -107,17 +124,18 @@ UFSMState::UFSMState() {
 float UFSMState::Evaluate()
 {
 	float Score = 0.0f;
-	for (TSubclassOf<UConsideration> Consider : Considerations)
+
+	for (auto Consider : InstancedConsiderations)
 	{
 		if (Consider)
 		{
-			UConsideration* New = NewObject<UConsideration>(this, Consider);
-			Score += New->Evaluate();
+			Score += Consider->Evaluate();
 		}
 	}
-	return Score; 
-}
+	
 
+	return Score;
+}
 EExitSequenceType UFSMState::OnEnter_Implementation(AActor* Owner) {
 	return EExitSequenceType::RUNNING; 
 }
@@ -149,24 +167,38 @@ TMap<UFSMState*, float> UFSMComponent::FilterAvailableStates(TArray<UFSMState*> 
 void UFSMComponent::UpdateCurrentState() {
 	auto ValidStates = FilterAvailableStates(AllStates);
 	UUtilityTree::Get()->ScoreStates(ValidStates);
-	ValidStates.ValueSort([](auto State1, auto State2) { return State1 > State2; });// should sort like heap top
 	
-	if (!ValidStates.IsEmpty())
+	UFSMState* BestState = GetBestState(ValidStates);
+	if (BestState && BestState != CurrentState)
 	{
 		LastState = CurrentState;
-		CurrentState = ValidStates.CreateConstIterator().Key(); 
+		CurrentState = BestState; 
 		StartTransition.Broadcast(); 
 	}
 }
 
-
-void UFSMComponent::UpdateAllStates(TArray<UFSMState*> All) {
-	for (auto State : All) {
-		for (auto Condition : State->Conditions) {
-			auto NewCondition = NewObject<UCondition>(this, Condition);
-			if (!NewCondition->Evaluate()) {
-				State->bCanRun = false; 
-			} 
-		}
+void UFSMComponent::UpdateAllStates(TArray<UFSMState*> All)
+{
+	for (auto State : All)
+	{
+		State->EvaluateConditions();
 	}
 }
+
+UFSMState* UFSMComponent::GetBestState(TMap<UFSMState*, float> &All)
+{
+	UFSMState* BestState = nullptr;
+	float BestScore = -FLT_MAX;
+
+	for (auto Pair : All)
+	{
+		if (Pair.Value > BestScore)
+		{
+			BestScore = Pair.Value;
+			BestState = Pair.Key;
+		}
+	}
+	
+	return BestState;
+}
+

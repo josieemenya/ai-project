@@ -3,3 +3,12 @@
 
 #include "FMController.h"
 
+AFMController::AFMController()
+{
+    Comp = CreateDefaultSubobject<UFSMComponent>(TEXT("FSM"));
+}
+
+void AFMController::BeginPlay()
+{
+    AAIController::BeginPlay();
+}

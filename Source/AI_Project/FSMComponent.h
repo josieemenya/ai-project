@@ -37,7 +37,13 @@ public:
 	TArray<TSubclassOf<UCondition>> Conditions;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	TArray<UCondition*> InstancedConditions;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	TArray<TSubclassOf<UConsideration>> Considerations;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	TArray<UConsideration*> InstancedConsiderations;
 	
 	UFUNCTION(BlueprintCallable)
 	float Evaluate(); 
@@ -57,6 +63,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void EvaluateConditions(); 
+	
+	UFUNCTION(BlueprintCallable)
+	void InstanceStates(); 
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -97,6 +106,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void SwitchAndRun(); 
+	
+	UFUNCTION(BlueprintCallable)
+	UFSMState* GetBestState(TMap<UFSMState*, float> &All); 
 
 protected:
 	// Called when the game starts
