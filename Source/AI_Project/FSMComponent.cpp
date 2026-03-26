@@ -3,6 +3,8 @@
 
 #include "FSMComponent.h"
 
+#include "AI_Project.h"
+
 
 UUtilityTree* UUtilityTree::Instance = nullptr;
 
@@ -65,13 +67,27 @@ void UFSMComponent::SwitchAndRun()
 	auto Owner = GetOwner();
 	if (LastState && LastState != CurrentState)
 	{
-		LastState->OnExit(Owner); 
+		if (LastState->OnExit(Owner) == EExitSequenceType::DEFAULT)
+		{
+			UE_LOG(
+			LogTemp, 
+			Error, 
+			TEXT("%s's OnExit function has not been overridden/or there is a stray exeution pin that has not returned an ExitSequenceType!", LastState ? *LastState->StateName : TEXT("Unknown State"))
+			); 
+		} 
 	}
 	
 	
-	if (CurrentState)
-		CurrentState->OnEnter(Owner);
-	
+	if (CurrentState){
+		if (CurrentState->OnEnter(Owner) == EExitSequenceType::DEFAULT)
+		{
+			UE_LOG(
+			LogTemp, 
+			Error, 
+			TEXT("%s's OnEnter function has not been overridden/or there is a stray exeution pin that has not returned an ExitSequenceType!", CurrentState ? *CurrentState->StateName : TEXT("Unknown State"))
+			); 
+		}
+	}
 }
 
 void UFSMComponent::InitStates() {
@@ -92,6 +108,15 @@ void UFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 	{
 		UpdateCurrentState();
 		return;
+	}
+	
+	if (CurrentState->OnRun(GetOwner()) == EExitSequenceType::DEFAULT)
+	{
+		UE_LOG(
+			LogTemp, 
+			Error, 
+			TEXT("%s's OnRun function has not been overridden/or there is a stray exeution pin that has not returned an ExitSequenceType!", CurrentState ? *CurrentState->StateName : TEXT("Unknown State"))
+			); 
 	}
 
 	if (CurrentState->OnRun(GetOwner()) != EExitSequenceType::RUNNING)
@@ -137,14 +162,14 @@ float UFSMState::Evaluate()
 	return Score;
 }
 EExitSequenceType UFSMState::OnEnter_Implementation(AActor* Owner) {
-	return EExitSequenceType::RUNNING; 
+	return EExitSequenceType::DEFAULT; 
 }
 
 EExitSequenceType UFSMState::OnExit_Implementation(AActor* Owner) {
-	return EExitSequenceType::RUNNING;
+	return EExitSequenceType::DEFAULT;
 }
 EExitSequenceType UFSMState::OnRun_Implementation(AActor* Owner) {
-	return EExitSequenceType::RUNNING;
+	return EExitSequenceType::DEFAULT;
 }
 
 TMap<UFSMState*, float> UFSMComponent::FilterAvailableStates(TArray<UFSMState*> AvailableStates)

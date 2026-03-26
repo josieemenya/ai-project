@@ -259,6 +259,13 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
 			ToDoStack.RemoveAt(0);
             CurrentAction = nullptr;
             break;
+    	
+		case EExitSequenceType::DEFAULT:
+    		UE_LOG(LogTemp, Error, TEXT("Hidden Enum Type reached, check %s's Execute function to see if it has not been overriden", CurrentAction ? *CurrentAction->Name : TEXT("UnknownAction")));
+    		break;
+    	
+    	default:
+    		UE_LOG(LogTemp, Error, TEXT("Impossible Result Type Reached. Please check %s's Execute.", CurrentAction ? *CurrentAction->Name : TEXT("UnknownAction")));
     }
 }
 

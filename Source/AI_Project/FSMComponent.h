@@ -34,6 +34,9 @@ public:
 	DECLARE_DELEGATE(FOnCurrentStateChanged);
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FName StateName;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	TArray<TSubclassOf<UCondition>> Conditions;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
