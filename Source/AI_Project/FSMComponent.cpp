@@ -72,8 +72,8 @@ void UFSMComponent::SwitchAndRun()
 			UE_LOG(
 			LogTemp, 
 			Error, 
-			TEXT("%s's OnExit function has not been overridden/or there is a stray exeution pin that has not returned an ExitSequenceType!", LastState ? *LastState->StateName : TEXT("Unknown State"))
-			); 
+			TEXT("%s's OnExit function has not been overridden/or there is a stray exeution pin that has not returned an ExitSequenceType!"), LastState ? *LastState->StateName.ToString() : TEXT("Unknown State"))
+			; 
 		} 
 	}
 	
@@ -84,8 +84,8 @@ void UFSMComponent::SwitchAndRun()
 			UE_LOG(
 			LogTemp, 
 			Error, 
-			TEXT("%s's OnEnter function has not been overridden/or there is a stray exeution pin that has not returned an ExitSequenceType!", CurrentState ? *CurrentState->StateName : TEXT("Unknown State"))
-			); 
+			TEXT("%s's OnEnter function has not been overridden/or there is a stray exeution pin that has not returned an ExitSequenceType!"), CurrentState ? *CurrentState->StateName.ToString() : TEXT("Unknown State"))
+			; 
 		}
 	}
 }
@@ -115,8 +115,8 @@ void UFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 		UE_LOG(
 			LogTemp, 
 			Error, 
-			TEXT("%s's OnRun function has not been overridden/or there is a stray exeution pin that has not returned an ExitSequenceType!", CurrentState ? *CurrentState->StateName : TEXT("Unknown State"))
-			); 
+			TEXT("%s's OnRun function has not been overridden/or there is a stray exeution pin that has not returned an ExitSequenceType!"), CurrentState ? *CurrentState->StateName.ToString() : TEXT("Unknown State"))
+			; 
 	}
 
 	if (CurrentState->OnRun(GetOwner()) != EExitSequenceType::RUNNING)

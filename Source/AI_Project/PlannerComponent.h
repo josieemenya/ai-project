@@ -148,6 +148,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UBlackboardSystem* AIbBlackboardSystem; 
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UBlackboardComponent* BB_Planner;
+	
+	
 	UFUNCTION(BlueprintCallable, Category="Planner")
 	void AddToAvailableActions(UAction* NewAction); 
 	
@@ -163,7 +167,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<AActor*> AllSmartObjectsNearby; 
 
-	TArray<ASmartObject*> LastSmartObjectsNearby;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<USmartObjectContainer> LastSmartObjectContainer; 
+
+	
+	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<UAction*> ToDoStack;  

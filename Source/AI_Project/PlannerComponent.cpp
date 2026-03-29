@@ -12,11 +12,13 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISense_Sight.h"
 #include "Perception/PawnSensingComponent.h"
+#include "BehaviorTree/BlackboardComponent.h" 
 
 // Sets default values for this component's properties
 UPlannerComponent::UPlannerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	BB_Planner = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BB_Blackboard"));
 }
 
 // Called when the game starts
@@ -24,7 +26,11 @@ void UPlannerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	AIbBlackboardSystem = NewObject<UBlackboardSystem>(this);
+	LastSmartObjectContainer = NewObject<USmartObjectContainer>(this);
+	
 	AIbBlackboardSystem->Blackboard = NewObject<UBlackboardCustom>(this);
+	
+	
 }
 
 // Called every frame
@@ -162,8 +168,11 @@ TArray<UAction*> UPlannerComponent::FilterAvailableActions(TArray<TSubclassOf<UA
 void UPlannerComponent::UpdateSmartObjects(FWorldState& Current)
 {
 	AllSmartObjectsNearby.Empty();
-
-	if (auto AI = Cast<APawn>(GetOwner())) {
+	
+	auto Owner = Cast<AAIController>(GetOwner()); 
+	auto AI = (Owner)? Owner->GetPawn() : Cast<APawn>(GetOwner()); // owner shouldl either be the pawn itself or the controller
+	
+	if (AI) {
 		auto Steer =  AI->GetController(); 
 		if (auto Senser = Steer->FindComponentByClass<UAIPerceptionComponent>())
 		{
@@ -175,15 +184,15 @@ void UPlannerComponent::UpdateSmartObjects(FWorldState& Current)
 		}
 	} else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Owning AI is not a pawn"));
+		UE_LOG(LogTemp, Error, TEXT("Owning AI is not a pawn, or a controller"));
 	}
 	
-	for (ASmartObject* SmartObj : LastSmartObjectsNearby)
+	for (ASmartObject* SmartObj : LastSmartObjectContainer->RegisteredObjects)
 	{
 		Current.StateValues.Remove(SmartObj->ObjectName.ToString());
 	}
 	
-	LastSmartObjectsNearby.Empty();
+	LastSmartObjectContainer->RegisteredObjects.Empty();
 	
 	for (auto SObj : AllSmartObjectsNearby)
 	{
@@ -192,7 +201,7 @@ void UPlannerComponent::UpdateSmartObjects(FWorldState& Current)
 			UE_LOG(LogTemp, Warning, TEXT("Writing to World State"));
 			SmartObj->WriteToWorldState(Current);
 			
-			LastSmartObjectsNearby.Add(SmartObj);
+			LastSmartObjectContainer->RegisteredObjects.Add(SmartObj);
 			if (!AIbBlackboardSystem)
 			{
 				UE_LOG(LogTemp, Error, TEXT("AIbBlackboardSystem is null"));
@@ -205,6 +214,15 @@ void UPlannerComponent::UpdateSmartObjects(FWorldState& Current)
 				return;
 			}
 			SmartObj->RegisterInBlackboard(AIbBlackboardSystem->Blackboard);
+			
+			
+			if (BB_Planner->GetBlackboardAsset())
+			{
+				BB_Planner->SetValueAsObject("Smart Objects", LastSmartObjectContainer);
+			}else
+			{
+				UE_LOG(LogTemp, Error, TEXT("No Value Asset for Blackboard Object"));
+			}
 		}
 	}
 	
@@ -261,11 +279,11 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
             break;
     	
 		case EExitSequenceType::DEFAULT:
-    		UE_LOG(LogTemp, Error, TEXT("Hidden Enum Type reached, check %s's Execute function to see if it has not been overriden", CurrentAction ? *CurrentAction->Name : TEXT("UnknownAction")));
+    		UE_LOG(LogTemp, Error, TEXT("Hidden Enum Type reached, check %s's Execute function to see if it has not been overriden"), CurrentAction ? *CurrentAction->Name.ToString() : TEXT("UnknownAction"));
     		break;
     	
     	default:
-    		UE_LOG(LogTemp, Error, TEXT("Impossible Result Type Reached. Please check %s's Execute.", CurrentAction ? *CurrentAction->Name : TEXT("UnknownAction")));
+    		UE_LOG(LogTemp, Error, TEXT("Impossible Result Type Reached. Please check %s's Execute."), CurrentAction ? *CurrentAction->Name.ToString() : TEXT("UnknownAction"));
     }
 }
 

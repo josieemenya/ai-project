@@ -67,3 +67,12 @@ inline void ASmartObject::WriteToWorldState(FWorldState& TargetState)
 
 }
 
+
+UCLASS(Blueprintable)
+class AI_PROJECT_API USmartObjectContainer : public UObject
+{
+	GENERATED_BODY()
+public:	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<ASmartObject*> RegisteredObjects;
+};
