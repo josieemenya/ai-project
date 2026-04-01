@@ -7,7 +7,8 @@
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
-#include "Components/Stat"
+#include "Weapon.h"
+#include "Components/StaticMeshComponent.h"
 
 // Sets default values for this component's properties
 UWeaponComponent::UWeaponComponent()
@@ -23,24 +24,28 @@ void UWeaponComponent::Equip()
 {
 	if (auto Character = Cast<ACharacter>(GetOwner()))
 	{
-		CurrentlyEquippedWeapon.WeaponMesh->AttachToComponent( // replace charcter with desired weapon 
+		CurrentlyEquippedWeapon->WeaponInformation.WeaponMesh->AttachToComponent( // replace charcter with desired weapon 
 			Character->GetMesh(),
 			FAttachmentTransformRules::KeepRelativeTransform, 
 			FName("HandEquipSocket")
 			); 
-
 	}
 }
 
 void UWeaponComponent::Aim()
 {
-	if (CurrentlyEquippedWeapon.WeaponType == EWeaponType::GUN)
+	if (CurrentlyEquippedWeapon->WeaponInformation.WeaponType == EWeaponType::GUN)
 	{
 		FHitResult HIT;
+		FVector Start = CurrentlyEquippedWeapon->GetActorLocation(); 
+		FVector End = Start + FVector(50);
 		GetWorld()->LineTraceSingleByChannel(
 				HIT,
-				CurrentlyEquippedWeapon
-			)
+				Start,
+				End, 
+				ECollisionChannel::ECC_Visibility
+			); 
+		
 	}
 }
 
@@ -54,7 +59,7 @@ void UWeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
+	InitializeWeapons(); 
 	
 }
 
@@ -65,5 +70,15 @@ void UWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+void UWeaponComponent::InitializeWeapons()
+{
+	for (auto W : Weapons)
+	{
+		InstancedWeapons.Add(NewObject<AWeapon>(this,W)); 
+	}
+	
+	CurrentlyEquippedWeapon = InstancedWeapons[0]; 
 }
 

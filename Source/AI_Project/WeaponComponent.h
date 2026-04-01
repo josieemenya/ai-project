@@ -7,29 +7,7 @@
 #include "WeaponComponent.generated.h"
 
 
-UENUM(BlueprintType)
-enum class EWeaponType
-{
-	GUN, // mainly for line trace 
-	DAGGER
-};
-
-
-USTRUCT(BlueprintType)
-struct FWeaponInformation
-{
-	GENERATED_BODY()
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName WeaponName; 
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EWeaponType WeaponType; 
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UStaticMesh* WeaponMesh; // weapon body
-	
-};
+class AWeapon; 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class AI_PROJECT_API UWeaponComponent : public UActorComponent
@@ -41,10 +19,15 @@ public:
 	UWeaponComponent();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FWeaponInformation> Weapons;
+	TArray<TSubclassOf<AWeapon>> Weapons;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<AWeapon*> InstancedWeapons;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FWeaponInformation CurrentlyEquippedWeapon; 
+	AWeapon* CurrentlyEquippedWeapon; 
+	
+	void InitializeWeapons();
 	
 	UFUNCTION(BlueprintCallable)
 	void Equip();  // maybe?
