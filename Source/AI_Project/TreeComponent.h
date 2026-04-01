@@ -14,7 +14,9 @@ class UTreeNode : public UObject
 {
 	GENERATED_BODY()
 public : 
-	UTreeNode* parent;
+	
+	UPROPERTY()
+	UTreeNode* Parent;
 	virtual bool StatusRun()
 	{
 		return true;
@@ -27,7 +29,11 @@ class UComposite : public UTreeNode
 {
 	GENERATED_BODY()
 public:
-	TArray<UTreeNode*> children; 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TArray<TSubclassOf<UTreeNode>> ChildrenClasses;
+	
+	UPROPERTY(EditAnywhere, Instanced)
+	TArray<UTreeNode*> InstancedChildren; 
 };
 
 UCLASS(BlueprintType, Blueprintable)
@@ -57,7 +63,7 @@ public :
 	UAnimMontage* AnimToPlay; // i don
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	ACharacter* Target;
+	TObjectPtr<ACharacter> Target;
 	
 	UFUNCTION(BlueprintCallable)
 	virtual bool StatusRun() override;
@@ -116,7 +122,12 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	
+	void InitializeNode(UTreeNode* Node); 
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<USelector> RootNodeClass;
+	
+	UPROPERTY(Transient)
 	USelector* RootNode;
 
 public:	

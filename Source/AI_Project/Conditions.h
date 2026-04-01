@@ -24,9 +24,9 @@ public:
 	UCondition(){};
 	
 	UFUNCTION(BlueprintNativeEvent)
-	bool Evaluate() const;
+	bool Evaluate(AActor* OwningCharacter) const;
 	
-	bool Evaluate_Implementation() const
+	bool Evaluate_Implementation(AActor* OwningCharacter) const
 	{
 		return true;
 	}

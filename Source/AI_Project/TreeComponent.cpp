@@ -4,6 +4,8 @@
 #include "TreeComponent.h"
 #include "Animation/AnimMontage.h"
 #include "GameFramework/Character.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Animation/AnimInstance.h"
 #include "AIController.h"
 
 // Sets default values for this component's properties
@@ -21,9 +23,24 @@ UTreeComponent::UTreeComponent()
 void UTreeComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	RootNode = NewObject<USelector>(this, RootNodeClass);
+	InitializeNode(RootNode);
+}
 
-	// ...
-	
+void UTreeComponent::InitializeNode(UTreeNode* Node)
+{
+	if (UComposite* Composite = Cast<UComposite>(Node))
+	{
+		for (auto ChildClass : Composite->ChildrenClasses)
+		{
+			UTreeNode* Child = NewObject<UTreeNode>(Composite, ChildClass);
+
+			Child->Parent = Composite;
+			Composite->InstancedChildren.Add(Child);
+
+			InitializeNode(Child); 
+		}
+	}
 }
 
 
@@ -40,11 +57,12 @@ void UTreeComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 bool USelector::StatusRun()
 {
 	GEngine->AddOnScreenDebugMessage(0, 1, FColor::Red, TEXT("Executing Selector"));
-	for (auto child : children)
+	for (auto child : InstancedChildren)
 	{
-		if (child->StatusRun())
-			return true;
-		
+		if (child && child->StatusRun())
+		{
+			return true; 
+		}
 	}
 	
 	return false;
@@ -53,9 +71,9 @@ bool USelector::StatusRun()
 bool USequences::StatusRun()
 {
 	GEngine->AddOnScreenDebugMessage(0, 1, FColor::Red, TEXT("Executing Sequence"));
-	for (auto child : children)
+	for (auto child : InstancedChildren)
 	{
-		if (!child->StatusRun())
+		if (!child || !child->StatusRun())
 			return false; 
 	}
 	return true;

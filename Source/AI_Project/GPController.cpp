@@ -15,10 +15,12 @@ AGPController::AGPController()
 {
 	Planner = CreateDefaultSubobject<UPlannerComponent>("PlannerComponent");
 	PerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>("PerceptionComp");
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AGPController::StartPlanning()
 {
+	SetActorTickEnabled(true);
 	if (Planner->ToDoStack.Num() > 0) // don't plan of we have a task
 	{
 		return;

@@ -20,7 +20,7 @@ class AI_PROJECT_API AGPController : public AAIController
 	
 public:
 	
-	AGPController(); 
+	AGPController();
 	
 	UPROPERTY(VisibleAnywhere)
 	UAIPerceptionComponent* PerceptionComp;
@@ -51,7 +51,7 @@ protected:
 
 public:
 	virtual void Tick(float DeltaTime) override;
-	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus){};
 protected:
 	
 };

@@ -11,7 +11,7 @@
 
 
 
-UCLASS(BlueprintType)
+UCLASS(BlueprintType, Blueprintable)
 class AI_PROJECT_API UConsideration : public UDataAsset
 {
 	GENERATED_BODY()

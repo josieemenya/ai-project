@@ -3,7 +3,10 @@
 
 #include "FSMComponent.h"
 
+#include "AIController.h"
 #include "AI_Project.h"
+#include "HLSLTree/HLSLTreeTypes.h"
+#include "Shader/ShaderTypes.h"
 
 
 UUtilityTree* UUtilityTree::Instance = nullptr;
@@ -25,7 +28,10 @@ void UUtilityTree::ScoreStates(TMap<UFSMState*, float>& States)
 {
 	for (auto& State : States)
 	{
-		State.Value = State.Key->Evaluate(); 
+		if (State.Key)
+		{
+			State.Value = State.Key->Evaluate();
+		}
 	}
 }
 
@@ -35,7 +41,19 @@ void UFSMState::EvaluateConditions()
 
 	for (auto Sub : InstancedConditions)
 	{
-		if (!Sub || !Sub->Evaluate())
+		APawn* OwnerA = Cast<APawn>(GetOuter()); // most like 
+		APawn* PassedInActor = nullptr; 
+		if (OwnerA) // most like a controller but in the event i actually did attach to an actor 
+		{
+			PassedInActor = OwnerA; 
+		} else 
+		{
+			auto OwnerB = Cast<AAIController>(GetOuter());
+			
+			if (OwnerB)
+				PassedInActor = Cast<APawn>(OwnerB->GetOwner());
+		}
+		if (!Sub || !Sub->Evaluate(PassedInActor))
 		{
 			bCanRun = false;
 			return;
@@ -91,11 +109,19 @@ void UFSMComponent::SwitchAndRun()
 }
 
 void UFSMComponent::InitStates() {
+	
+	
 	for (auto State : States)
 	{
-		auto NewState = NewObject<UFSMState>(this, State);
-		NewState->InstanceStates(); 
-		AllStates.Add(NewState);
+		if (State)
+		{
+			auto NewState = NewObject<UFSMState>(this, State);
+			if (NewState)
+			{
+				NewState->InstanceStates();
+				AllStates.Add(NewState);
+			}
+		}
 	}
 }
 
@@ -110,31 +136,42 @@ void UFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 		return;
 	}
 	
-	if (CurrentState->OnRun(GetOwner()) == EExitSequenceType::DEFAULT)
+	EExitSequenceType Result = CurrentState->OnRun(GetOwner());
+
+	if (Result == EExitSequenceType::DEFAULT)
 	{
 		UE_LOG(
 			LogTemp, 
 			Error, 
 			TEXT("%s's OnRun function has not been overridden/or there is a stray exeution pin that has not returned an ExitSequenceType!"), CurrentState ? *CurrentState->StateName.ToString() : TEXT("Unknown State"))
-			; 
+		; 
 	}
 
-	if (CurrentState->OnRun(GetOwner()) != EExitSequenceType::RUNNING)
+	if (Result != EExitSequenceType::RUNNING)
 	{
 		UpdateCurrentState();
 	}
+	
 }
 
 void UFSMState::InstanceStates()
 {
+	
+	
 	for (auto Sub : Conditions)
 	{
-		InstancedConditions.Add(NewObject<UCondition>(this, Sub));
+		if (Sub)
+		{
+			InstancedConditions.Add(NewObject<UCondition>(this, Sub));
+		}
 	}
 
 	for (auto Consider : Considerations)
 	{
-		InstancedConsiderations.Add(NewObject<UConsideration>(this, Consider));
+		if (Consider)
+		{
+			InstancedConsiderations.Add(NewObject<UConsideration>(this, Consider));
+		}
 	}
 }
 
@@ -157,7 +194,6 @@ float UFSMState::Evaluate()
 			Score += Consider->Evaluate();
 		}
 	}
-	
 
 	return Score;
 }
@@ -206,7 +242,10 @@ void UFSMComponent::UpdateAllStates(TArray<UFSMState*> All)
 {
 	for (auto State : All)
 	{
-		State->EvaluateConditions();
+		if (State)
+		{
+			State->EvaluateConditions();
+		}
 	}
 }
 
