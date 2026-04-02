@@ -100,9 +100,6 @@ void AAI_ProjectCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AAI_ProjectCharacter::Look);
 
-		// Changing camera view
-		EnhancedInputComponent->BindAction(ChangeViewActionE, ETriggerEvent::Started, this, &AAI_ProjectCharacter::ChangeViewE);
-		EnhancedInputComponent->BindAction(ChangeViewActionQ, ETriggerEvent::Started, this, &AAI_ProjectCharacter::ChangeViewQ);
 		
 		if (AttackComp)
 		{
@@ -165,66 +162,6 @@ void AAI_ProjectCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void AAI_ProjectCharacter::ChangeViewE(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("E ACTION FIRED"));
-
-	CameraPositionIndex = (CameraPositionIndex + 1) % 4;
-	// q is negate, e is positive
-	UE_LOG(LogTemp, Warning, TEXT("Camera Position Index: %d"), CameraPositionIndex);
-	switch (CameraPositionIndex)
-	{
-	case 0:
-		CameraBoom->TargetOffset = FVector(0.f, 200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, -45, 0));
-		break;
-	case 1:
-		CameraBoom->TargetOffset = FVector(400.f, 200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, -135, 0));
-		break;
-	case 2:
-		CameraBoom->TargetOffset = FVector(400.f, -200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, 135, 0));
-		break;
-	case 3:
-		CameraBoom->TargetOffset = FVector(0.f, -200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, 45, 0));
-		break;
-	default :
-		CameraPositionIndex = (CameraPositionIndex < 0) ? 3 : 0;
-		break; 
-	}
-}
-
-void AAI_ProjectCharacter::ChangeViewQ(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("Q ACTION FIRED"));
-
-	CameraPositionIndex = (CameraPositionIndex + 3) % 4;
-	UE_LOG(LogTemp, Warning, TEXT("Camera Position Index: %d"), CameraPositionIndex);
-	switch (CameraPositionIndex)
-	{
-	case 0:
-		CameraBoom->TargetOffset = FVector(0.f, 200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, -45, 0));
-		break;
-	case 1:
-		CameraBoom->TargetOffset = FVector(400.f, 200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, -135, 0));
-		break;
-	case 2:
-		CameraBoom->TargetOffset = FVector(400.f, -200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, 135, 0));
-		break;
-	case 3:
-		CameraBoom->TargetOffset = FVector(0.f, -200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, 45, 0));
-		break;
-	default:
-		CameraPositionIndex = (CameraPositionIndex < 0) ? 3 : 0;
-		break;
-	}
-}
 
 void AAI_ProjectCharacter::GoToNewRoom()
 {

@@ -48,12 +48,6 @@ class AAI_ProjectCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* ChangeViewActionE;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* ChangeViewActionQ;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* SprintAction; // while shift is held down increase speed, otherwise, normal speed, also call stamina drain function;
 
@@ -83,8 +77,6 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
-	void ChangeViewE(const FInputActionValue& Value);
-	void ChangeViewQ(const FInputActionValue& Value);
 	void GoToNewRoom(); 
 
 protected:
