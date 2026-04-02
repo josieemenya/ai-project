@@ -25,11 +25,7 @@ UPlannerComponent::UPlannerComponent()
 void UPlannerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	AIbBlackboardSystem = NewObject<UBlackboardSystem>(this);
 	LastSmartObjectContainer = NewObject<USmartObjectContainer>(this);
-	
-	AIbBlackboardSystem->Blackboard = NewObject<UBlackboardCustom>(this);
-	
 	
 }
 
@@ -189,7 +185,8 @@ void UPlannerComponent::UpdateSmartObjects(FWorldState& Current)
 	
 	for (ASmartObject* SmartObj : LastSmartObjectContainer->RegisteredObjects)
 	{
-		Current.StateValues.Remove(SmartObj->ObjectName.ToString());
+		if (SmartObj)
+			Current.StateValues.Remove(SmartObj->ObjectName.ToString());
 	}
 	
 	LastSmartObjectContainer->RegisteredObjects.Empty();
@@ -202,18 +199,11 @@ void UPlannerComponent::UpdateSmartObjects(FWorldState& Current)
 			SmartObj->WriteToWorldState(Current);
 			
 			LastSmartObjectContainer->RegisteredObjects.Add(SmartObj);
-			if (!AIbBlackboardSystem)
+			if (!BB_Planner->GetBlackboardAsset())
 			{
-				UE_LOG(LogTemp, Error, TEXT("AIbBlackboardSystem is null"));
+				UE_LOG(LogTemp, Error, TEXT("BlackboardComponent is null"));
 				return;
 			}
-
-			if (!AIbBlackboardSystem->Blackboard)
-			{
-				UE_LOG(LogTemp, Error, TEXT("Blackboard is null"));
-				return;
-			}
-			SmartObj->RegisterInBlackboard(AIbBlackboardSystem->Blackboard);
 			
 			
 			if (BB_Planner->GetBlackboardAsset())

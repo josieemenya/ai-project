@@ -55,6 +55,8 @@ UCLASS(Blueprintable, BlueprintType)
 class AI_PROJECT_API UGoal : public UDataAsset
 {
 public : 
+	// add contecxt values for goal
+	// put comnditions on the goals
 	GENERATED_BODY()
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Name;
@@ -78,7 +80,7 @@ public :
 
 struct Node
 {
-// have an id for Node? use pointers
+	// have an id for Node? use pointers
 	FWorldState State;
 	UAction* Action;
 	Node* Parent;
@@ -145,8 +147,6 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UBlackboardSystem* AIbBlackboardSystem; 
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UBlackboardComponent* BB_Planner;

@@ -41,6 +41,9 @@ void AGPController::StartPlanning()
 		
 		UGoal* CurrentGoal = NewObject<UGoal>(this, Goals[0]);
 		
+		UE_LOG(LogTemp, Warning, TEXT("Goal class: %s"), *Goals[0]->GetName());
+		
+		
 		if (CurrentGoal->bRequiresSmartObject && Planner->AllSmartObjectsNearby.Num() == 0) // if goal needs to interact with smart obj
 		{
         	UE_LOG(LogTemp, Warning, TEXT("Skipping planning: no smart objects yet"));
@@ -48,8 +51,16 @@ void AGPController::StartPlanning()
 		}
 		
 		// StartPlanning for real
-		Planner->PlanGoal(BaseCurrentState, CurrentGoal->DesiredState); 
+		Planner->PlanGoal(BaseCurrentState, CurrentGoal->DesiredState);
+		UE_LOG(LogTemp, Warning, TEXT("Plan size after planning: %d"), Planner->ToDoStack.Num()); 
 		
+
+		for (auto& Pair : CurrentGoal->DesiredState.StateValues)
+		{
+    		UE_LOG(LogTemp, Warning, TEXT("Goal requires: %s = %s"),
+        	*Pair.Key,
+        	Pair.Value ? TEXT("true") : TEXT("false"));
+		}
 		
 		if (Planner->ToDoStack.Num() > 0) // if we have a sequence of actions we have a goal so 
 		{
@@ -99,20 +110,15 @@ bool AGPController::RegisterSeePlayer(UPlannerComponent* MyPlanner)
 	if (SeeActors.Num() > 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Registering SeeActors"));
-		auto Player = SeeActors.Find(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+		auto FoundPlayer = SeeActors.Find(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 		
-		if (Player != INDEX_NONE)
+		if (FoundPlayer != INDEX_NONE)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Can See Player"));
 			CurrentState.StateValues.FindOrAdd("Player", true); 
-			FBlackboardCustomEntry PlayerEntry = FBlackboardCustomEntry(); 
-			PlayerEntry = {
-				"Player",
-				EBlackboardKey::Actor
-			};
-			PlayerEntry.ActorValue = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0); 
-			MyPlanner->AIbBlackboardSystem->Blackboard->BlackboardEntries.Add(PlayerEntry);
-			MyPlanner->BB_Planner->SetValueAsObject("Player", UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)); 
+			
+			auto PlayerinWorld = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0); 
+			MyPlanner->BB_Planner->SetValueAsObject("Player", PlayerinWorld);
 			return true; 
 		}
 	

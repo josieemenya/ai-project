@@ -8,7 +8,7 @@
 
 
 UENUM(BlueprintType)
-enum class EWeaponType
+enum class EWeaponType : uint8
 {
 	GUN, // mainly for line trace 
 	DAGGER

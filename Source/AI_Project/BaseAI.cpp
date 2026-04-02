@@ -6,6 +6,7 @@
 #include "BlackboardSystem.h"
 #include "PlannerComponent.h"
 #include "Damage.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISense_Sight.h"
@@ -139,7 +140,7 @@ bool ABaseAI::RegisterSeePlayer(UPlannerComponent* Planner)
 			PlayerEntry.EntryName = "Player";
 			PlayerEntry.ValueType = EBlackboardKey::Actor;
 			PlayerEntry.ActorValue = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-			PlannerComponent->AIbBlackboardSystem->Blackboard->BlackboardEntries.Add(PlayerEntry);
+			PlannerComponent->BB_Planner->SetValueAsObject("Player", PlayerEntry.ActorValue); 
 			return true;
 		}
 	} else
