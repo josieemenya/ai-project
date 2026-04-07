@@ -29,6 +29,8 @@ AAI_ProjectCharacter::AAI_ProjectCharacter()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+	
+	
 
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
@@ -54,6 +56,7 @@ AAI_ProjectCharacter::AAI_ProjectCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 	GetCapsuleComponent()->SetGenerateOverlapEvents(true);
+
 
 	//CameraOffset = 45.f; // default value for camera offset, can be adjusted in blueprint, this is used to offset the camera from the character's forward direction, so that the camera is not directly behind the character, but slightly to the side, which can help with visibility and make it easier to see the character's animations and actions
 
@@ -123,25 +126,14 @@ void AAI_ProjectCharacter::Move(const FInputActionValue& Value)
 	if (Controller != nullptr)
 	{
 		// find out which way is forward
-		const FRotator CameraRotation = FollowCamera->GetComponentRotation();
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// for the orthgonal camera
-		//const auto InRoll = CameraOffset + Rotation.Yaw; 
-		
-		//const FRotator YawRotation(0, Rotation.Yaw, InRoll);
-
-		
 		// get forward vector
-		FVector ForwardDirection = CameraRotation.Vector();
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	
 		// get right vector 
-		FVector RightDirection = FRotationMatrix(CameraRotation).GetUnitAxis(EAxis::Y);
-
-		ForwardDirection.Z = 0.f;
-		RightDirection.Z   = 0.f;
-
-		ForwardDirection.Normalize();
-		RightDirection.Normalize();
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
 		// add movement 
 		AddMovementInput(ForwardDirection, MovementVector.Y);
@@ -159,6 +151,9 @@ void AAI_ProjectCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+		
+		//UE_LOG(LogTemp, Warning, TEXT("LOOK INPUT: %s"), *Value.ToString());
+		//UE_LOG(LogTemp, Warning, TEXT("Control Rot: %s"), *GetControlRotation().ToString());
 	}
 }
 
