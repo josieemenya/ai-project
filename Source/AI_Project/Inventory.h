@@ -7,6 +7,41 @@
 #include "Inventory.generated.h"
 
 
+USTRUCT(BlueprintType) 
+struct FCraftingItemData
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere)
+	FName ItemID; 
+	
+	UPROPERTY(EditAnywhere)
+	int32 Quantity;
+	
+};
+
+USTRUCT(BlueprintType)
+struct FItemRecipe
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere)
+	TMap<FCraftingItemData, int32> Recipes;
+	
+	UPROPERTY(EditAnywhere)
+	FCraftingItemData Result;
+	
+};
+
+USTRUCT(BlueprintType)
+struct FCraftingDatabase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	TArray<FItemRecipe> Recipes;
+};
+
 UCLASS()
 class AI_PROJECT_API UItem : public UActorComponent
 {
