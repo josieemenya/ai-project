@@ -21,26 +21,18 @@ struct FCraftingItemData
 };
 
 USTRUCT(BlueprintType)
-struct FItemRecipe
+struct FItemRecipe : public FTableRowBase
 {
 	GENERATED_BODY()
 	
 	UPROPERTY(EditAnywhere)
-	TMap<FCraftingItemData, int32> Recipes;
+	TArray<FCraftingItemData> Ingredients;
 	
 	UPROPERTY(EditAnywhere)
 	FCraftingItemData Result;
 	
 };
 
-USTRUCT(BlueprintType)
-struct FCraftingDatabase
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere)
-	TArray<FItemRecipe> Recipes;
-};
 
 UCLASS()
 class AI_PROJECT_API UItem : public UActorComponent
