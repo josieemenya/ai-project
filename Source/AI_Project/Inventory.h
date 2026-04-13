@@ -12,11 +12,16 @@ struct FCraftingItemData
 {
 	GENERATED_BODY()
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName ItemID; 
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "1"), BlueprintReadWrite)
 	int32 Quantity;
+	
+	bool operator==(const FCraftingItemData& Item) const
+	{
+		return Item.ItemID == ItemID;
+	}
 	
 };
 
@@ -25,10 +30,10 @@ struct FItemRecipe : public FTableRowBase
 {
 	GENERATED_BODY()
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FCraftingItemData> Ingredients;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FCraftingItemData Result;
 	
 };
