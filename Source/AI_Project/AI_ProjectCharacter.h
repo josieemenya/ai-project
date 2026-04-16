@@ -14,6 +14,7 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 class URoomComponent; 
+class UCraftingComponent;
 
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
@@ -56,6 +57,9 @@ class AAI_ProjectCharacter : public ACharacter
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UAttack* AttackComp; 
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UCraftingComponent* CraftingComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	int CameraPositionIndex; 

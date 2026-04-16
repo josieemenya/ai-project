@@ -7,6 +7,38 @@
 #include "Inventory.generated.h"
 
 
+USTRUCT(BlueprintType) 
+struct FCraftingItemData
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName ItemID; 
+	
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "1"), BlueprintReadWrite)
+	int32 Quantity;
+	
+	bool operator==(const FCraftingItemData& Item) const
+	{
+		return Item.ItemID == ItemID;
+	}
+	
+};
+
+USTRUCT(BlueprintType)
+struct FItemRecipe : public FTableRowBase
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FCraftingItemData> Ingredients;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FCraftingItemData Result;
+	
+};
+
+
 UCLASS()
 class AI_PROJECT_API UItem : public UActorComponent
 {

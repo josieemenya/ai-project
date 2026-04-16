@@ -2,6 +2,8 @@
 
 
 #include "Attack.h"
+
+#include "Damage.h"
 #include "GameFramework/Character.h"
 #include "Animation/AnimationAsset.h"
 #include "Animation/AnimMontage.h"
@@ -33,6 +35,17 @@ void UAttack::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponen
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+void UAttack::OnEnemyHit(AActor* EnemyActor)
+{
+	if (Cast<ACharacter>(EnemyActor)) // to be replaced by a base enemy class
+	{
+		if (EnemyActor->Implements<UDamage>())
+		{
+			// then register damage
+		} 
+	}
 }
 
 void UAttack::Attack()

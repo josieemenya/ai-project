@@ -13,6 +13,7 @@
 #include "RoomComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Attack.h"
+#include "CraftingComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -61,6 +62,7 @@ AAI_ProjectCharacter::AAI_ProjectCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 	
 	AttackComp = CreateDefaultSubobject<UAttack>(TEXT("Attack Component")); 
+	CraftingComp = CreateDefaultSubobject<UCraftingComponent>(TEXT("Crafting Component"));
 }
 
 void AAI_ProjectCharacter::BeginPlay()
@@ -107,6 +109,15 @@ void AAI_ProjectCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		} else
 		{
 			UE_LOG(LogTemp, Error, TEXT("Attack Component Not Valid")); 
+		}
+		
+		if (CraftingComp)
+		{
+			EnhancedInputComponent->BindAction(CraftingComp->ToggleCraftingMenu, ETriggerEvent::Triggered, CraftingComp, &UCraftingComponent::ToggleMenu);
+			
+		} else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Crafting Component Not Valid"));
 		}
 	}
 	else
