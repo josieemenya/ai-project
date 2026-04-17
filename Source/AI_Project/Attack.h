@@ -25,6 +25,10 @@ public:
 	TArray<UAnimMontage*> AttackMontages; 
 	
 	
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* TestMontage; 
+	
+	
 	UPROPERTY(EditAnywhere, Category = PlayerAttack)
 	UAnimationAsset* AttackAnim;
 	

@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "Animation/AnimationAsset.h"
 #include "Animation/AnimMontage.h"
+#include "Animation/AnimInstance.h"
 
 // Sets default values for this component's properties
 UAttack::UAttack()
@@ -57,6 +58,14 @@ void UAttack::Attack()
 		if (!AttackMontages.IsEmpty())
 		{
 			TriggerAttackAnim(MontageIndex); 
+		}
+		
+		if (TestMontage)
+		{
+			if (UAnimInstance* Instance = Mesh->GetAnimInstance())
+			{
+				Instance->Montage_Play(TestMontage);
+			}
 		}
 		if (AttackAnim && AttackMontages.IsEmpty())
 			Mesh->PlayAnimation(AttackAnim, false); // anim notify
