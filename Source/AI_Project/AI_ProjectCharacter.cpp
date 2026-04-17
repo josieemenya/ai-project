@@ -14,6 +14,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Attack.h"
 #include "CraftingComponent.h"
+#include "PrisonGuardComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -63,6 +64,7 @@ AAI_ProjectCharacter::AAI_ProjectCharacter()
 	
 	AttackComp = CreateDefaultSubobject<UAttack>(TEXT("Attack Component")); 
 	CraftingComp = CreateDefaultSubobject<UCraftingComponent>(TEXT("Crafting Component"));
+	PGComp = CreateDefaultSubobject<UPrisonGuardComponent>(TEXT("PG Comp"));
 }
 
 void AAI_ProjectCharacter::BeginPlay()
@@ -118,6 +120,11 @@ void AAI_ProjectCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		} else
 		{
 			UE_LOG(LogTemp, Error, TEXT("Crafting Component Not Valid"));
+		}
+		
+		if (PGComp)
+		{
+			EnhancedInputComponent->BindAction(PGComp->StealAction, ETriggerEvent::Triggered, PGComp, &UPrisonGuardComponent::TakeItems); 
 		}
 	}
 	else

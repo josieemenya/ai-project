@@ -3,6 +3,7 @@
 
 #include "Damage.h"
 
+#include "AI_ProjectCharacter.h"
 #include "AI_ProjectGameMode.h"
 #include "BaseAI.h"
 #include "Blueprint/UserWidget.h"
@@ -98,7 +99,11 @@ void UDamage::SetCharacterStamina(float stamina)
 
 void UDamage::HandleDeath()
 {
-	
+	if (!GetOwner()->IsA(AAI_ProjectCharacter::StaticClass()))
+	{
+		// then handle non playable character things first and foremost
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, "Knockout");
+	}
 	if (!OnDeathScreen) return; 
 	if (GetOwner() == UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
 	{
