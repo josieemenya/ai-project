@@ -6,7 +6,7 @@
 #include "AI_ProjectCharacter.h"
 #include "Damage.h"
 #include "GameFramework/Character.h"
-x
+
 // Sets default values for this component's properties
 UPrisonGuardComponent::UPrisonGuardComponent()
 {
