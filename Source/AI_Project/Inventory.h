@@ -6,75 +6,99 @@
 #include "Components/ActorComponent.h"
 #include "Inventory.generated.h"
 
+#define MAX_ITEM_STACK_SIZE 64
+#define MAX_INVENTORY_ITEMS 25
 
-USTRUCT(BlueprintType) 
-struct FCraftingItemData
+UENUM(BlueprintType)
+enum class EItemType : uint8
 {
-	GENERATED_BODY()
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName ItemID; 
-	
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "1"), BlueprintReadWrite)
-	int32 Quantity;
-	
-	bool operator==(const FCraftingItemData& Item) const
-	{
-		return Item.ItemID == ItemID;
-	}
-	
+	WEAPON,
+	TOOL,
+	WEARABLE,
+	RESOURCE,
+	DEVICE, 
+	NONE UMETA(Hidden)
 };
 
 USTRUCT(BlueprintType)
-struct FItemRecipe : public FTableRowBase
+struct FItemHoldable
 {
 	GENERATED_BODY()
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FCraftingItemData> Ingredients;
+	TSubclassOf<AActor> ActorClass;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FCraftingItemData Result;
+	AActor* Actor;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName Socket; 
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FTransform Transform;
 };
 
-
-UCLASS()
-class AI_PROJECT_API UItem : public UActorComponent
+USTRUCT()
+struct FInventoryItem : public FTableRowBase
 {
 	GENERATED_BODY()
-public:
-	UItem() = default; 
-	UPROPERTY(EditAnywhere)
-	FName Name;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName ID; 
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText DisplayName;
+
+	//optional short and large description
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EItemType ItemType;
+	
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "1"), BlueprintReadWrite)
 	int32 Quantity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UStaticMesh* StaticMesh;
 	
-	UPROPERTY(EditAnywhere)
-	UTexture2D* Icon; 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsStackable;
 	
-	UPROPERTY(EditAnywhere)
-	AActor* CorrespondingItem;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FItemHoldable HoldingSettings;
 	
-	bool operator==(const UItem* Item) const 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UTexture2D* Icon;
+	
+
+	bool operator==(const FInventoryItem& Item) const
 	{
-		return Item->Name == Name;
+		return Item.ID == ID;
 	}
-	
-	
-private: 
-	int32 MaxQuantity;
-	
-	
 };
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+
+
+
+// please move to actual item class later
+
+UCLASS(Blueprintable)
+class AI_PROJECT_API UItemUseData : public UDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	UFUNCTION(BlueprintNativeEvent)
+	void Use();
+};
+
+
+
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class AI_PROJECT_API UInventory : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	// Sets default values for this component's properties
 	UInventory();
 
@@ -82,14 +106,31 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	// has an array of Items
-	UPROPERTY(EditAnywhere)
-	TArray<UItem*> HeldItems; 
 	
-	//void AddItem(UItem* Item);
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FInventoryItem> ItemsInInventory; 
+
+	UPROPERTY(EditAnywhere)
+	UDataTable* ItemDatabase;
+
+	//UFUNCTION(BlueprintCallable)
+	FInventoryItem* FindInInventory(FInventoryItem& SearchedItem); 
+	
+	UFUNCTION(BlueprintCallable)
+	bool SpaceInInventory();
+
+	UFUNCTION(BlueprintCallable)
+	bool OnAddToInventory(FName ItemName);
+	
+	UFUNCTION(BlueprintCallable)
+	bool OnAddRefToInventory(FInventoryItem& Reference);
+
+
+	//void AddItem(UItem* Item);
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
+	                           FActorComponentTickFunction* ThisTickFunction) override;
 };

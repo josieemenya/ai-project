@@ -6,6 +6,27 @@
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 
+FCraftingItemData::FCraftingItemData() // resolve this
+{
+	ItemID = NAME_None;
+	Quantity = 1;
+	/*
+	DisplayName = FText::FromString("Item Name");
+	ItemType = EItemType::NONE;
+	StaticMesh = nullptr; 
+	Icon = nullptr;
+	bIsStackable = false;
+	
+	HoldingSettings = FItemHoldable(
+			nullptr,
+			nullptr,
+			"", 
+			FTransform()
+		); 
+	*/
+	
+}
+
 // Sets default values for this component's properties
 UCraftingComponent::UCraftingComponent()
 {
@@ -32,6 +53,64 @@ void UCraftingComponent::ToggleMenu()
 	}
 	
 	bCraftingMenuEnabled = !bCraftingMenuEnabled;
+}
+
+bool UCraftingComponent::CanCraftItem(FCraftingItemData& DesiredItem)
+{
+	
+	FString ContextString = FString(); 
+	auto DesiredRecipe = CraftingItemDatabase->FindRow<FItemRecipe>(DesiredItem.ItemID, ContextString, true);
+	
+	
+	
+	if (DesiredRecipe)
+	{
+		// SEARCH inventory for desired item 
+		for (FInventoryItem InventoryItem : InventoryRef->ItemsInInventory)
+		{
+			for (const FCraftingItemData& Ingredient :  DesiredRecipe->Ingredients)
+			{
+				if ((Ingredient.ItemID != InventoryItem.ID)) return false;
+				if (Ingredient.Quantity != InventoryItem.Quantity) return false;
+			}
+		}
+	} else
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+bool UCraftingComponent::CraftItem(FCraftingItemData& DesiredItem)
+{
+	if (CanCraftItem(DesiredItem))
+	{
+		FString ContextString = FString();
+		auto DesiredResult = CraftingItemDatabase->FindRow<FItemRecipe>(DesiredItem.ItemID, ContextString, true);
+		if (DesiredResult)
+		{
+			auto InventoryItem = DesiredResult->Result; 
+			return AddItemInInventory(InventoryItem); 
+		}
+	}
+	
+	return false;
+}
+
+bool UCraftingComponent::AddItemInInventory(FCraftingItemData& ItemData)
+{
+	// look in database for the item : 
+	
+	FString ContextString = FString(); 
+	auto SpecificItem = InventoryRef->ItemDatabase->FindRow<FInventoryItem>(ItemData.ItemID, ContextString, true);
+	
+	if (SpecificItem)
+	{
+		return InventoryRef->OnAddRefToInventory(*SpecificItem); 
+	}
+	
+	return false;
 }
 
 void UCraftingComponent::SortCraftableItems()
@@ -85,6 +164,7 @@ void UCraftingComponent::BeginPlay()
 	// higlight the ones that you can craft, for now we might play a sound that you can't craft
 	// ...
 	CraftingMenuWidget = CreateWidget(GetWorld(), CraftingMenu);
+	InventoryRef = NewObject<UInventory>(GetOuter(), InventoryClass);
 }
 
 

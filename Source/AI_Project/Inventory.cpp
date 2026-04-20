@@ -3,6 +3,12 @@
 
 #include "Inventory.h"
 
+#include "AudioMixerBlueprintLibrary.h"
+#include "IDetailTreeNode.h"
+#
+
+
+
 // Sets default values for this component's properties
 UInventory::UInventory()
 {
@@ -20,7 +26,76 @@ void UInventory::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
+}
+
+
+FInventoryItem* UInventory::FindInInventory(FInventoryItem& SearchedItem)
+{
+	FInventoryItem EmptyItem;
+	for (auto Item : ItemsInInventory)
+	{
+		if (SearchedItem == Item)
+		{
+			return &Item;
+		}
+	}
 	
+	return nullptr; 
+}
+
+bool UInventory::SpaceInInventory()
+{
+	return ItemsInInventory.Num() < MAX_INVENTORY_ITEMS;
+}
+
+bool UInventory::OnAddToInventory(FName ItemName)
+{
+	if (ItemName.IsNone()) return false;
+	
+	
+	FString ContextString = FString(); 
+
+	auto ItemRef = ItemDatabase->FindRow<FInventoryItem>(ItemName, ContextString, true); 
+
+	if (auto InventoryItemRef = FindInInventory(*ItemRef))
+	{
+		if (InventoryItemRef->Quantity < MAX_INVENTORY_ITEMS)
+		{
+			InventoryItemRef->Quantity++;
+			return true;
+		}
+	}
+	
+	if (SpaceInInventory())
+	{
+		ItemRef->Quantity = 1; // make sure it's one to create new item; 
+		ItemsInInventory.Add(*ItemRef);
+		return true;
+	}
+
+	return false;
+
+}
+
+bool UInventory::OnAddRefToInventory(FInventoryItem& Reference)
+{
+	if (auto HasItems = FindInInventory(Reference))
+	{
+		HasItems->Quantity++;
+		return true;
+	}
+	
+	if (SpaceInInventory())
+	{
+		ItemsInInventory.Add(Reference);
+		return true;
+	}
+	return false;
+}
+
+
+void UItemUseData::Use_Implementation()
+{
 }
 
 

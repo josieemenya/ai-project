@@ -7,9 +7,44 @@
 #include "Inventory.h"
 #include "CraftingComponent.generated.h"
 
-struct FItemRecipe;
-struct FCraftingItem; 
+
 class UInputAction; 
+class UInventory;
+
+USTRUCT(BlueprintType)
+struct FCraftingItemData : public FTableRowBase
+{
+	GENERATED_BODY()
+	
+	FCraftingItemData(); 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName ItemID;
+	
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "1"), BlueprintReadWrite)
+	int32 Quantity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UTexture2D* Icon;
+
+	bool operator==(const FCraftingItemData& Item) const
+	{
+		return Item.ItemID == ItemID;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct FItemRecipe : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FCraftingItemData> Ingredients;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FCraftingItemData Result;
+};
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class AI_PROJECT_API UCraftingComponent : public UActorComponent
@@ -45,6 +80,23 @@ public:
 	TSubclassOf<UUserWidget> CraftingMenu;
 	
 	UUserWidget* CraftingMenuWidget;
+	
+	// inventory binding : 
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UInventory> InventoryClass;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UInventory* InventoryRef; 
+	
+	UFUNCTION(BlueprintCallable)
+	bool CanCraftItem(FCraftingItemData& ItemData);
+	
+	UFUNCTION(BlueprintCallable)
+	bool CraftItem(FCraftingItemData& DesiredItem); 
+	
+	UFUNCTION(BlueprintCallable)
+	bool AddItemInInventory(FCraftingItemData& ItemData); 
 
 protected:
 	void SortCraftableItems();

@@ -23,7 +23,6 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 AAI_ProjectCharacter::AAI_ProjectCharacter()
 {
-	PlayerRoom = CreateDefaultSubobject<URoomComponent>(TEXT("PlayerRoom"));
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
@@ -65,14 +64,13 @@ AAI_ProjectCharacter::AAI_ProjectCharacter()
 	AttackComp = CreateDefaultSubobject<UAttack>(TEXT("Attack Component.w")); 
 	CraftingComp = CreateDefaultSubobject<UCraftingComponent>(TEXT("Crafting Component"));
 	PGComp = CreateDefaultSubobject<UPrisonGuardComponent>(TEXT("PG Comp"));
+	Inventory = CreateDefaultSubobject<UInventory>(TEXT("Inventory Component"));
 }
 
 void AAI_ProjectCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
-	if (PlayerRoom)
-		PlayerRoom->ChangeRoom.AddUObject(this, &AAI_ProjectCharacter::GoToNewRoom);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -183,9 +181,5 @@ void AAI_ProjectCharacter::Look(const FInputActionValue& Value)
 
 void AAI_ProjectCharacter::GoToNewRoom()
 {
-	if (PlayerRoom){
-		auto Room = PlayerRoom->CurrentRoom; 
-		if (Room)
-			UGameplayStatics::OpenLevel(GetWorld(), FName(Room->RoomLevel->GetName())); 
-	}
+	
 }

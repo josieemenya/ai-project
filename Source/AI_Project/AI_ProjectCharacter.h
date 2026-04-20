@@ -16,6 +16,7 @@ struct FInputActionValue;
 class URoomComponent;
 class UCraftingComponent;
 class UPrisonGuardComponent;
+class UInventory; 
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -102,5 +103,5 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
-	URoomComponent* PlayerRoom;
+	UInventory* Inventory;
 };

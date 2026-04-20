@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Inventory.h"
+#include "CraftingComponent.h"
 #include "CraftHelperContainer.generated.h"
 
 /**
@@ -19,5 +20,5 @@ struct FCraftHelperContainer
 	FName ItemName;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FCraftingItemData> CraftItemDetails;
+	TArray<FCraftingItemData> CraftItemsDetails; 
 };
