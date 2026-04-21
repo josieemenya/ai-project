@@ -61,13 +61,16 @@ class AI_PROJECT_API UCraftMenuItems : public UUserWidget
 public:	
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FCraftingItemData> CraftingItems;
+	FItemRecipe CraftingData; // ???
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	USizeBox* SizeBox;
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	UBorder* Border;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UDataTable* CraftDataTable;
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	UTextBlock* CraftableItemName;
@@ -94,6 +97,8 @@ protected:
 
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+
 };
 
 UCLASS()
@@ -101,7 +106,6 @@ class AI_PROJECT_API UCraftMenu : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	
 	
 	UPROPERTY(EditAnywhere, meta =(BindWidget))
 	UCanvasPanel* CanvasPanel;
@@ -115,11 +119,14 @@ public:
 	UPROPERTY(EditAnywhere, meta =(BindWidget))
 	UScrollBox* ScrollBox;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CraftUI")
 	TArray<FCraftHelperContainer> Container; 
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CraftUI")
 	TSubclassOf<UCraftMenuItems> ItemsClass;
+	
+	UFUNCTION(BlueprintNativeEvent)
+	void PlayAnim(); 
 	
 protected:
 	virtual void NativeConstruct() override;

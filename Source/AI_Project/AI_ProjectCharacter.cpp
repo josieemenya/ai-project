@@ -71,6 +71,7 @@ void AAI_ProjectCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+	CraftingComp->InventoryRef = Inventory; 
 }
 
 //////////////////////////////////////////////////////////////////////////

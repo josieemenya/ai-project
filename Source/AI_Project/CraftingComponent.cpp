@@ -100,17 +100,29 @@ bool UCraftingComponent::CraftItem(FCraftingItemData& DesiredItem)
 
 bool UCraftingComponent::AddItemInInventory(FCraftingItemData& ItemData)
 {
-	// look in database for the item : 
-	
-	FString ContextString = FString(); 
-	auto SpecificItem = InventoryRef->ItemDatabase->FindRow<FInventoryItem>(ItemData.ItemID, ContextString, true);
-	
-	if (SpecificItem)
+	FString ContextString;
+
+	if (!InventoryRef)
 	{
-		return InventoryRef->OnAddRefToInventory(*SpecificItem); 
+		GEngine->AddOnScreenDebugMessage(2, 1, FColor::Red, TEXT("InventoryRef is NULL"));
+		return false;
 	}
-	
-	return false;
+
+	if (!InventoryRef->ItemDatabase)
+	{
+		GEngine->AddOnScreenDebugMessage(2, 1, FColor::Red, TEXT("ItemDatabase is NULL"));
+		return false;
+	}
+
+	auto SpecificItem = InventoryRef->ItemDatabase->FindRow<FInventoryItem>(ItemData.ItemID, ContextString, true);
+
+	if (!SpecificItem)
+	{
+		GEngine->AddOnScreenDebugMessage(2, 1, FColor::Red, TEXT("Item not found in DataTable"));
+		return false;
+	}
+
+	return InventoryRef->OnAddRefToInventory(*SpecificItem);
 }
 
 void UCraftingComponent::SortCraftableItems()
@@ -164,7 +176,6 @@ void UCraftingComponent::BeginPlay()
 	// higlight the ones that you can craft, for now we might play a sound that you can't craft
 	// ...
 	CraftingMenuWidget = CreateWidget(GetWorld(), CraftingMenu);
-	InventoryRef = NewObject<UInventory>(GetOuter(), InventoryClass);
 }
 
 
