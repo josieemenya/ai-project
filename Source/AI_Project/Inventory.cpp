@@ -7,7 +7,7 @@
 #include "IDetailTreeNode.h"
 #
 
-
+// ad this to presentations
 
 // Sets default values for this component's properties
 UInventory::UInventory()
@@ -79,6 +79,7 @@ bool UInventory::OnAddToInventory(FName ItemName)
 
 bool UInventory::OnAddRefToInventory(FInventoryItem& Reference)
 {
+	// this is worng
 	if (auto HasItems = FindInInventory(Reference))
 	{
 		HasItems->Quantity++;

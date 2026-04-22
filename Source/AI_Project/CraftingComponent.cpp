@@ -61,8 +61,6 @@ bool UCraftingComponent::CanCraftItem(FCraftingItemData& DesiredItem)
 	FString ContextString = FString(); 
 	auto DesiredRecipe = CraftingItemDatabase->FindRow<FItemRecipe>(DesiredItem.ItemID, ContextString, true);
 	
-	
-	
 	if (DesiredRecipe)
 	{
 		// SEARCH inventory for desired item 
@@ -70,8 +68,8 @@ bool UCraftingComponent::CanCraftItem(FCraftingItemData& DesiredItem)
 		{
 			for (const FCraftingItemData& Ingredient :  DesiredRecipe->Ingredients)
 			{
-				if ((Ingredient.ItemID != InventoryItem.ID)) return false;
-				if (Ingredient.Quantity != InventoryItem.Quantity) return false;
+				if (Ingredient.ItemID != InventoryItem.ID) return false; // don't return here, continue
+				if (Ingredient.Quantity != InventoryItem.Quantity) return false; // < quantinity and continue
 			}
 		}
 	} else
@@ -127,6 +125,10 @@ bool UCraftingComponent::AddItemInInventory(FCraftingItemData& ItemData)
 
 void UCraftingComponent::SortCraftableItems()
 {
+	// player opinion, filter between i can craft/i ccna't vradt
+	// be consitient od postioning ( alphabetical) 
+	// get opinions on crafting
+	
 	CraftableItems.Sort([this](const auto a, const auto b)
 		{
 			int32 ScoreA = 0, ScoreB = 0;
@@ -183,7 +185,5 @@ void UCraftingComponent::BeginPlay()
 void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
 }
 
