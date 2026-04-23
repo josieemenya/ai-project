@@ -18,7 +18,9 @@ UTimeSystem::UTimeSystem()
 
 void UTimeSystem::TransitionTimeOfDay(ETimeOfDay e)
 {
-	Timeline->SetTimelineLength(7.0f);
+	float TimeLength = 7.0f; 
+	
+	
 	switch (e)
 	{
 	case ETimeOfDay::AFTERNOON:
@@ -37,8 +39,9 @@ void UTimeSystem::TransitionTimeOfDay(ETimeOfDay e)
 		DesiredPosition = DayPositions["Twilight"];
 		break;
 	}
-
-	Timeline->PlayFromStart();
+	
+	CurrentPosition = FMath::FInterpTo(CurrentPosition, DesiredPosition, 1.0f, TimeLength);
+	//Timeline->PlayFromStart();
 }
 
 void UTimeSystem::StartDay()
@@ -63,6 +66,7 @@ void UTimeSystem::UpdateTime()
 
 	TimeData.Hour = TotalSeconds / 3600;
 	TimeData.Minute = (TotalSeconds / 60) % 60;
+	UE_LOG(LogTemp, Warning, TEXT("Current Time: %d:%d"), TimeData.Hour, TimeData.Minute)
 
 	if (TimeData.Minute >= 60)
 	{
@@ -78,6 +82,7 @@ void UTimeSystem::UpdateTime()
 			if (CurrentTimeOfDay != Ranges.Value)
 			{
 				CurrentTimeOfDay = Ranges.Value;
+				UE_LOG(LogTemp, Warning, TEXT("Changing LightActor Position"))
 				TransitionTimeOfDay(CurrentTimeOfDay);
 			}
 			break; 
@@ -119,6 +124,11 @@ void UTimeSystem::InitTimeline()
 	Timeline->RegisterComponent();
 	Timeline->SetTimelineLength(7.0f);
 	Timeline->AddInterpFloat(TimeCurve, OnTimeline);
+	
+	for (auto DayPos : DayPositions)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Postitons: %f"), DayPos.Value); 
+	}
 }
 
 const FTimeData& UTimeSystem::GetTimeData()
@@ -140,11 +150,12 @@ void UTimeSystem::Init()
 void UTimeSystem::OnStart()
 {
 	Super::OnStart();
+	UE_LOG(LogTemp, Warning, TEXT("OnStart"));
 	LightActor = Cast<ADirectionalLight>(
 	UGameplayStatics::GetActorOfClass(GetWorld(), ADirectionalLight::StaticClass())
 );
 	
-	TotalSecondsElapsed = 14 * 3600.0f;
+	TotalSecondsElapsed = 9 * 3600.0f;
 	
 	TimeData.Set.Add(TTuple<FTimeRange, ETimeOfDay>(
 	FTimeRange(9, 12),
@@ -179,6 +190,9 @@ void UTimeSystem::OnStart()
 		Rot.Yaw = 0;
 		Rot.Pitch = -45; 
 		LightActor->SetActorRotation(Rot); 
+	} else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to create a TimelineComponent"));
 	}
 }
 
