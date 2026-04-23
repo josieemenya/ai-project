@@ -8,11 +8,14 @@
 #include "Kismet/GameplayStatics.h"
 #include "Algo/Transform.h"
 #include "Algo/Reverse.h"
-#include "Engine/SceneCapture2D.h"
+#include "Animation/AnimMontage.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISense_Sight.h"
 #include "Perception/PawnSensingComponent.h"
 #include "BehaviorTree/BlackboardComponent.h" 
+#include "TimeSystem.h"
+#include "Navigation/PathFollowingComponent.h"
+
 
 // Sets default values for this component's properties
 UPlannerComponent::UPlannerComponent()

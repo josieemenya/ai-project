@@ -31,7 +31,7 @@ void ASmartObject::BeginPlay()
 
 	if (UWorld* World = GetWorld())
 	{
-	    if (auto GI = World->GetGameInstance<USmartObjectManager>())
+	    if (auto GI = World->GetGameInstance()->GetSubsystem<USmartObjectManager>())
 	    {
 	        GI->SmartObjects.Add(ObjectID, this);
 	    }

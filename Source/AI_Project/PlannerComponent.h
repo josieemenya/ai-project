@@ -8,7 +8,7 @@
 #include "Planner.h"
 #include "PlannerComponent.generated.h"
 
-class ASmartObject; 
+
 
 
 ////////////////////////////////////////////////////
@@ -189,9 +189,7 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TSubclassOf<UAction>> AvailableActions; // the actions that the planner can use to achieve goals, this should be populated by the actor that implements the planner interfac
-	
-	
-	
+
 	UFUNCTION(BlueprintCallable, Category="Planner")
 	void SetGoal(TSubclassOf<UGoal> GoalClass);
 	

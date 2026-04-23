@@ -30,10 +30,16 @@ struct FTimeRange
 	public:
 	
 	UPROPERTY(BlueprintReadWrite)
-	int32 StartRange; 
+	int32 StartHourRange; 
 	
 	UPROPERTY(BlueprintReadWrite)
-	int32 EndRange;
+	int32 EndHourRange;
+	
+	UPROPERTY(BlueprintReadWrite)
+	int32 StartMinuteRange;
+	
+	UPROPERTY(BlueprintReadWrite)
+	int32 EndMinuteRange;
 	
 };
 
@@ -59,12 +65,14 @@ struct FTimeData
 };
  
 UCLASS(Blueprintable)
-class AI_PROJECT_API UTimeSystem : public UActorComponent
+class AI_PROJECT_API UTimeSystem : public UGameInstance
 {
 	GENERATED_BODY()
 public:
 	
 	UTimeSystem(); 
+	
+	//UTime
 	
 	ETimeOfDay CurrentTimeOfDay;
 	
@@ -106,6 +114,10 @@ public:
 	TArray<FString> Times;
 	float DesiredPosition;
 	
+	
+	const FTimeData& GetTimeData();
+	
+
 	class ADirectionalLight* LightActor; 
 	
 	float TotalSecondsElapsed;
@@ -114,9 +126,12 @@ public:
 	
 	float LastDesiredPosition;
 	
+
+
+public:
+	//virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void Init() override;
+
 protected:
-	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
-		FActorComponentTickFunction* ThisTickFunction) override;
-	
+	virtual void OnStart() override;
 };

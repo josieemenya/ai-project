@@ -10,7 +10,6 @@
 
 UTimeSystem::UTimeSystem()
 {
-	PrimaryComponentTick.bCanEverTick = true;
 	DayPositions.FindOrAdd("Morning", -45.f);
 	DayPositions.Add("Evening", -10.f);
 	DayPositions.Add("Afternoon", -135.f);
@@ -74,7 +73,7 @@ void UTimeSystem::UpdateTime()
 
 	for (auto Ranges : TimeData.Set)
 	{
-		if (TimeData.Hour >= Ranges.Key.StartRange && TimeData.Hour < Ranges.Key.EndRange)
+		if (TimeData.Hour >= Ranges.Key.StartHourRange && TimeData.Hour < Ranges.Key.EndHourRange)
 		{
 			if (CurrentTimeOfDay != Ranges.Value)
 			{
@@ -122,10 +121,25 @@ void UTimeSystem::InitTimeline()
 	Timeline->AddInterpFloat(TimeCurve, OnTimeline);
 }
 
-void UTimeSystem::BeginPlay()
+const FTimeData& UTimeSystem::GetTimeData()
 {
-	Super::BeginPlay();
+	return TimeData;
+}
+
+void UTimeSystem::Init()
+{
+
+	Super::Init();
+	DayPositions.FindOrAdd("Morning", -45.f);
+	DayPositions.FindOrAdd("Evening", -10.f);
+	DayPositions.FindOrAdd("Afternoon", -135.f);
+	DayPositions.FindOrAdd("Twilight", 0);
 	
+}
+
+void UTimeSystem::OnStart()
+{
+	Super::OnStart();
 	LightActor = Cast<ADirectionalLight>(
 	UGameplayStatics::GetActorOfClass(GetWorld(), ADirectionalLight::StaticClass())
 );
@@ -168,8 +182,5 @@ void UTimeSystem::BeginPlay()
 	}
 }
 
-void UTimeSystem::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	UE_LOG(LogTemp, Warning, TEXT("Current Time: %d:%d"), TimeData.Hour,  TimeData.Minute);
-}
+
+
