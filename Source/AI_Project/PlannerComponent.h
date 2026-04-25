@@ -8,7 +8,7 @@
 #include "Planner.h"
 #include "PlannerComponent.generated.h"
 
-
+class UBlackboardComponent;
 
 
 ////////////////////////////////////////////////////
@@ -69,6 +69,9 @@ public :
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Priority; // the priority of the goal, used for selecting between multiple goals
+	
+	UFUNCTION(BlueprintNativeEvent)
+	float GetUtility(const UBlackboardComponent* BlackBoard); // needs BBlackboard
 	
 	bool operator==(const UGoal& Other) const
 	{

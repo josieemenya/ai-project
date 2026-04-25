@@ -18,6 +18,26 @@ AGPController::AGPController()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
+UGoal* AGPController::GetBestGoal()
+{
+	UGoal* bestGoal = nullptr;
+	float BestScore = INT_MIN;
+	
+	for (UGoal* Goal : InstancedGoals)
+	{
+		UBlackboardComponent* BB = GetPawn()->FindComponentByClass<UBlackboardComponent>();
+		float utility = Goal->GetUtility(BB);
+		
+		if (BestScore < utility)
+		{
+			bestGoal = Goal;
+			BestScore = utility;
+		}
+	}
+	
+	return bestGoal;
+}
+
 void AGPController::StartPlanning()
 {
 	SetActorTickEnabled(true);
@@ -38,8 +58,10 @@ void AGPController::StartPlanning()
 		RegisterSeePlayer(Planner); // if can see player update black board to reflect that
 	
 		Planner->UpdateSmartObjects(BaseCurrentState); 
+			
+		CurrentGoal = GetBestGoal(); 
 		
-		UGoal* CurrentGoal = NewObject<UGoal>(this, Goals[0]);
+		if (!CurrentGoal) return;
 		
 		UE_LOG(LogTemp, Warning, TEXT("Goal class: %s"), *Goals[0]->GetName());
 		
@@ -90,6 +112,14 @@ void AGPController::Replan()
 	}
 }
 
+void AGPController::InstantiateGoals()
+{
+	for (TSubclassOf<UGoal> GoalClass : Goals)
+	{
+		InstancedGoals.Add(NewObject<UGoal>(this, GoalClass));
+	}
+}
+
 void AGPController::UpdateActions()
 {
 	Planner->UpdateStack(GetOwner()); 
@@ -132,6 +162,10 @@ bool AGPController::RegisterSeePlayer(UPlannerComponent* MyPlanner)
 void AGPController::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	InstantiateGoals(); 
+	
+	
 	Planner->OnPlanInvalid.AddUObject(this, &AGPController::Replan);
 	GetWorldTimerManager().SetTimerForNextTick([this](){
 		Planner->UpdateSmartObjects(CurrentState);

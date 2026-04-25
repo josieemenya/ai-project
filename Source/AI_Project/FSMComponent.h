@@ -135,6 +135,7 @@ class AI_PROJECT_API UUtilityTree : public UObject
 	
 	static UUtilityTree* Instance; 
 	
+	
 	UFUNCTION(BlueprintCallable)
 	static UUtilityTree* Get();
 	

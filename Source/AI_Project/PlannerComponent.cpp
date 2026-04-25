@@ -17,6 +17,11 @@
 #include "Navigation/PathFollowingComponent.h"
 
 
+float UGoal::GetUtility_Implementation(const UBlackboardComponent* BlackBoard)
+{
+	return 0.f; 
+}
+
 // Sets default values for this component's properties
 UPlannerComponent::UPlannerComponent()
 {
