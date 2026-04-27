@@ -55,27 +55,81 @@ void UCraftingComponent::ToggleMenu()
 	bCraftingMenuEnabled = !bCraftingMenuEnabled;
 }
 
+
+void UCraftingComponent::FindInInventory(const FCraftingItemData& ItemData, TArray<FCraftingItemData>& Items)
+{
+	for (FInventoryItem InventoryItem : InventoryRef->ItemsInInventory)
+	{
+		if (InventoryItem.ID == ItemData.ItemID)
+		{
+			FCraftingItemData Item;
+			
+			Item.ItemID = ItemData.ItemID;
+			Item.Quantity = InventoryItem.Quantity; 
+			Item.Icon = ItemData.Icon;
+			
+			Items.Add(Item);
+		}
+	}
+	
+}
+
+int32 UCraftingComponent::SumOfQuantity(const TArray<FCraftingItemData>& Items)
+{
+	int32 Total = 0;
+	for (const FCraftingItemData Item : Items)
+	{
+		Total += Item.Quantity;
+	}
+	
+	return Total;
+}
+
 bool UCraftingComponent::CanCraftItem(FCraftingItemData& DesiredItem)
 {
 	
 	FString ContextString = FString(); 
-	auto DesiredRecipe = CraftingItemDatabase->FindRow<FItemRecipe>(DesiredItem.ItemID, ContextString, true);
+	FItemRecipe* DesiredRecipe = CraftingItemDatabase->FindRow<FItemRecipe>(DesiredItem.ItemID, ContextString, true);
 	
 	if (DesiredRecipe)
 	{
-		// SEARCH inventory for desired item 
+		// travers desired ingredients, find all in inventory, if not in invrntory return false && if quantity not adequate
+		
+		for (const FCraftingItemData& Ingredient : DesiredRecipe->Ingredients)
+		{
+			TArray<FCraftingItemData> AllInInventory;
+			FindInInventory(Ingredient, AllInInventory);
+			
+			if (AllInInventory.IsEmpty())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Inventory is empty"));
+				return false;
+			}
+			
+			if (SumOfQuantity(AllInInventory) < Ingredient.Quantity)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Not Enough Material"));
+				return false;
+			}
+		}
+	}	else
+	{
+		return false;
+	}
+		/*// SEARCH inventory for desired item 
 		for (FInventoryItem InventoryItem : InventoryRef->ItemsInInventory)
 		{
 			for (const FCraftingItemData& Ingredient :  DesiredRecipe->Ingredients)
 			{
-				if (Ingredient.ItemID != InventoryItem.ID) return false; // don't return here, continue
-				if (Ingredient.Quantity != InventoryItem.Quantity) return false; // < quantinity and continue
+				if (Ingredient.ItemID != InventoryItem.ID) continue; // don't return here, continue
+				if (Ingredient.Quantity < InventoryItem.Quantity) continue; // < quantinity and continue
 			}
 		}
 	} else
 	{
 		return false;
 	}
+	*/
 	
 	return true;
 }
@@ -125,10 +179,6 @@ bool UCraftingComponent::AddItemInInventory(FCraftingItemData& ItemData)
 
 void UCraftingComponent::SortCraftableItems()
 {
-	// player opinion, filter between i can craft/i ccna't vradt
-	// be consitient od postioning ( alphabetical) 
-	// get opinions on crafting
-	
 	CraftableItems.Sort([this](const auto a, const auto b)
 		{
 			int32 ScoreA = 0, ScoreB = 0;

@@ -87,8 +87,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FRoutineElem> AllRoutines;
 	
+	UFUNCTION(BlueprintCallable)
 	EExitSequenceType TransitionRoutine(); 
 	
+	UFUNCTION(BlueprintCallable)
 	EExitSequenceType RoutineSequence(); // PlayAnimation
 	
 	bool bHasStateChanged() const;

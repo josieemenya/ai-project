@@ -12,26 +12,39 @@
  * 
  */
 
+
+
+
+
 USTRUCT(BlueprintType)
 struct FAIContextStruct
 {
 	GENERATED_BODY()
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Health; 
+	float Opinion; // if hit or did quest update
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MaxHealth;
+	float Health; // heal dmg
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bHasHunger;  
+	bool bKnockedOut; // if health zero true
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bInCombat; // if dmg was instigated by a character
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector LastKnownPlayerLocation; // if seen player
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float DistToPlayer; // seen player i guess
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsArmed; 
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float PlayerDistance; // if negative, can't see player
 };
+
+
 
 UCLASS(Blueprintable)
 class AI_PROJECT_API UAIContext : public UActorComponent

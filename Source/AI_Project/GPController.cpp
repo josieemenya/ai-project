@@ -3,8 +3,10 @@
 
 #include "GPController.h"
 
-#include "BlackboardSystem.h"
+#include "AI_ProjectCharacter.h"
+#include "Damage.h"
 #include "PlannerComponent.h"
+#include "Routine.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Perception/AIPerceptionComponent.h"
@@ -15,6 +17,8 @@ AGPController::AGPController()
 {
 	Planner = CreateDefaultSubobject<UPlannerComponent>("PlannerComponent");
 	PerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>("PerceptionComp");
+	DamageComp = CreateDefaultSubobject<UDamage>(TEXT("DamageComp"));
+	RoutineComp = CreateDefaultSubobject<URoutineComponent>(TEXT("RoutineComp"));
 	PrimaryActorTick.bCanEverTick = true;
 }
 
@@ -25,8 +29,11 @@ UGoal* AGPController::GetBestGoal()
 	
 	for (UGoal* Goal : InstancedGoals)
 	{
-		UBlackboardComponent* BB = GetPawn()->FindComponentByClass<UBlackboardComponent>();
-		float utility = Goal->GetUtility(BB);
+		
+		float utility = Goal->GetUtility(Planner->BB_Planner);
+		
+		UE_LOG(LogTemp, Warning, TEXT("Evaluating Goal: %s"), *Goal->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("%s Goal Value: %f"), *Goal->GetName(), utility);
 		
 		if (BestScore < utility)
 		{
@@ -63,7 +70,7 @@ void AGPController::StartPlanning()
 		
 		if (!CurrentGoal) return;
 		
-		UE_LOG(LogTemp, Warning, TEXT("Goal class: %s"), *Goals[0]->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("Goal class: %s"), *CurrentGoal->GetName());
 		
 		
 		if (CurrentGoal->bRequiresSmartObject && Planner->AllSmartObjectsNearby.Num() == 0) // if goal needs to interact with smart obj
@@ -122,7 +129,7 @@ void AGPController::InstantiateGoals()
 
 void AGPController::UpdateActions()
 {
-	Planner->UpdateStack(GetOwner()); 
+	Planner->UpdateStack(GetPawn()); 
 }
 
 bool AGPController::RegisterSeePlayer(UPlannerComponent* MyPlanner)
@@ -165,6 +172,8 @@ void AGPController::BeginPlay()
 	
 	InstantiateGoals(); 
 	
+	//
+	Planner->BB_Planner->SetValueAsFloat("Health", DamageComp->CharacterMaxHealth); 
 	
 	Planner->OnPlanInvalid.AddUObject(this, &AGPController::Replan);
 	GetWorldTimerManager().SetTimerForNextTick([this](){
@@ -186,5 +195,23 @@ void AGPController::Tick(float DeltaTime)
 	if (Goals.Num() > 0)
 	{
 		StartPlanning();
+	}
+}
+
+void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
+{
+	// definitely not correct
+	
+	if (Actor)
+	{
+		if (Cast<AAI_ProjectCharacter>(Actor))
+		{
+			Planner->BB_Planner->SetValueAsVector("LastKnownPlayerLocation", Stimulus.StimulusLocation); 
+		
+			if (!Stimulus.WasSuccessfullySensed())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("LostSightofPlauyer"));
+			}
+		}
 	}
 }

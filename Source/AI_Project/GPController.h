@@ -5,14 +5,21 @@
 #include "CoreMinimal.h"
 #include "AIController.h"
 #include "WorldState.h"
+#include "AIContext.h"
 #include "Perception/AIPerceptionTypes.h"
 #include "GPController.generated.h"
 
+class URoutineComponent;
+class UDamage;
 class UGoal;
 class UAIPerceptionComponent; 
 /**
  * 
  */
+
+
+
+
 UCLASS()
 class AI_PROJECT_API AGPController : public AAIController
 {
@@ -28,7 +35,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UPlannerComponent* Planner;
 	
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TSubclassOf<UGoal>> Goals;
 	
@@ -41,6 +47,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FWorldState CurrentState; 
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UDamage* DamageComp; 
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	URoutineComponent* RoutineComp;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FAIContextStruct AContext;
+	
 	// should i mark with UFUNCTION() ? leaning towards no.
 	UGoal* GetBestGoal(); 
 	
@@ -50,8 +65,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Replan(); 
 	
-	void InstantiateGoals();
-	
+	void InstantiateGoals(); 
 	
 	void UpdateActions(); // called every tick to update the action stack, if the stack is empty, call the planner to generate a new plan based on the current world state and the desired goal state, then execute the first action in the stack and remove it from the stack
 
@@ -62,7 +76,7 @@ protected:
 
 public:
 	virtual void Tick(float DeltaTime) override;
-	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus){}
+	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
 protected:
 	//void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

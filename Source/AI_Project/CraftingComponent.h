@@ -97,6 +97,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	bool AddItemInInventory(FCraftingItemData& ItemData); 
+	
+	void FindInInventory(const FCraftingItemData& ItemData, TArray<FCraftingItemData>& Items);
+	int32 SumOfQuantity(const TArray<FCraftingItemData>& Items); 
 
 protected:
 	void SortCraftableItems();

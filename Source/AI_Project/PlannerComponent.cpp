@@ -276,6 +276,10 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
             CurrentAction = nullptr;
             break;
     	
+		case EExitSequenceType::FAILURE:
+    		UE_LOG(LogTemp, Error, TEXT("%s's Action execution ended in failure, please see Execute action for details."), CurrentAction ? *CurrentAction->Name.ToString() : TEXT("UnknownAction"))
+    		break; 
+    	
 		case EExitSequenceType::DEFAULT:
     		UE_LOG(LogTemp, Error, TEXT("Hidden Enum Type reached, check %s's Execute function to see if it has not been overriden"), CurrentAction ? *CurrentAction->Name.ToString() : TEXT("UnknownAction"));
     		break;

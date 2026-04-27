@@ -152,7 +152,7 @@ public:
 	
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UBlackboardComponent* BB_Planner;
+	UBlackboardComponent* BB_Planner;
 	
 	
 	UFUNCTION(BlueprintCallable, Category="Planner")

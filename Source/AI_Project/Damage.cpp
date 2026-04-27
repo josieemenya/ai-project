@@ -3,9 +3,12 @@
 
 #include "Damage.h"
 
+#include "AIController.h"
 #include "AI_ProjectCharacter.h"
 #include "AI_ProjectGameMode.h"
 #include "BaseAI.h"
+#include "GPController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "ProfilingDebugging/CookStats.h"
@@ -31,7 +34,15 @@ void UDamage::BeginPlay()
 	Super::BeginPlay();
 
 	OnDeath.AddDynamic(this, &UDamage::HandleDeath); 
-	
+	AActor* AttachedActor = Cast<AActor>(GetOwner());
+	if (auto GetCharacterRef = Cast<ACharacter>(AttachedActor))
+	{
+		if (AGPController* CharacterController = Cast<AGPController>(GetCharacterRef->GetController()))
+		{
+			CharacterController->Planner->BB_Planner->SetValueAsFloat("Health", CharacterMaxHealth);
+			CharacterController->Planner->BB_Planner->SetValueAsFloat("Opinion", 50);
+		}
+	}
 }
 
 
@@ -69,9 +80,25 @@ void UDamage::UpdateMaxStamina(float maxStamina)
 
 void UDamage::DamageHealth(float DamageAmount)
 {
-	if (bMortis || DamageAmount <= 0) return;
+	
+	AActor* AttachedActor = GetOwner();
+	
+	if (bMortis || DamageAmount <= 0) return; // if character is already dead and or damage is negligent
 	CharacterHealth = FMath::Max(0, CharacterHealth - DamageAmount);
 	bMortis = (CharacterHealth == 0); 
+	
+	if (auto GetCharacterRef = Cast<ACharacter>(AttachedActor))
+	{
+		if (AGPController* CharacterController = Cast<AGPController>(GetCharacterRef->GetController()))
+		{	
+			CharacterController->Planner->BB_Planner->SetValueAsFloat("Health", CharacterHealth);
+			CharacterController->Planner->BB_Planner->SetValueAsBool("InCombat", true);
+			if (bMortis)
+			{
+				CharacterController->Planner->BB_Planner->SetValueAsBool("KnockedOut", bMortis);
+			}
+		}
+	}
 	
 	if (bMortis)
 		OnDeath.Broadcast();

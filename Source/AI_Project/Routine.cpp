@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "AIController.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "NavigationSystem.h"
 
 
 // Sets default values for this component's properties
@@ -47,22 +48,40 @@ EExitSequenceType URoutineComponent::TransitionRoutine()
 	LastCurrentState = CurrentState;
 	CurrentState = GetCurrentState();
 
-	ACharacter* AttachedActor = Cast<ACharacter>(GetOwner());
+	AAIController* Steer = Cast<AAIController>(GetOwner()); // get controller; 
+	
+	if (!Steer)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No controller accessible"));
+		return EExitSequenceType::FAILURE;
+	}
+	
+	ACharacter* AttachedActor = Cast<ACharacter>(Steer->GetPawn());
 
 	if (!AttachedActor)
 	{
+		UE_LOG(LogTemp, Error, TEXT("No attached character accessible"));
 		return EExitSequenceType::FAILURE;
 	}
+	
+	
+	/*FNavLocation Projected;
 
-	AAIController* Steer = Cast<AAIController>(AttachedActor->GetController()); // get controller; 
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
 
-	if (!Steer)
+	if (!NavSys || !NavSys->ProjectPointToNavigation(CurrentState.Location, Projected))
 	{
+		UE_LOG(LogTemp, Error, TEXT("State location invalid even after projection"));
 		return EExitSequenceType::FAILURE;
-	}
+	}*/
+	
+	CurrentState.Location = FVector{ GetOwner()->GetActorLocation().X + 100.f, GetOwner()->GetActorLocation().Y, GetOwner()->GetActorLocation().Z};
+
+	
 
 	if (Steer)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Target: %s"), *CurrentState.Location.ToString());
 		switch (Steer->MoveToLocation(CurrentState.Location, 10.f))
 		{
 		case EPathFollowingRequestResult::AlreadyAtGoal:
@@ -72,10 +91,12 @@ EExitSequenceType URoutineComponent::TransitionRoutine()
 			return EExitSequenceType::RUNNING;
 
 		case EPathFollowingRequestResult::Failed:
+			UE_LOG(LogTemp, Error, TEXT("Path Following Request Failed"));
 			return EExitSequenceType::FAILURE;
 		}
 	}
 
+	UE_LOG(LogTemp, Error, TEXT("Default Dialogue reached."))
 	return EExitSequenceType::FAILURE;
 }
 
