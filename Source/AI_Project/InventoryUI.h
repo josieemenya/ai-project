@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Inventory.h"
 #include "InventoryUI.generated.h"
 
 /**
@@ -18,6 +19,10 @@ class AI_PROJECT_API UInventoryItemUI : public UUserWidget
 	GENERATED_BODY()
 	
 	public:
+	
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FInventoryItem Data; 
 	
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
 	class UWrapBox* WrapBox;
@@ -49,14 +54,20 @@ class AI_PROJECT_API UInventoryUI : public UUserWidget
 	
 	public:
 	
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UInventory* InventoryRef; 
+	
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
 	class UCanvasPanel* Canvas;
 	
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
-	class UHorizontalBox* HorizontalBox;
+	class UScrollBox* ScrollBar;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TArray<FInventoryItem> InventoryItems; 
+	/*UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TArray<FInventoryItem> InventoryItems; */
+	
+	UFUNCTION()
+	UInventoryItemUI* MakeItem(const FInventoryItem& InventoryItem); 
 	
 	protected:
 	

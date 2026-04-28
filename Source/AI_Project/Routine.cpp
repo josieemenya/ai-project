@@ -5,6 +5,7 @@
 #include "ExitSequence.h"
 #include "GameFramework/Character.h"
 #include "AIController.h"
+#include "GPController.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "NavigationSystem.h"
 
@@ -64,16 +65,15 @@ EExitSequenceType URoutineComponent::TransitionRoutine()
 		return EExitSequenceType::FAILURE;
 	}
 	
+	FVector TestLocation = AttachedActor->GetActorLocation();
 	
-	/*FNavLocation Projected;
-
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
 
-	if (!NavSys || !NavSys->ProjectPointToNavigation(CurrentState.Location, Projected))
-	{
-		UE_LOG(LogTemp, Error, TEXT("State location invalid even after projection"));
-		return EExitSequenceType::FAILURE;
-	}*/
+	FNavLocation Projected;
+
+	bool bOk = NavSys->ProjectPointToNavigation(TestLocation, Projected);
+
+	UE_LOG(LogTemp, Warning, TEXT("Self projection result: %s"), bOk ? TEXT("YES") : TEXT("NO"));
 	
 	CurrentState.Location = FVector{ GetOwner()->GetActorLocation().X + 100.f, GetOwner()->GetActorLocation().Y, GetOwner()->GetActorLocation().Z};
 
@@ -105,12 +105,18 @@ EExitSequenceType URoutineComponent::RoutineSequence()
 	// if at location 
 
 	// get mesh 
-	ACharacter* AttachedActor = Cast<ACharacter>(GetOwner());
+	AGPController* AttachedController = Cast<AGPController>(GetOwner());
 
-	USkeletalMeshComponent* Skelly = AttachedActor->GetMesh();
+	if (!AttachedController) {
+		UE_LOG(LogTemp, Error, TEXT("No attached character accessible"));
+		return EExitSequenceType::FAILURE;
+	}
+
+	USkeletalMeshComponent* Skelly = Cast<ACharacter>(AttachedController->GetPawn())->GetMesh();
 
 	if (!Skelly)
 	{
+		UE_LOG(LogTemp, Error, TEXT("No Skeleton character accessible"));
 		return EExitSequenceType::FAILURE;
 	}
 
@@ -118,6 +124,7 @@ EExitSequenceType URoutineComponent::RoutineSequence()
 
 	if (!Montage)
 	{
+		UE_LOG(LogTemp, Error, TEXT("No Montage object accessible"));
 		return EExitSequenceType::FAILURE;
 	}
 

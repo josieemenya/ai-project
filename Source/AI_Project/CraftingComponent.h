@@ -100,6 +100,8 @@ public:
 	
 	void FindInInventory(const FCraftingItemData& ItemData, TArray<FCraftingItemData>& Items);
 	int32 SumOfQuantity(const TArray<FCraftingItemData>& Items); 
+	
+	void UpdateItemsInInventory(FItemRecipe* ItemData);
 
 protected:
 	void SortCraftableItems();

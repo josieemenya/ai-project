@@ -2,6 +2,8 @@
 
 
 #include "CraftingComponent.h"
+
+#include "IDetailTreeNode.h"
 #include "Inventory.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
@@ -116,22 +118,16 @@ bool UCraftingComponent::CanCraftItem(FCraftingItemData& DesiredItem)
 	{
 		return false;
 	}
-		/*// SEARCH inventory for desired item 
-		for (FInventoryItem InventoryItem : InventoryRef->ItemsInInventory)
-		{
-			for (const FCraftingItemData& Ingredient :  DesiredRecipe->Ingredients)
-			{
-				if (Ingredient.ItemID != InventoryItem.ID) continue; // don't return here, continue
-				if (Ingredient.Quantity < InventoryItem.Quantity) continue; // < quantinity and continue
-			}
-		}
-	} else
-	{
-		return false;
-	}
-	*/
 	
 	return true;
+}
+
+void UCraftingComponent::UpdateItemsInInventory(FItemRecipe* ItemData)
+{
+	for (auto Ingredient : ItemData->Ingredients)
+	{
+		
+	}
 }
 
 bool UCraftingComponent::CraftItem(FCraftingItemData& DesiredItem)
@@ -143,6 +139,7 @@ bool UCraftingComponent::CraftItem(FCraftingItemData& DesiredItem)
 		if (DesiredResult)
 		{
 			auto InventoryItem = DesiredResult->Result; 
+			UpdateItemsInInventory(DesiredResult); 
 			return AddItemInInventory(InventoryItem); 
 		}
 	}

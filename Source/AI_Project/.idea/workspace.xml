@@ -18,16 +18,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="596157be-c7ca-408e-b4b7-7d808f2bd79e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../../Content/Goals/ghost/actions/A_GhostlyRangedAttack.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/Goals/ghost/actions/A_GhostlyRangedAttack.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../Content/Goals/ghost/actions/A_ThrowObjectAttack.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/Goals/ghost/actions/A_ThrowObjectAttack.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../Content/Goals/ghost/controller/GhostController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/Goals/ghost/controller/GhostController.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../Content/Goals/ghost/goals/G_AttackPlayer.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/Goals/ghost/goals/G_AttackPlayer.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../Content/Goals/ghost/goals/G_Escape.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/Goals/ghost/goals/G_Escape.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../Content/Goals/ghost/goals/G_PossessDoll.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/Goals/ghost/goals/G_PossessDoll.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Content/Goals/Guard/Pawn/BP_Guard.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/Goals/Guard/Pawn/BP_Guard.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Content/Maps/TestLevel.umap" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/Maps/TestLevel.umap" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../Content/StarterContent/Architecture/Floor_400x400.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/StarterContent/Architecture/Floor_400x400.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Content/UI/WBP_CraftMenu.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/UI/WBP_CraftMenu.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Content/__ExternalActors__/ThirdPerson/Maps/ThirdPersonMap/3/O1/HJI2H63FIYRH81CHIY04CU.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Content/__ExternalActors__/ThirdPerson/Maps/ThirdPersonMap/5/DC/FEYPDU4KH1J29S8IT7S3LF.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/__ExternalActors__/ThirdPerson/Maps/ThirdPersonMap/5/DC/FEYPDU4KH1J29S8IT7S3LF.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Content/__ExternalActors__/ThirdPerson/Maps/ThirdPersonMap/6/X4/6OJ4GBL3VLXN3SXS3CS54E.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Content/__ExternalActors__/ThirdPerson/Maps/ThirdPersonMap/7/X6/GLQ2ALFUHGCJU66S59EW7Q.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/__ExternalActors__/ThirdPerson/Maps/ThirdPersonMap/7/X6/GLQ2ALFUHGCJU66S59EW7Q.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GPController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/GPController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GPController.h" beforeDir="false" afterPath="$PROJECT_DIR$/GPController.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CraftingComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/CraftingComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CraftingComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/CraftingComponent.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PlayerHUDUI.h" beforeDir="false" afterPath="$PROJECT_DIR$/PlayerHUDUI.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Routine.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Routine.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,27 +75,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.RadMigrateCodeStyle&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
-    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;working-master&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.RadMigrateCodeStyle": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "schedule-system",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="596157be-c7ca-408e-b4b7-7d808f2bd79e" name="Changes" comment="" />
@@ -108,6 +111,7 @@
       <workItem from="1774970379616" duration="631000" />
       <workItem from="1774986075647" duration="19000" />
       <workItem from="1774986682480" duration="13000" />
+      <workItem from="1777288565024" duration="116000" />
     </task>
     <servers />
   </component>
