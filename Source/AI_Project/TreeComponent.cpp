@@ -7,6 +7,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimInstance.h"
 #include "AIController.h"
+#include "Navigation/PathFollowingComponent.h"
 
 // Sets default values for this component's properties
 UTreeComponent::UTreeComponent()
@@ -23,8 +24,11 @@ UTreeComponent::UTreeComponent()
 void UTreeComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	RootNode = NewObject<USelector>(this, RootNodeClass);
-	InitializeNode(RootNode);
+	RootNode = NewObject<UTreeNode>(this, RootNodeClass);
+	if (RootNode)
+	{
+		InitializeNode(RootNode);
+	}
 }
 
 void UTreeComponent::InitializeNode(UTreeNode* Node)
@@ -38,7 +42,7 @@ void UTreeComponent::InitializeNode(UTreeNode* Node)
 			Child->Parent = Composite;
 			Composite->InstancedChildren.Add(Child);
 
-			InitializeNode(Child); 
+			InitializeNode(Child);
 		}
 	}
 }
@@ -48,72 +52,91 @@ void UTreeComponent::InitializeNode(UTreeNode* Node)
 void UTreeComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
+
 	if (RootNode)
 		RootNode->StatusRun();
 	// ...
 }
 
-bool USelector::StatusRun()
+EExitSequenceType USelector::StatusRun()
 {
 	GEngine->AddOnScreenDebugMessage(0, 1, FColor::Red, TEXT("Executing Selector"));
 	for (auto child : InstancedChildren)
 	{
-		if (child && child->StatusRun())
+		if (child && (child->StatusRun() == EExitSequenceType::SUCCESS))
 		{
-			return true; 
+			return EExitSequenceType::SUCCESS;
 		}
 	}
-	
-	return false;
+
+	return EExitSequenceType::FAILURE;
 }
 
-bool USequences::StatusRun()
+EExitSequenceType USequences::StatusRun()
 {
 	GEngine->AddOnScreenDebugMessage(0, 1, FColor::Red, TEXT("Executing Sequence"));
 	for (auto child : InstancedChildren)
 	{
-		if (!child || !child->StatusRun())
-			return false; 
+		if (!child) return EExitSequenceType::FAILURE;
+
+		return child->StatusRun();
 	}
-	return true;
+	return EExitSequenceType::SUCCESS;
 }
 
-bool UConditionNode::StatusRun()
+EExitSequenceType UConditionNode::StatusRun()
 {
 	if (FCondition)
-		return true;
-	return false;
+		return EExitSequenceType::SUCCESS;
+	return EExitSequenceType::FAILURE;
 }
 
-bool UTreeAction::StatusRun()
+EExitSequenceType UTreeAction::StatusRun_Implementation()
 {
-	return UTreeNode::StatusRun();
+	return EExitSequenceType::DEFAULT;
 }
 
-bool UAnimationAction::StatusRun()
+EExitSequenceType UAnimationAction::StatusRun()
 {
 	if (AnimToPlay)
 	{
-		UAnimInstance* OwnerInstance = Target->GetMesh()->GetAnimInstance(); 
-		if (OwnerInstance && OwnerInstance->Montage_IsPlaying(AnimToPlay))
+		UAnimInstance* OwnerInstance = Target->GetMesh()->GetAnimInstance();
+		if (OwnerInstance)
 		{
-			OwnerInstance->Montage_Play(AnimToPlay);
-			return true;
-		} return false;
-	} return false;
+			if (!OwnerInstance->Montage_IsPlaying(AnimToPlay))
+			{
+				OwnerInstance->Montage_Play(AnimToPlay);
+				return EExitSequenceType::RUNNING; // sucees
+			}
+			return EExitSequenceType::RUNNING;
+		}
+		return EExitSequenceType::FAILURE; // fail
+	}
+	return EExitSequenceType::FAILURE; // fail
 }
 
-bool UMoveAction::StatusRun()
+EExitSequenceType UMoveAction::StatusRun()
 {
-	if (!Condition->StatusRun()) return false;
-	if (!Target) return false; 
+	if (Condition->StatusRun() != EExitSequenceType::SUCCESS) return EExitSequenceType::FAILURE;
+	if (!Target) return EExitSequenceType::FAILURE;
 	auto Lead = Target->GetController();
-	if (!Lead) return false;
+	if (!Lead) return EExitSequenceType::FAILURE;
 	auto AILead = Cast<AAIController>(Lead);
-	if (!AILead) return false;
+	if (!AILead) return EExitSequenceType::FAILURE;
+
+	GEngine->AddOnScreenDebugMessage(0, 1, FColor::Black, TEXT("Moving Ai to:"));
 	
-	AILead->MoveToLocation(TargetLocation, 10.f); 
-	GEngine->AddOnScreenDebugMessage(0, 1, FColor::Black, TEXT("Moving Ai to:")); 
-	return true;
+	switch (AILead->MoveToLocation(TargetLocation, 10.f))
+	{
+		case EPathFollowingRequestResult::AlreadyAtGoal:
+			return EExitSequenceType::SUCCESS;
+		
+		case EPathFollowingRequestResult::RequestSuccessful:
+			return EExitSequenceType::RUNNING;
+		
+		case EPathFollowingRequestResult::Failed:
+			return EExitSequenceType::FAILURE;
+	}
+	
+	return EExitSequenceType::FAILURE;
 }

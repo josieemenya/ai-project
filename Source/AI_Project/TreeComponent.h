@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ExitSequence.h"
 #include "Components/ActorComponent.h"
 #include "TreeComponent.generated.h"
 
@@ -17,14 +18,16 @@ public :
 	
 	UPROPERTY()
 	UTreeNode* Parent;
-	virtual bool StatusRun()
+	
+	
+	virtual EExitSequenceType StatusRun()
 	{
-		return true;
+		return EExitSequenceType::DEFAULT;
 	}; 
 };
 
 
-UCLASS(ABSTRACT)
+UCLASS(Blueprintable)
 class UComposite : public UTreeNode
 {
 	GENERATED_BODY()
@@ -42,7 +45,7 @@ class AI_PROJECT_API UConditionNode : public UTreeNode
 	GENERATED_BODY()
 public:
 	bool FCondition;
-	bool StatusRun() override; // always override
+	EExitSequenceType StatusRun() override; // always override
 	virtual ~UConditionNode() = default;
 };
 
@@ -51,7 +54,9 @@ class AI_PROJECT_API UTreeAction : public UTreeNode // very customizable
 {
 	public:
 	GENERATED_BODY()
-	virtual bool StatusRun() override;
+	
+	UFUNCTION(BlueprintNativeEvent)
+	EExitSequenceType StatusRun() override;
 };
 
 UCLASS(BlueprintType, Blueprintable)
@@ -66,7 +71,7 @@ public :
 	TObjectPtr<ACharacter> Target;
 	
 	UFUNCTION(BlueprintCallable)
-	virtual bool StatusRun() override;
+	virtual EExitSequenceType StatusRun() override;
 };
 
 UCLASS(BlueprintType, Blueprintable)
@@ -84,7 +89,7 @@ public:
 	ACharacter* Target;
 	
 	UFUNCTION(BlueprintCallable)
-	virtual bool StatusRun() override;
+	virtual EExitSequenceType StatusRun() override;
 };
 
 UCLASS(BlueprintType, Blueprintable)
@@ -95,7 +100,7 @@ class AI_PROJECT_API USelector : public UComposite
 public:
 	
 	UFUNCTION(BlueprintCallable)
-	virtual bool StatusRun() override; 
+	virtual EExitSequenceType StatusRun() override; 
 };
 
 UCLASS(BlueprintType, Blueprintable)
@@ -105,7 +110,7 @@ class AI_PROJECT_API USequences : public UComposite
 
 public:
 	UFUNCTION(BlueprintCallable)
-	virtual bool StatusRun() override;
+	virtual EExitSequenceType StatusRun() override;
 };
 
 
@@ -125,10 +130,10 @@ protected:
 	void InitializeNode(UTreeNode* Node); 
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<USelector> RootNodeClass;
+	TSubclassOf<UTreeNode> RootNodeClass;
 	
 	UPROPERTY(Transient)
-	USelector* RootNode;
+	UTreeNode* RootNode;
 
 public:	
 	// Called every frame

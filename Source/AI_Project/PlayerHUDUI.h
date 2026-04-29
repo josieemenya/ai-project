@@ -36,4 +36,9 @@ class AI_PROJECT_API UPlayerHUDUI : public UUserWidget
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UTextBlock* MinuteTextBlock;
 	
+	UPROPERTY(EditAnywhere)
+	class UFont* TimeFont; 
+	
+	virtual void NativeConstruct() override;
+	
 };
