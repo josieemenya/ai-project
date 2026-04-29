@@ -18,6 +18,7 @@ URoutineComponent::URoutineComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
+	
 }
 
 
@@ -25,23 +26,34 @@ void URoutineComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	TimeSystem = Cast<UTimeSystem>(GetWorld()->GetGameInstance());
+	FString ContextString; 
+	
+	if (RoutineTable){
+		RoutineTable->GetAllRows<FRoutineElem>(ContextString, AllRoutines); 
+	} else {
+		// log it
+		
+		UE_LOG(LogTemp, Error, TEXT("No routine table found"));
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("Routine Size : %d"), AllRoutines.Num())
 }
 
 
 FRoutineState URoutineComponent::GetCurrentState()
 {
 	FTimeData Data = TimeSystem->GetTimeData();
-	FRoutineState Result;
+	//FRoutineState Result;
 
 	for (auto State : AllRoutines)
 	{
-		if (WithinHourRange(Data, State.Range) && WithinMinuteRange(Data, State.Range))
+		if (WithinTimeRange(Data, State->Range))
 		{
-			Result = State.State;
+			return State->State;
 		}
 	}
 
-	return Result;
+	return FRoutineState();
 }
 
 EExitSequenceType URoutineComponent::TransitionRoutine()
@@ -50,13 +62,13 @@ EExitSequenceType URoutineComponent::TransitionRoutine()
 	CurrentState = GetCurrentState();
 
 	AAIController* Steer = Cast<AAIController>(GetOwner()); // get controller; 
-	
+
 	if (!Steer)
 	{
 		UE_LOG(LogTemp, Error, TEXT("No controller accessible"));
 		return EExitSequenceType::FAILURE;
 	}
-	
+
 	ACharacter* AttachedActor = Cast<ACharacter>(Steer->GetPawn());
 
 	if (!AttachedActor)
@@ -64,21 +76,18 @@ EExitSequenceType URoutineComponent::TransitionRoutine()
 		UE_LOG(LogTemp, Error, TEXT("No attached character accessible"));
 		return EExitSequenceType::FAILURE;
 	}
-	
-	FVector TestLocation = AttachedActor->GetActorLocation();
-	
+
+	//FVector TestLocation = AttachedActor->GetActorLocation();
+
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
 
 	FNavLocation Projected;
 
-	bool bOk = NavSys->ProjectPointToNavigation(TestLocation, Projected);
+	bool bOk = NavSys->ProjectPointToNavigation(CurrentState.Location, Projected);
 
 	UE_LOG(LogTemp, Warning, TEXT("Self projection result: %s"), bOk ? TEXT("YES") : TEXT("NO"));
-	
-	CurrentState.Location = FVector{ GetOwner()->GetActorLocation().X + 100.f, GetOwner()->GetActorLocation().Y, GetOwner()->GetActorLocation().Z};
 
 	
-
 	if (Steer)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Target: %s"), *CurrentState.Location.ToString());
@@ -107,7 +116,8 @@ EExitSequenceType URoutineComponent::RoutineSequence()
 	// get mesh 
 	AGPController* AttachedController = Cast<AGPController>(GetOwner());
 
-	if (!AttachedController) {
+	if (!AttachedController)
+	{
 		UE_LOG(LogTemp, Error, TEXT("No attached character accessible"));
 		return EExitSequenceType::FAILURE;
 	}
@@ -125,7 +135,7 @@ EExitSequenceType URoutineComponent::RoutineSequence()
 	if (!Montage)
 	{
 		UE_LOG(LogTemp, Error, TEXT("No Montage object accessible"));
-		return EExitSequenceType::FAILURE;
+		return EExitSequenceType::SUCCESS; //return Success for now
 	}
 
 	if (!Montage->Montage_IsPlaying(CurrentState.Animation))
@@ -149,12 +159,11 @@ bool URoutineComponent::bHasStateChanged() const
 	return LastCurrentState != CurrentState;
 }
 
-bool URoutineComponent::WithinHourRange(const FTimeData& Data, const FTimeRange& TimeRange) const
+bool URoutineComponent::WithinTimeRange(const FTimeData& Data, const FTimeRange& TimeRange) const
 {
-	return (Data.Hour >= TimeRange.StartHourRange && Data.Hour <= TimeRange.EndHourRange);
-}
+	int Current = Data.Hour * 60 + Data.Minute;
+	int Start   = TimeRange.StartHourRange * 60 + TimeRange.StartMinuteRange;
+	int End     = TimeRange.EndHourRange   * 60 + TimeRange.EndMinuteRange;
 
-bool URoutineComponent::WithinMinuteRange(const FTimeData& Data, const FTimeRange& TimeRange) const
-{
-	return (Data.Minute >= TimeRange.StartMinuteRange && Data.Minute <= TimeRange.EndMinuteRange);
+	return Current >= Start && Current <= End;
 }

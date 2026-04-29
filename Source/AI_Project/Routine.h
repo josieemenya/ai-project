@@ -21,6 +21,7 @@ enum class ETimeRoutine : uint8
 	ROLLCALL, // 9 - 9:10
 	BREAKFAST, // 9 : 15 - 9 : 45
 	FREETIME, // stop until 10 : 30
+	LUNCH,
 	WORK, // until 2 : 30
 	EXERCISE, // 3:30 - 4:30
 	SHOWER, //until 5:15
@@ -49,7 +50,7 @@ struct FRoutineState
 };
 
 USTRUCT(BlueprintType)
-struct FRoutineElem
+struct FRoutineElem : public FTableRowBase
 {
 	GENERATED_BODY()
 	
@@ -82,10 +83,13 @@ public:
 	FRoutineState LastCurrentState;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FRoutineState CurrentState;
+	UDataTable* RoutineTable; 
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FRoutineElem> AllRoutines;
+	FRoutineState CurrentState;
+	
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FRoutineElem*> AllRoutines;
 	
 	UFUNCTION(BlueprintCallable)
 	EExitSequenceType TransitionRoutine(); 
@@ -94,8 +98,8 @@ public:
 	EExitSequenceType RoutineSequence(); // PlayAnimation
 	
 	bool bHasStateChanged() const;
-	bool WithinHourRange(const FTimeData& Data, const FTimeRange& TimeRange) const; 
-	bool WithinMinuteRange(const FTimeData& Data, const FTimeRange& TimeRange) const;
+	bool WithinTimeRange(const FTimeData& Data, const FTimeRange& TimeRange) const; 
+	//bool WithinMinuteRange(const FTimeData& Data, const FTimeRange& TimeRange) const;
 	
 protected:
 	virtual void BeginPlay() override;

@@ -126,7 +126,11 @@ public:
 	
 	float LastDesiredPosition;
 	
+	
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimelineUpdated,  const FTimeData&, TimeData);
 
+	//UPROPERTY(BlueprintAssignable)
+	FOnTimelineUpdated OnTimelineUpdated;
 
 public:
 	//virtual void Initialize(FSubsystemCollectionBase& Collection) override;

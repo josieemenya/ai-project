@@ -9,6 +9,8 @@
 /**
  * 
  */
+struct FTimeData;
+
 UCLASS()
 class AI_PROJECT_API UPlayerHUDUI : public UUserWidget
 {
@@ -40,5 +42,8 @@ class AI_PROJECT_API UPlayerHUDUI : public UUserWidget
 	class UFont* TimeFont; 
 	
 	virtual void NativeConstruct() override;
+	
+	UFUNCTION()
+	void TimeUpdate(const FTimeData& TimeData);
 	
 };

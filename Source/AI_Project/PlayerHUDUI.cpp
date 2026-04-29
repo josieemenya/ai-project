@@ -3,6 +3,7 @@
 
 #include "PlayerHUDUI.h"
 
+#include "TimeSystem.h"
 #include "Components/TextBlock.h"
 #include "Engine/Font.h"
 
@@ -16,5 +17,15 @@ void UPlayerHUDUI::NativeConstruct()
 	TenthMinuteTextBlock->SetFont(FontInfo);
 	MinuteTextBlock->SetFont(FontInfo);
 
-	//HourTextBlock->AddBinding()
+	UTimeSystem* Time = Cast<UTimeSystem>(GetGameInstance());
+	if (!Time) return;
+
+	Time->OnTimelineUpdated.AddDynamic(this, &UPlayerHUDUI::TimeUpdate); 
+}
+
+void UPlayerHUDUI::TimeUpdate(const FTimeData& TimeData)
+{
+	HourTextBlock->SetText(FText::AsNumber(TimeData.Hour));
+	MinuteTextBlock->SetText(FText::AsNumber(TimeData.Minute % 10));
+	TenthMinuteTextBlock->SetText(FText::AsNumber(TimeData.Minute / 10));
 }

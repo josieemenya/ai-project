@@ -53,9 +53,10 @@ void UTimeSystem::StartDay()
 
 void UTimeSystem::UpdateTime()
 {
-	if (TimeData.Hour > 21)
+	if (TimeData.Hour > 23)
 	{
 		TimeData.Day += 1;
+		TotalSecondsElapsed = 0; 
 		// Reset Everything
 		//FOnDayChanged
 	}
@@ -88,6 +89,8 @@ void UTimeSystem::UpdateTime()
 			break; 
 		}
 	}
+	
+	OnTimelineUpdated.Broadcast(TimeData); 
 }
 
 void UTimeSystem::OnTimelineUpdate(float val)
