@@ -33,7 +33,7 @@ void UDamage::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OnDeath.AddDynamic(this, &UDamage::HandleDeath); 
+	//OnDeath.AddDynamic(this, &UDamage::HandleDeath); 
 	AActor* AttachedActor = Cast<AActor>(GetOwner());
 	if (auto GetCharacterRef = Cast<ACharacter>(AttachedActor))
 	{
@@ -96,12 +96,13 @@ void UDamage::DamageHealth(float DamageAmount)
 			if (bMortis)
 			{
 				CharacterController->Planner->BB_Planner->SetValueAsBool("KnockedOut", bMortis);
+				OnCharacterDeath.Broadcast(CharacterController);
 			}
 		}
 	}
 	
-	if (bMortis)
-		OnDeath.Broadcast();
+	if (bMortis){}
+		//OnDeath.Broadcast(Cast<ACharacter>(GetOwner())->GetController());
 }
 
 void UDamage::DamageStamina(float stamina)

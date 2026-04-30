@@ -71,6 +71,9 @@ public:
 
 	bool RegisterSeePlayer(UPlannerComponent* Planner);
 
+	UFUNCTION()
+	void OnCharacterDeathAnim(AAIController* ParentController); 
+
 protected:
 	virtual void BeginPlay() override;
 

@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AIController.h"
 #include "Components/ActorComponent.h"
 #include "Damage.generated.h"
 
 
+class AAIController;
 class UUserWidget;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -32,7 +34,7 @@ public:
 	
 	bool bMortis; 
 	
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AAIController*, ParentController);
 
 	UPROPERTY(BlueprintAssignable)
 	FOnDeath OnDeath;
@@ -86,6 +88,10 @@ public:
 	
 	UFUNCTION( BlueprintCallable )
 	void HandleDeath(); 
+	
+	
+	UPROPERTY( BlueprintAssignable )
+	FOnDeath OnCharacterDeath; 
 };
 
 inline float UDamage::GetCharacterHealth() const

@@ -4,6 +4,7 @@
 #include "GPController.h"
 
 #include "AI_ProjectCharacter.h"
+#include "BrainComponent.h"
 #include "Damage.h"
 #include "PlannerComponent.h"
 #include "Routine.h"
@@ -166,6 +167,28 @@ bool AGPController::RegisterSeePlayer(UPlannerComponent* MyPlanner)
 	return false;
 }
 
+void AGPController::OnCharacterDeathAnim(AAIController* ParentController)
+{
+	ACharacter* ParentCharacter = Cast<ACharacter>(ParentController->GetOwner());
+	
+	if (!ParentCharacter) return;
+	
+	USkeletalMeshComponent* Mesh = ParentCharacter->GetMesh();
+	
+	UAnimInstance* AnimInstance = Mesh->GetAnimInstance();
+	
+	if (AnimInstance)
+	{
+		//AnimInstance->Montage_Play() -- basic gist
+		// make them immobile for like, 15 mins?
+		// make them unable to move
+		this->BrainComponent->PauseLogic("KnockOut"); 
+		// maybe do while loop but, after knockout 
+		this->BrainComponent->ResumeLogic("nOT kNOCKED OUT");  
+	}
+	
+}
+
 void AGPController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -181,6 +204,7 @@ void AGPController::BeginPlay()
 		StartPlanning();
 	});
 	PerceptionComp->OnTargetPerceptionUpdated.AddDynamic(this, &AGPController::OnTargetPerceptionUpdated);
+	DamageComp->OnCharacterDeath.AddDynamic(this, &AGPController::OnCharacterDeathAnim);
 }
 
 void AGPController::Tick(float DeltaTime)
