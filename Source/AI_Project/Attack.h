@@ -27,7 +27,10 @@ public:
 	
 	
 	UPROPERTY(EditAnywhere)
-	UAnimMontage* TestMontage; 
+	UAnimMontage* TestMontage;
+	
+	UPROPERTY(EditAnywhere)
+	TArray<USoundBase*> AttackSounds;  
 	
 	
 	UPROPERTY(EditAnywhere, Category = PlayerAttack)

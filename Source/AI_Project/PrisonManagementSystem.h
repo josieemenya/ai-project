@@ -11,12 +11,18 @@
  * 
  */
 
+
+
+class UBackgroundBlur;
+
 UENUM()
-enum class EMyEnum : uint8
+enum class EOptionValueType : uint8
 {
-	VISIBLYARMED,
-	
+	VOLUME,
+	NONE
 };
+
+
 
 UCLASS(Blueprintable) // strech goal
 class AI_PROJECT_API UPrisonUI : public UUserWidget
@@ -26,17 +32,93 @@ class AI_PROJECT_API UPrisonUI : public UUserWidget
 	UPROPERTY(EditAnywhere, meta =(BindWidget))
 	class UCanvasPanel* CanvasPanel;
 	
-	//UPROPERTY(EditAnywhere, meta =(BindWidget))
+
+	
+public:
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UAudioComponent* AudioComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundCue* LevelMusic;
+	
+	void UpdateLevelMusicVolume(float Val);
+	
+	protected:
 	
 	
+	
+	virtual void NativeConstruct() override;
+	
+};
+
+UCLASS ()
+class UOptionItem : public UUserWidget
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EOptionValueType OptionType;
+	
+	UPROPERTY(EditAnywhere, meta =(BindWidget))
+	class UWrapBox* Wrapper; 
+	
+	UPROPERTY(EditAnywhere, meta =(BindWidget))
+	class UTextBlock* PropertyName;
+};
+
+UCLASS()
+class UOptionItemSlider : public UOptionItem
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, meta =(BindWidget))
+	class USlider* SliderVariable;
+	
+	UPrisonUI* PrisonRef; 
+	
+	UFUNCTION()
+	void UpdateVolume(float Val); // ?? 
+	
+	void NativeConstruct() override;
+};
+
+UCLASS()
+class UOptionItemInput : public UOptionItem
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, meta =(BindWidget))
+	class UEditableTextBox* InputBox;
+};
+
+UCLASS()
+class UOptionsUI : public UUserWidget
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, meta =(BindWidget))
+	UCanvasPanel* CanvasPanel;
+	
+	UPROPERTY(EditAnywhere, meta =(BindWidget))
+	class UScaleBox* ScaleBox;
+	
+	UPROPERTY(EditAnywhere, meta =(BindWidget))
+	UBackgroundBlur* BackgroundBlur;
+	
+	UPROPERTY(EditAnywhere, meta =(BindWidget))
+	class UVerticalBox* VerticalBox;
 };
 
 UCLASS()
 class AI_PROJECT_API UPrisonManagementSystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
+
+public:
 	
-	public:
+	//virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	
 	
 	bool bLockdown; 
 };

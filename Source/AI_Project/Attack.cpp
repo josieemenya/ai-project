@@ -8,6 +8,8 @@
 #include "Animation/AnimationAsset.h"
 #include "Animation/AnimMontage.h"
 #include "Animation/AnimInstance.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 
 // Sets default values for this component's properties
 UAttack::UAttack()
@@ -65,6 +67,19 @@ void UAttack::Attack()
 			if (UAnimInstance* Instance = Mesh->GetAnimInstance())
 			{
 				Instance->Montage_Play(TestMontage);
+				
+				if (!AttackSounds.IsEmpty())
+				{
+					// play one at random 
+					int SoundsSize = AttackSounds.Num() - 1; 
+					int SoundIndex = FMath::RandRange(0, SoundsSize);
+					USoundBase* RandSound = AttackSounds[SoundIndex];
+					
+					if (RandSound)
+					{
+						UGameplayStatics::PlaySoundAtLocation(GetWorld(), RandSound, GetOwner()->GetActorLocation());
+					}
+				}
 			}
 		}
 		if (AttackAnim && AttackMontages.IsEmpty())
