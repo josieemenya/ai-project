@@ -41,7 +41,7 @@ AActor* UAnimImpactObject::GetActorFromSphereTrace(USkeletalMeshComponent* MeshC
 		PlayDamageSound(HitActor->GetActorLocation(), HitActor);
 		PlayDamageAnim(HitActor, MeshComponent->GetOwner());
 	}
-	return HitResult.GetActor();
+	return HitActor;
 }
 
 void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter* OtherInstigator)
@@ -91,7 +91,7 @@ void UAnimImpactObject::PlayDamageAnim(AActor* HitActor, AActor* Instigator)
 	
 	FVector ToInstigator = (Instigator->GetActorLocation() - HitActor->GetActorLocation()).GetSafeNormal();
 	float Product = FVector::DotProduct(HitActor->GetActorForwardVector(), Instigator->GetActorForwardVector());
-	if (UKismetMathLibrary::InRange_FloatFloat(Product, 0.5f,0.5f))
+	if (UKismetMathLibrary::InRange_FloatFloat(Product, 0.5f,0.5f)) // change this, this is wrong😭
 	{
 		UAnimMontage* AnimToPlay = Montages["Front"]; 
 		if (AnimToPlay)
