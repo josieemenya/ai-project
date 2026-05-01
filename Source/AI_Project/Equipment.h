@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "Equipment.generated.h"
 
+// clean up, never used and might never be used
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class AI_PROJECT_API UEquipment : public UActorComponent
