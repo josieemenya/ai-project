@@ -132,6 +132,16 @@ void UAnimImpactObject::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSeque
 		{
 			UDamage* DamageComp = Cast<UDamage>(PrisonCharacter->GetComponentByClass(UDamage::StaticClass()));
 			AdjustDamageAndRules(ResultingCharacter, PrisonCharacter);
+
+			// check for the BB in prison character, set relevant flags to true.
+
+			// forward declare, in case i forgot
+			AGPController* GetPrisonController = Cast<AGPController>(PrisonCharacter->GetAIController());
+			if (GetPrisonController){
+					// forward declare if i forgot, might also need to change the name Blackboard
+					UBlackboardComponent* Blackboard = GetPrisonController->BB_Planner;
+					Blackboard->SetValueAsBool("bInCombat", true);
+			}
 		}
 	}
 }
