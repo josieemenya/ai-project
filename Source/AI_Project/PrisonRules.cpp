@@ -89,8 +89,9 @@ void UAnimImpactObject::PlayDamageAnim(AActor* HitActor, AActor* Instigator)
 	ACharacter* HitCharacter = Cast<ACharacter>(HitActor);
 	ACharacter* InstigatorCharacter = Cast<ACharacter>(Instigator);
 	
+	FVector ToInstigator = (Instigator->GetActorLocation() - HitActor->GetActorLocation()).GetSafeNormal();
 	float Product = FVector::DotProduct(HitActor->GetActorForwardVector(), Instigator->GetActorForwardVector());
-	if (UKismetMathLibrary::InRange_FloatFloat(Product, 0.5f, 1.0f))
+	if (UKismetMathLibrary::InRange_FloatFloat(Product, 0.5f,0.5f))
 	{
 		UAnimMontage* AnimToPlay = Montages["Front"]; 
 		if (AnimToPlay)
