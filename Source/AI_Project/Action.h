@@ -14,14 +14,6 @@
 
 class ASmartObject; 
 
-UENUM(BlueprintType)
-enum EActionType : uint8
-{
-	MOVEMENT = 0, // get actor or vector
-	ANIMATION = 1, // get animation
-	ATTACK = 2
-	
-};
 
 class UWorldState;
 
@@ -31,9 +23,6 @@ class AI_PROJECT_API UAction : public UDataAsset
 	GENERATED_BODY()
 	
 	public:
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TEnumAsByte<EActionType> Type; 
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	AActor* OwningActor; 

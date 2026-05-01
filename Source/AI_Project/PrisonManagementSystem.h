@@ -5,14 +5,14 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Engine/DeveloperSettings.h"
 #include "PrisonManagementSystem.generated.h"
 
 /**
  * 
  */
 
-
-
+class URule; 
 class UBackgroundBlur;
 
 UENUM()
@@ -110,6 +110,7 @@ class UOptionsUI : public UUserWidget
 	class UVerticalBox* VerticalBox;
 };
 
+
 UCLASS()
 class AI_PROJECT_API UPrisonManagementSystem : public UGameInstanceSubsystem
 {
@@ -117,8 +118,15 @@ class AI_PROJECT_API UPrisonManagementSystem : public UGameInstanceSubsystem
 
 public:
 	
-	//virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	
+	void InitializeRulesFromSettings();
+	
+	TArray<URule*> AllRules;
+	
+	//virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	int32 PrisonStateFlags; 
+	
+	//void OnRuleBreakOccured(); 
 	
 	bool bLockdown; 
 };

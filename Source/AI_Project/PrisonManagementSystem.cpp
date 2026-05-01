@@ -4,6 +4,7 @@
 #include "PrisonManagementSystem.h"
 #include "Sound/SoundCue.h"
 #include "Sound/SoundBase.h"
+#include "PrisonRules.h"
 #include "Components/Slider.h"
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
@@ -48,3 +49,35 @@ void UOptionItemSlider::NativeConstruct()
 	PrisonRef = Cast<UPrisonUI>(SpecificWidgets[0]);
 	SliderVariable->OnValueChanged.AddDynamic(this, &UOptionItemSlider::UpdateVolume); 
 }
+
+void UPrisonManagementSystem::InitializeRulesFromSettings()
+{
+	const UDataContainerSettings* Settings = GetDefault<UDataContainerSettings>(); 
+	
+	for (TSubclassOf<URule> Rule : Settings->Rules)
+	{
+		URule* CreateRule = NewObject<URule>();
+		AllRules.Add(CreateRule);
+	}
+}
+
+bool URule::bIsRuleBroken_Implementation(FRuleContext Context)
+{
+	return true;
+}
+
+void URule::EstablishRuleBreak_Implementation(AAIController* ResultingController)
+{
+	
+}
+
+/*void UPrisonManagementSystem::OnRuleBreakOccured()
+{
+	for (URule* Rule : AllRules)
+	{
+		if (Rule->bIsRuleBroken())
+		{
+			//
+		}
+	}
+}*/
