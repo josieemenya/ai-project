@@ -58,7 +58,7 @@ void UPlannerComponent::AddToAvailableActions(UAction* NewAction)
 TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldState DesiredState)
 {
 	
-	UE_LOG(LogTemp, Warning, TEXT("Planning"));
+	//UE_LOG(LogTemp, Warning, TEXT("Planning"));
 
 	TArray<Node*> Open;
 	TArray<Node*> Close;
@@ -103,7 +103,7 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 		}
 		
 		// filter against valid actions,  check against precomditions
-		UE_LOG(LogTemp, Warning, TEXT("PlanGoal running, CurrentNode->State keys = %d"), CurrentNode->State.StateValues.Num());
+		//UE_LOG(LogTemp, Warning, TEXT("PlanGoal running, CurrentNode->State keys = %d"), CurrentNode->State.StateValues.Num());
 		auto validActions = FilterAvailableActions(AvailableActions, CurrentNode->State);
 		
 		// filter actions that satisfy our goal, 
@@ -137,7 +137,7 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 
 TArray<UAction*> UPlannerComponent::FilterAvailableActions(TArray<TSubclassOf<UAction>> Actions, FWorldState CurrentState)
 {
-	UE_LOG(LogTemp, Warning, TEXT("FilterAvailableActions called, AvailableActions.Num() = %d"), Actions.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("FilterAvailableActions called, AvailableActions.Num() = %d"), Actions.Num());
 	
 	TArray<UAction*> ActionList;
 
@@ -181,7 +181,7 @@ void UPlannerComponent::UpdateSmartObjects(FWorldState& Current)
 		if (auto Senser = Steer->FindComponentByClass<UAIPerceptionComponent>())
 		{
 			Senser->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), AllSmartObjectsNearby); 
-			UE_LOG(LogTemp, Warning, TEXT("Collected All Smart Objects"));
+			//UE_LOG(LogTemp, Warning, TEXT("Collected All Smart Objects"));
 		}	else
 		{
 			UE_LOG(LogTemp, Error, TEXT("No PerceptionComponent on BaseAI"));
@@ -203,7 +203,7 @@ void UPlannerComponent::UpdateSmartObjects(FWorldState& Current)
 	{
 		if (ASmartObject* SmartObj = Cast<ASmartObject>(SObj))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Writing to World State"));
+			//UE_LOG(LogTemp, Warning, TEXT("Writing to World State"));
 			SmartObj->WriteToWorldState(Current);
 			
 			LastSmartObjectContainer->RegisteredObjects.Add(SmartObj);
@@ -219,7 +219,7 @@ void UPlannerComponent::UpdateSmartObjects(FWorldState& Current)
 				BB_Planner->SetValueAsObject("Smart Objects", LastSmartObjectContainer);
 			}else
 			{
-				UE_LOG(LogTemp, Error, TEXT("No Value Asset for Blackboard Object"));
+				//UE_LOG(LogTemp, Error, TEXT("No Value Asset for Blackboard Object"));
 			}
 		}
 	}
@@ -268,8 +268,8 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
                 for (auto& Effect : CurrentAction->Effects.StateValues)
                 {
                     Bot->CurrentState.StateValues.FindOrAdd(Effect.Key) = Effect.Value;
-                    UE_LOG(LogTemp, Warning, TEXT("Updated CurrentState: %s = %s"),
-                        *Effect.Key, Effect.Value ? TEXT("true") : TEXT("false"));
+                    /*UE_LOG(LogTemp, Warning, TEXT("Updated CurrentState: %s = %s"),
+                        *Effect.Key, Effect.Value ? TEXT("true") : TEXT("false"));*/
                 }
             }
 			ToDoStack.RemoveAt(0);

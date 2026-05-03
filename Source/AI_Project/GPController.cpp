@@ -76,20 +76,20 @@ void AGPController::StartPlanning()
 		
 		if (CurrentGoal->bRequiresSmartObject && Planner->AllSmartObjectsNearby.Num() == 0) // if goal needs to interact with smart obj
 		{
-        	UE_LOG(LogTemp, Warning, TEXT("Skipping planning: no smart objects yet"));
+        	//UE_LOG(LogTemp, Warning, TEXT("Skipping planning: no smart objects yet"));
 			return;
 		}
 		
 		// StartPlanning for real
 		Planner->PlanGoal(BaseCurrentState, CurrentGoal->DesiredState);
-		UE_LOG(LogTemp, Warning, TEXT("Plan size after planning: %d"), Planner->ToDoStack.Num()); 
+		//UE_LOG(LogTemp, Warning, TEXT("Plan size after planning: %d"), Planner->ToDoStack.Num()); 
 		
 
 		for (auto& Pair : CurrentGoal->DesiredState.StateValues)
 		{
-    		UE_LOG(LogTemp, Warning, TEXT("Goal requires: %s = %s"),
+    		/*UE_LOG(LogTemp, Warning, TEXT("Goal requires: %s = %s"),
         	*Pair.Key,
-        	Pair.Value ? TEXT("true") : TEXT("false"));
+        	Pair.Value ? TEXT("true") : TEXT("false"));*/
 		}
 		
 		if (Planner->ToDoStack.Num() > 0) // if we have a sequence of actions we have a goal so 
@@ -152,7 +152,7 @@ bool AGPController::RegisterSeePlayer(UPlannerComponent* MyPlanner)
 		
 		if (FoundPlayer != INDEX_NONE)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Can See Player"));
+			//UE_LOG(LogTemp, Warning, TEXT("Can See Player"));
 			CurrentState.StateValues.FindOrAdd("Player", true); 
 			
 			auto PlayerinWorld = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0); 
@@ -165,7 +165,7 @@ bool AGPController::RegisterSeePlayer(UPlannerComponent* MyPlanner)
 		UE_LOG(LogTemp, Warning, TEXT("Perceived Jack Shit"));
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("No player found"));
+	//UE_LOG(LogTemp, Warning, TEXT("No player found"));
 	
 	return false;
 }
@@ -237,7 +237,7 @@ void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulu
 		
 			if (!Stimulus.WasSuccessfullySensed())
 			{
-				UE_LOG(LogTemp, Warning, TEXT("LostSightofPlauyer"));
+				//UE_LOG(LogTemp, Warning, TEXT("LostSightofPlauyer"));
 			}
 		}
 	}

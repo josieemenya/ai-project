@@ -177,7 +177,7 @@ void UTimeSystem::OnStart()
 	ETimeOfDay::TWILIGHT));
 
 	StartDay();
-	InitTimeline();
+	//InitTimeline();
 	
 	CurrentPosition = DayPositions["Morning"];
 	CurrentTimeOfDay = ETimeOfDay::MORNING;
