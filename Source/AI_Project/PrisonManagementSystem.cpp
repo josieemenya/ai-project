@@ -61,15 +61,8 @@ void UPrisonManagementSystem::InitializeRulesFromSettings()
 	}
 }
 
-bool URule::bIsRuleBroken_Implementation(FRuleContext Context)
-{
-	return true;
-}
 
-void URule::EstablishRuleBreak_Implementation(AAIController* ResultingController)
-{
-	
-}
+
 
 /*void UPrisonManagementSystem::OnRuleBreakOccured()
 {

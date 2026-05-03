@@ -32,6 +32,12 @@ struct FRuleContext
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector Location; // Location where the offending crime took place, I don't think I need that though
+
+	bool operator==(const FRuleContext& Other) const
+	{
+		return OffendingCharacter == Other.OffendingCharacter && 
+				ActionType == Other.ActionType;
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -41,17 +47,24 @@ struct FRuleContextMultiple : public FRuleContext // for if a rule break involve
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ACharacter* OtherOffendingCharacter;
+	
+	bool operator==(const FRuleContext& Other) const
+	{
+		return OffendingCharacter == Other.OffendingCharacter &&
+			   ActionType == Other.ActionType; // tolerance
+	}
 };
 
-UCLASS()
+UCLASS(Blueprintable)
 class AI_PROJECT_API URule : public UDataAsset
 {
 	GENERATED_BODY()
+
 	
 public:
 	
 	UFUNCTION(BlueprintNativeEvent)
-	bool bIsRuleBroken(FRuleContext Context); 
+	bool bIsRuleBroken(const FRuleContext &Context); 
 	
 	UFUNCTION(BlueprintNativeEvent)
 	void EstablishRuleBreak(AAIController* ResultingController); // set flag in BlackBorad 
@@ -84,6 +97,7 @@ class AI_PROJECT_API URuleContainer : public UActorComponent
 	GENERATED_BODY()
 	public:
 	
+	UPROPERTY(VisibleAnywhere)
 	TArray<FRuleContext> Rules;
 };
 
@@ -111,11 +125,12 @@ protected:
 	void PlayDamageSound(FVector Location, AActor* HitActor);
 	void PlayDamageAnim(AActor* HitActor, AActor* Instigator);
 	
-	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
-		float TotalDuration) override;
-	
 	virtual void NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 		float FrameDeltaTime) override;
 	
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
+
+public:
+	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration,
+		const FAnimNotifyEventReference& EventReference) override;
 };

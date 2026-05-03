@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AITypes.h"
 #include "Components/ActorComponent.h"
 #include "ExitSequence.h"
 #include "TimeSystem.h"
+#include "Navigation/PathFollowingComponent.h"
 #include "Routine.generated.h"
 
 
@@ -90,6 +92,8 @@ public:
 	
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FRoutineElem*> AllRoutines;
+	
+	void MoveSuccessful(FAIRequestID RequestID, EPathFollowingResult::Type Result); 
 	
 	UFUNCTION(BlueprintCallable)
 	EExitSequenceType TransitionRoutine(); 

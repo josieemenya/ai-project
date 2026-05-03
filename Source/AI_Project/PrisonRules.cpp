@@ -2,8 +2,10 @@
 
 
 #include "PrisonRules.h"
-
+#include "GPController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Damage.h"
+#include "PlannerComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -12,75 +14,135 @@
 // Sets default values for this component's properties
 
 
+bool URule::bIsRuleBroken_Implementation(const FRuleContext& Context)
+{
+	return true;
+}
+
+void URule::EstablishRuleBreak_Implementation(AAIController* ResultingController)
+{
+	
+}
+
 ACharacter* UAnimImpactObject::GetResultingCharacter(USkeletalMeshComponent* MeshComponent)
 {
 	return nullptr;
 }
 
-AActor* UAnimImpactObject::GetActorFromSphereTrace(USkeletalMeshComponent* MeshComponent, FHitResult& HitResult, TArray<AActor*>& ActorsToIgnore)
+AActor* UAnimImpactObject::GetActorFromSphereTrace(USkeletalMeshComponent* MeshComponent, FHitResult& HitResult,
+                                                   TArray<AActor*>& ActorsToIgnore)
 {
-	FVector SocketLocation = MeshComponent->GetSocketLocation(SocketName);
+	FTransform SocketTransform = MeshComponent->GetSocketTransform(SocketName);
+
+	FVector Start = SocketTransform.GetLocation();
+	FVector Forward = SocketTransform.GetRotation().GetForwardVector();
+	FVector End = Start + Forward * 100.f;
+
+	// debug line 
+	UE_LOG(LogTemp, Warning, TEXT("Socket Name: %s"), *SocketName.ToString());
+
+
 	AActor* HitActor;
-	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), 
-		SocketLocation, 
-		SocketLocation + 10.f, 
-		20.f, 
-		TraceTypeQuery1, 
-		false,
-		ActorsToIgnore,
-		EDrawDebugTrace::Persistent,
-		HitResult,
-		true,
-		FLinearColor::MakeRandomColor()
-		);	
-	
+
+
+	ActorsToIgnore.Add(MeshComponent->GetOwner());
+
+
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
+
+	UKismetSystemLibrary::SphereTraceSingleForObjects(MeshComponent->GetWorld(), // ??? weird formatting
+	                                                  Start,
+	                                                  End,
+	                                                  30.f,
+	                                                  ObjectTypes,
+	                                                  false,
+	                                                  ActorsToIgnore,
+	                                                  EDrawDebugTrace::ForDuration,
+	                                                  HitResult,
+	                                                  true,
+	                                                  FLinearColor::MakeRandomColor(),
+	                                                  FLinearColor::White,
+	                                                  10.f
+	);
+
+
 	HitActor = HitResult.GetActor();
-	
+
+	if (HitResult.bBlockingHit)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TRACE HIT"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TRACE MISS"));
+	}
+
 	if (HitActor)
 	{
 		PlayDamageSound(HitActor->GetActorLocation(), HitActor);
 		PlayDamageAnim(HitActor, MeshComponent->GetOwner());
+		UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitActor->GetName())
 	}
 	return HitActor;
 }
 
 void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter* OtherInstigator)
 {
-	UDamage* DamageComp = Cast<UDamage>(OtherInstigator->GetComponentByClass(UDamage::StaticClass()));
+	UDamage* DamageComp = Cast<UDamage>(OtherInstigator->GetController()->GetComponentByClass(UDamage::StaticClass()));
 	if (DamageComp)
 	{
 		DamageComp->DamageHealth(10.f);
 		// MAKE RuleBreak
-				
+		
+		
 		FRuleContextMultiple Fighting = FRuleContextMultiple();
 		Fighting.OffendingCharacter = Instigator;
 		Fighting.OtherOffendingCharacter = OtherInstigator;
-		Fighting.ActionType = EActionType::FIGHTING; 
+		Fighting.ActionType = EActionType::FIGHTING;
 		Fighting.Location = Fighting.OffendingCharacter->GetActorLocation();
-				
+
 		// add to rule breaking class 
-				
-		URuleContainer* ContainerComp = Cast<URuleContainer>(Fighting.OffendingCharacter->GetComponentByClass(URuleContainer::StaticClass()));
-				
+
+		URuleContainer* ContainerComp = Cast<URuleContainer>(
+			Fighting.OffendingCharacter->GetComponentByClass(URuleContainer::StaticClass()));
+
 		if (ContainerComp)
 		{
-			ContainerComp->Rules.Add(Fighting);
+			if (!ContainerComp->Rules.Contains(Fighting))
+			{
+				ContainerComp->Rules.Add(Fighting);
+			} else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Rules: AlreadyBroken this rule"));
+			}
+			UE_LOG(LogTemp, Warning, TEXT("Rules: Fighting"));
 			// get the other one 
-			URuleContainer* GetOtherContainer = Cast<URuleContainer>(Fighting.OtherOffendingCharacter->GetComponentByClass(URuleContainer::StaticClass()));
+			URuleContainer* GetOtherContainer = Cast<URuleContainer>(
+				Fighting.OtherOffendingCharacter->GetComponentByClass(URuleContainer::StaticClass()));
 			if (GetOtherContainer)
 			{
-				GetOtherContainer->Rules.Add(Fighting);	
+				if (!GetOtherContainer->Rules.Find(Fighting))
+				{
+					GetOtherContainer->Rules.Add(Fighting);
+				}
 			}
+		} else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Rules: No ContainerComp, Relevant Actor: %s"), *Fighting.OffendingCharacter->GetName());
 		}
+	} else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Rules: NoDmgComp"));
 	}
 }
 
 void UAnimImpactObject::PlayDamageSound(FVector Location, AActor* HitActor)
 {
-	if (HitActor)
+	if (HitActor && !HitSounds.IsEmpty())
 	{
 		int RandomIndex = FMath::RandRange(0, HitSounds.Num() - 1);
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(),  HitSounds[RandomIndex], Location);
+		UGameplayStatics::PlaySoundAtLocation(HitActor->GetWorld(), HitSounds[RandomIndex], Location);
 	}
 }
 
@@ -88,63 +150,50 @@ void UAnimImpactObject::PlayDamageAnim(AActor* HitActor, AActor* Instigator)
 {
 	ACharacter* HitCharacter = Cast<ACharacter>(HitActor);
 	ACharacter* InstigatorCharacter = Cast<ACharacter>(Instigator);
+
+	if (!HitActor || !Instigator || !HitCharacter) return; 
 	
 	FVector ToInstigator = (Instigator->GetActorLocation() - HitActor->GetActorLocation()).GetSafeNormal();
-	float Product = FVector::DotProduct(HitActor->GetActorForwardVector(), Instigator->GetActorForwardVector());
-	if (UKismetMathLibrary::InRange_FloatFloat(Product, 0.5f,0.5f)) // change this, this is wrong😭
+	float Product = FVector::DotProduct(HitActor->GetActorForwardVector(), ToInstigator);
+	if (Product > 0.5f)
 	{
-		UAnimMontage* AnimToPlay = Montages["Front"]; 
+		UAnimMontage* AnimToPlay = Montages["Front"];
 		if (AnimToPlay)
 		{
 			if (HitCharacter)
 			{
-				HitCharacter->GetMesh()->GetAnimInstance()->Montage_Play(AnimToPlay);
+				if (UAnimInstance* AnimInstance = HitCharacter->GetMesh()->GetAnimInstance())
+				{
+					auto Result = AnimInstance->Montage_Play(AnimToPlay);
+					UE_LOG(LogTemp, Warning, TEXT("Montage result: %f"), Result);
+				}else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Montage result: No AnimInstance"));
+				}
 			}
+		}else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Montage result: No AnimToPlay"));
 		}
 	}
-	else if (UKismetMathLibrary::InRange_FloatFloat(Product, -0.5f, 0.4))
-	{
-		
-	}else if (UKismetMathLibrary::InRange_FloatFloat(Product, -1.0f, -0.6f))
+	else if (Product < -0.5f)
 	{
 		UAnimMontage* AnimToPlay = Montages["Back"];
 		if (AnimToPlay)
 		{
-			if (HitCharacter)
+			if (UAnimInstance* AnimInstance = HitCharacter->GetMesh()->GetAnimInstance())
 			{
-				HitCharacter->GetMesh()->GetAnimInstance()->Montage_Play(AnimToPlay);
+				auto Result = AnimInstance->Montage_Play(AnimToPlay);
+				UE_LOG(LogTemp, Warning, TEXT("Montage result: %f"), Result);
 			}
-		}
+		} 
 	}
-}
-
-void UAnimImpactObject::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
-{
-	Super::NotifyBegin(MeshComp, Animation, TotalDuration);
-	
-	ACharacter* ResultingCharacter = Cast<ACharacter>(MeshComp->GetOwner()); 
-	TArray<AActor*> ActorsToIgnore;
-	FHitResult Hit;
-	if (ResultingCharacter)
+	else
 	{
-		
-		if (ACharacter* PrisonCharacter = Cast<ACharacter>(GetActorFromSphereTrace(MeshComp, Hit, ActorsToIgnore)))
-		{
-			UDamage* DamageComp = Cast<UDamage>(PrisonCharacter->GetComponentByClass(UDamage::StaticClass()));
-			AdjustDamageAndRules(ResultingCharacter, PrisonCharacter);
-
-			// check for the BB in prison character, set relevant flags to true.
-
-			// forward declare, in case i forgot
-			AGPController* GetPrisonController = Cast<AGPController>(PrisonCharacter->GetAIController());
-			if (GetPrisonController){
-					// forward declare if i forgot, might also need to change the name Blackboard
-					UBlackboardComponent* Blackboard = GetPrisonController->BB_Planner;
-					Blackboard->SetValueAsBool("bInCombat", true);
-			}
-		}
+		UE_LOG(LogTemp, Warning, TEXT("Montage result: %f"), Product);
 	}
 }
+
 
 void UAnimImpactObject::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime)
 {
@@ -154,4 +203,32 @@ void UAnimImpactObject::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequen
 void UAnimImpactObject::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
 	Super::NotifyEnd(MeshComp, Animation);
+}
+
+void UAnimImpactObject::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration,
+                                    const FAnimNotifyEventReference& EventReference)
+{
+	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
+
+	UE_LOG(LogTemp, Warning, TEXT("logging from the west side"));
+
+	ACharacter* ResultingCharacter = Cast<ACharacter>(MeshComp->GetOwner());
+	TArray<AActor*> ActorsToIgnore;
+	FHitResult Hit;
+	if (ResultingCharacter)
+	{
+		if (ACharacter* PrisonCharacter = Cast<ACharacter>(GetActorFromSphereTrace(MeshComp, Hit, ActorsToIgnore)))
+		{
+			//UDamage* DamageComp = Cast<UDamage>(PrisonCharacter->GetComponentByClass(UDamage::StaticClass()));
+			AdjustDamageAndRules(ResultingCharacter, PrisonCharacter);
+
+			AGPController* GetPrisonController = Cast<AGPController>(PrisonCharacter->GetController());
+			if (GetPrisonController)
+			{
+				// forward declare if i forgot, might also need to change the name Blackboard
+				UBlackboardComponent* Blackboard = GetPrisonController->Planner->BB_Planner;
+				Blackboard->SetValueAsBool("bInCombat", true);
+			}
+		}
+	}
 }

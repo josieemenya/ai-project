@@ -63,6 +63,8 @@ EExitSequenceType URoutineComponent::TransitionRoutine()
 
 	AAIController* Steer = Cast<AAIController>(GetOwner()); // get controller; 
 
+	
+	float AcceptableRadius = 50.f; 
 	if (!Steer)
 	{
 		UE_LOG(LogTemp, Error, TEXT("No controller accessible"));
@@ -76,33 +78,34 @@ EExitSequenceType URoutineComponent::TransitionRoutine()
 		UE_LOG(LogTemp, Error, TEXT("No attached character accessible"));
 		return EExitSequenceType::FAILURE;
 	}
-
-	//FVector TestLocation = AttachedActor->GetActorLocation();
-
-	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
-
-	FNavLocation Projected;
-
-	bool bOk = NavSys->ProjectPointToNavigation(CurrentState.Location, Projected);
-
-	UE_LOG(LogTemp, Warning, TEXT("Self projection result: %s"), bOk ? TEXT("YES") : TEXT("NO"));
-
 	
 	if (Steer)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Target: %s"), *CurrentState.Location.ToString());
-		switch (Steer->MoveToLocation(CurrentState.Location, 10.f))
+		auto SteerResult = Steer->GetMoveStatus(); 
+		
+		float Dist = FMath::Abs((AttachedActor->GetActorLocation() - CurrentState.Location).Length()); 
+		
+		if (Dist <= AcceptableRadius)
 		{
-		case EPathFollowingRequestResult::AlreadyAtGoal:
-			return EExitSequenceType::SUCCESS;
-
-		case EPathFollowingRequestResult::RequestSuccessful:
-			return EExitSequenceType::RUNNING;
-
-		case EPathFollowingRequestResult::Failed:
-			UE_LOG(LogTemp, Error, TEXT("Path Following Request Failed"));
-			return EExitSequenceType::FAILURE;
+			return EExitSequenceType::SUCCESS; 
+		} 
+		
+		switch (SteerResult)
+		{
+			case EPathFollowingStatus::Idle:
+				Steer->MoveToLocation(CurrentState.Location, AcceptableRadius); 
+				return EExitSequenceType::RUNNING;
+			
+			case EPathFollowingStatus::Moving:
+				return EExitSequenceType::RUNNING;
+		
+			default:
+				return EExitSequenceType::DEFAULT;
 		}
+		
+		UE_LOG(LogTemp, Warning, TEXT("Target: %s"), *CurrentState.Location.ToString());
+		
+		
 	}
 
 	UE_LOG(LogTemp, Error, TEXT("Default Dialogue reached."))
@@ -166,4 +169,12 @@ bool URoutineComponent::WithinTimeRange(const FTimeData& Data, const FTimeRange&
 	int End     = TimeRange.EndHourRange   * 60 + TimeRange.EndMinuteRange;
 
 	return Current >= Start && Current <= End;
+}
+
+void URoutineComponent::MoveSuccessful(FAIRequestID RequestID, EPathFollowingResult::Type Result)
+{
+	if (Result != EPathFollowingResult::Success)
+	{
+		TransitionRoutine(); 
+	}
 }

@@ -160,6 +160,9 @@ bool AGPController::RegisterSeePlayer(UPlannerComponent* MyPlanner)
 			return true; 
 		}
 	
+	} else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Perceived Jack Shit"));
 	}
 	
 	UE_LOG(LogTemp, Warning, TEXT("No player found"));
