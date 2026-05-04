@@ -34,12 +34,21 @@ struct FCraftingItemData : public FTableRowBase
 };
 
 USTRUCT(BlueprintType)
+struct FIngredient
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FCraftingItemData> IngredientsForRecipe; 
+};
+
+USTRUCT(BlueprintType)
 struct FItemRecipe : public FTableRowBase
 {
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FCraftingItemData> Ingredients;
+	TArray<FIngredient> Recipes;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FCraftingItemData Result;

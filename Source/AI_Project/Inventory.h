@@ -17,6 +17,7 @@ enum class EItemType : uint8
 	WEARABLE,
 	RESOURCE,
 	DEVICE, 
+	CONTRABAND,
 	NONE UMETA(Hidden)
 };
 
@@ -52,7 +53,7 @@ struct FInventoryItem : public FTableRowBase
 	//optional short and large description
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EItemType ItemType;
+	TArray<EItemType> ItemTypes;
 	
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "1"), BlueprintReadWrite)
 	int32 Quantity;

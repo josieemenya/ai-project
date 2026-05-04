@@ -21,7 +21,6 @@ bool URule::bIsRuleBroken_Implementation(const FRuleContext& Context)
 
 void URule::EstablishRuleBreak_Implementation(AAIController* ResultingController)
 {
-	
 }
 
 ACharacter* UAnimImpactObject::GetResultingCharacter(USkeletalMeshComponent* MeshComponent)
@@ -94,8 +93,8 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 	{
 		DamageComp->DamageHealth(10.f);
 		// MAKE RuleBreak
-		
-		
+
+
 		FRuleContextMultiple Fighting = FRuleContextMultiple();
 		Fighting.OffendingCharacter = Instigator;
 		Fighting.OtherOffendingCharacter = OtherInstigator;
@@ -112,7 +111,8 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 			if (!ContainerComp->Rules.Contains(Fighting))
 			{
 				ContainerComp->Rules.Add(Fighting);
-			} else
+			}
+			else
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Rules: AlreadyBroken this rule"));
 			}
@@ -127,11 +127,14 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 					GetOtherContainer->Rules.Add(Fighting);
 				}
 			}
-		} else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Rules: No ContainerComp, Relevant Actor: %s"), *Fighting.OffendingCharacter->GetName());
 		}
-	} else
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Rules: No ContainerComp, Relevant Actor: %s"),
+			       *Fighting.OffendingCharacter->GetName());
+		}
+	}
+	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Rules: NoDmgComp"));
 	}
@@ -151,8 +154,8 @@ void UAnimImpactObject::PlayDamageAnim(AActor* HitActor, AActor* Instigator)
 	ACharacter* HitCharacter = Cast<ACharacter>(HitActor);
 	ACharacter* InstigatorCharacter = Cast<ACharacter>(Instigator);
 
-	if (!HitActor || !Instigator || !HitCharacter) return; 
-	
+	if (!HitActor || !Instigator || !HitCharacter) return;
+
 	FVector ToInstigator = (Instigator->GetActorLocation() - HitActor->GetActorLocation()).GetSafeNormal();
 	float Product = FVector::DotProduct(HitActor->GetActorForwardVector(), ToInstigator);
 	if (Product > 0.5f)
@@ -166,12 +169,14 @@ void UAnimImpactObject::PlayDamageAnim(AActor* HitActor, AActor* Instigator)
 				{
 					auto Result = AnimInstance->Montage_Play(AnimToPlay);
 					UE_LOG(LogTemp, Warning, TEXT("Montage result: %f"), Result);
-				}else
+				}
+				else
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Montage result: No AnimInstance"));
 				}
 			}
-		}else
+		}
+		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Montage result: No AnimToPlay"));
 		}
@@ -186,7 +191,7 @@ void UAnimImpactObject::PlayDamageAnim(AActor* HitActor, AActor* Instigator)
 				auto Result = AnimInstance->Montage_Play(AnimToPlay);
 				UE_LOG(LogTemp, Warning, TEXT("Montage result: %f"), Result);
 			}
-		} 
+		}
 	}
 	else
 	{
@@ -228,6 +233,11 @@ void UAnimImpactObject::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSeque
 				// forward declare if i forgot, might also need to change the name Blackboard
 				UBlackboardComponent* Blackboard = GetPrisonController->Planner->BB_Planner;
 				Blackboard->SetValueAsBool("bInCombat", true);
+
+				//GEngine->AddOnScreenDebugMessage(10, 5.f, FColor::Red, FString::Printf(TEXT("Current Goal : %s"), *GetPrisonController->CurrentGoal->Name));
+				//GEngine->AddOnScreenDebugMessage(11, 5.f, FColor::Red, FString::Printf(TEXT("Is AI in Combat : %s"), *UKismetStringLibrary::Conv_BoolToString(Blackboard->GetValueAsBool("InCombat"))));
+
+				
 			}
 		}
 	}

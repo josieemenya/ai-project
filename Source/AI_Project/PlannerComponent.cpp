@@ -248,8 +248,11 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
 	if (!CurrentAction)
         return; 
 
-    UE_LOG(LogTemp, Warning, TEXT("Executing action: %s"), *CurrentAction->Name.ToString());
-
+	if (LastAction && CurrentAction != LastAction)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Executing action: %s"), *CurrentAction->Name.ToString());
+	}
+	
     EExitSequenceType Result = CurrentAction->Execute(Owner);
 
     switch (Result)
@@ -259,6 +262,7 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
 
         case EExitSequenceType::INVALID:
             OnPlanInvalid.Broadcast();
+			LastAction = CurrentAction;
             CurrentAction = nullptr;
             return;
 
@@ -272,6 +276,7 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
                         *Effect.Key, Effect.Value ? TEXT("true") : TEXT("false"));*/
                 }
             }
+    		LastAction = CurrentAction;
 			ToDoStack.RemoveAt(0);
             CurrentAction = nullptr;
             break;

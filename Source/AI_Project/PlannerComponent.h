@@ -189,6 +189,7 @@ public:
 	FOnPlanInvalid OnPlanInvalid;
 	
 	UAction* CurrentAction;
+	UAction* LastAction; // for debugging purposes only
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TSubclassOf<UAction>> AvailableActions; // the actions that the planner can use to achieve goals, this should be populated by the actor that implements the planner interfac

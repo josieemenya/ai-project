@@ -223,6 +223,14 @@ void AGPController::Tick(float DeltaTime)
 	{
 		StartPlanning();
 	}
+	
+	for (auto I : InstancedGoals)
+	{
+		if (I)
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("Goal Name: %s, Score: %f"), *I->Name, I->GetUtility(Planner->BB_Planner));
+		}
+	}
 }
 
 void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)

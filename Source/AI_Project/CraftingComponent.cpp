@@ -89,42 +89,41 @@ int32 UCraftingComponent::SumOfQuantity(const TArray<FCraftingItemData>& Items)
 
 bool UCraftingComponent::CanCraftItem(FCraftingItemData& DesiredItem)
 {
-	
-	FString ContextString = FString(); 
+	FString ContextString;
 	FItemRecipe* DesiredRecipe = CraftingItemDatabase->FindRow<FItemRecipe>(DesiredItem.ItemID, ContextString, true);
-	
-	if (DesiredRecipe)
+
+	if (!DesiredRecipe)
+		return false;
+
+	for (const FIngredient& RecipeVariant : DesiredRecipe->Recipes)
 	{
-		// travers desired ingredients, find all in inventory, if not in invrntory return false && if quantity not adequate
-		
-		for (const FCraftingItemData& Ingredient : DesiredRecipe->Ingredients)
+		bool bCanCraftThisVariant = true;
+
+		for (const FCraftingItemData& Ingredient : RecipeVariant.IngredientsForRecipe)
 		{
 			TArray<FCraftingItemData> AllInInventory;
 			FindInInventory(Ingredient, AllInInventory);
-			
-			if (AllInInventory.IsEmpty())
+
+			if (AllInInventory.IsEmpty() ||
+				SumOfQuantity(AllInInventory) < Ingredient.Quantity)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Inventory is empty"));
-				return false;
-			}
-			
-			if (SumOfQuantity(AllInInventory) < Ingredient.Quantity)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Not Enough Material"));
-				return false;
+				bCanCraftThisVariant = false;
+				break;
 			}
 		}
-	}	else
-	{
-		return false;
+
+		if (bCanCraftThisVariant)
+		{
+			return true;
+		}
 	}
-	
-	return true;
+
+	return false;
 }
 
 void UCraftingComponent::UpdateItemsInInventory(FItemRecipe* ItemData)
 {
-	for (auto Ingredient : ItemData->Ingredients)
+	//for (auto Ingredient : ItemData->Ingredients)
 	{
 		
 	}
@@ -176,24 +175,39 @@ bool UCraftingComponent::AddItemInInventory(FCraftingItemData& ItemData)
 
 void UCraftingComponent::SortCraftableItems()
 {
-	CraftableItems.Sort([this](const auto a, const auto b)
+	CraftableItems.Sort([this](const FItemRecipe& A, const FItemRecipe& B)
+	{
+		auto GetBestScore = [this](const FItemRecipe& Recipe)
 		{
-			int32 ScoreA = 0, ScoreB = 0;
-			for (auto Item : AvailableItems)
+			int32 BestScore = 0;
+
+			for (const FIngredient& Variant : Recipe.Recipes)
 			{
-				if (a.Ingredients.Contains(Item))
+				int32 Score = 0;
+
+				for (const FCraftingItemData& Ingredient : Variant.IngredientsForRecipe)
 				{
-					ScoreA++; 
+					for (const FCraftingItemData& Available : AvailableItems)
+					{
+						if (Ingredient.ItemID == Available.ItemID)
+						{
+							Score++;
+							break;
+						}
+					}
 				}
-				if (b.Ingredients.Contains(Item))
-				{
-					ScoreB++;
-				}
+
+				BestScore = FMath::Max(BestScore, Score);
 			}
-		
-			return ScoreA > ScoreB; 
-		}
-	); 
+
+			return BestScore;
+		};
+
+		int32 ScoreA = GetBestScore(A);
+		int32 ScoreB = GetBestScore(B);
+
+		return ScoreA > ScoreB;
+	});
 }
 
 
