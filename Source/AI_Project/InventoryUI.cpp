@@ -108,8 +108,6 @@ bool UInventoryHotBarItem::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 FReply UInventoryHotBarItem::NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InKeyEvent)
 {
 	
-	
-	
 	if (InKeyEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
 		return UWidgetBlueprintLibrary::DetectDragIfPressed(InKeyEvent, this, EKeys::LeftMouseButton).NativeReply;

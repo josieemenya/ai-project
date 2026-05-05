@@ -121,7 +121,7 @@ class AI_PROJECT_API URuleContainer : public UActorComponent
 	GENERATED_BODY()
 	public:
 	
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<FRuleContext> Rules;
 	
 	UFUNCTION(BlueprintCallable)

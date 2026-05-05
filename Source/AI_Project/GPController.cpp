@@ -7,6 +7,7 @@
 #include "BrainComponent.h"
 #include "Damage.h"
 #include "PlannerComponent.h"
+#include "PrisonManagementSystem.h"
 #include "PrisonRules.h"
 #include "Routine.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -192,32 +193,45 @@ bool AGPController::RuleBreakVision(UPlannerComponent* InPlanner)
 		ACharacter* PrisonCast = Cast<ACharacter>(Actor);
 		if (!PrisonCast) continue;
 
-		AGPController* C = Cast<AGPController>(PrisonCast->GetController());
-		if (!C) continue;
-
-		URuleContainer* HasContainer = C->GetPawn()->FindComponentByClass<URuleContainer>();
-		if (!HasContainer) continue;
-
-		if (HasContainer->Rules.Num() > 0)
+		URuleContainer* HasContainer = PrisonCast->FindComponentByClass<URuleContainer>(); 
+		
+		if (HasContainer)
 		{
-			//i've confused myself, move on
-			return true; // or handle multiple actors if needed
+			if (HasContainer->Rules.Num() > 0)
+			{
+				
+			}
 		}
 		
-		if (Actor && Actor == Player)
+		
+		
+		/*if (Actor && Actor == Player) // processing holding items; 
 		{
 			auto TPC = Cast<AAI_ProjectCharacter>(Player);
+			auto GetRuleContainer = TPC->FindComponentByClass<URuleContainer>();
 			if (TPC->CurrentlyHoldingItem)
 			{
 				switch (TPC->HeldInvItem.ItemTypes)
 				{
 					case EItemType::CONTRABAND: 
+						FRuleContext Context = FRuleContext();
+						Context.ActionType = EActionType::CONTRABAND;
+						Context.Location = Actor->GetActorLocation();
+						Context.ManagementSystem  = GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>();
+						Context.OffendingCharacter = TPC; 
+						GetRuleContainer->Rules.Add(Context);
 					break;
 					case EItemType::WEAPON:
-					break; 
+						FRuleContext WeaponContext = FRuleContext();
+						WeaponContext.ActionType = EActionType::CONTRABAND;
+						WeaponContext.Location = Actor->GetActorLocation();
+						WeaponContext.ManagementSystem  = GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>();
+						WeaponContext.OffendingCharacter = TPC; 
+						GetRuleContainer->Rules.Add(WeaponContext);
+					break;
 				}
 			}
-		}
+		}*/
 	}
 	
 	
