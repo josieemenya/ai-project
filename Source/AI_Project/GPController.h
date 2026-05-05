@@ -71,7 +71,6 @@ public:
 	void UpdateActions(); // called every tick to update the action stack, if the stack is empty, call the planner to generate a new plan based on the current world state and the desired goal state, then execute the first action in the stack and remove it from the stack
 
 	bool RegisterSeePlayer(UPlannerComponent* InPlanner);
-	bool RuleBreakVision(UPlannerComponent* InPlanner);
 	
 	
 	UFUNCTION()

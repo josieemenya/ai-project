@@ -7,7 +7,7 @@
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "PrisonRules.generated.h"
 
-class UWorld; 
+class UWorld;
 
 UENUM(BlueprintType)
 enum class EActionType : uint8
@@ -20,65 +20,10 @@ enum class EActionType : uint8
 	STOLENKEY // not returning a key
 };
 
-USTRUCT(BlueprintType)
-struct FRuleContext 
-{
-	GENERATED_BODY()
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) // i think visible & read only make more sense
-	ACharacter* OffendingCharacter; 
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	ACharacter* ReportingCharacter; 
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EActionType ActionType;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UPrisonManagementSystem* ManagementSystem; 
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector Location; // Location where the offending crime took place, I don't think I need that though
-
-	bool operator==(const FRuleContext& Other) const
-	{
-		return OffendingCharacter == Other.OffendingCharacter && 
-				ActionType == Other.ActionType;
-	}
-};
-
-USTRUCT(BlueprintType)
-struct FRuleContextMultiple : public FRuleContext // for if a rule break involves multiple people, like for say, a fight
-{
-	GENERATED_BODY()
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	ACharacter* OtherOffendingCharacter;
-	
-	bool operator==(const FRuleContext& Other) const
-	{
-		return OffendingCharacter == Other.OffendingCharacter &&
-			   ActionType == Other.ActionType; // tolerance
-	}
-};
-
-UCLASS(Blueprintable)
-class AI_PROJECT_API URule : public UDataAsset
-{
-	GENERATED_BODY()
-
-	
-public:
-	
-	UFUNCTION(BlueprintNativeEvent, meta = (WorldContext = "WorldContextObject"))
-	bool bIsRuleBroken(UObject* WorldContext, const FRuleContext &Context); 
-	
-	UFUNCTION(BlueprintNativeEvent)
-	void EstablishRuleBreak(AAIController* ResultingController); // set flag in BlackBorad 
-};
 
 UENUM(BlueprintType, meta = (Bitflags))
-enum class EPrisonState : uint8 // using bitmasking && left shift notation, because i feel like you could have both a lightsout and lockdown situation
+enum class EPrisonState : uint8
+	// using bitmasking && left shift notation, because i feel like you could have both a lightsout and lockdown situation
 {
 	NONE = 0 UMETA(Hidden),
 	LOCKDOWN = 1 << 0, // value = 1
@@ -93,56 +38,91 @@ class URuleBreakSound : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TObjectPtr<USoundWave>> RuleBreakSounds;
 };
+
+UENUM(BlueprintType)
+enum class ESignalState : uint8
+{
+	ACTIVE,
+	CONSUMED,
+	IGNORED
+}; 
+
+USTRUCT(BlueprintType)
+struct FSignalData
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float SignalLifeSpan;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EActionType ActionType;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector StimulusLocation;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<TObjectPtr<ACharacter>> InvolvedCharacters;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ID;
+
+	bool operator==(const FSignalData& Other) const
+	{
+		return ID == Other.ID;
+	}
+};
+UCLASS()
+class ASignal : public AActor
+{
+	GENERATED_BODY()
+
+public:
+
+	ASignal();
+
+	FSignalData SignalData;
+
+protected:
+
+	UPROPERTY(VisibleAnywhere)
+	USceneComponent* Root;
+};
+
+UCLASS()
+class AI_PROJECT_API USignalManagement : public UGameInstanceSubsystem
+{
+	GENERATED_BODY()
+
+public:
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+
+	TMap<TObjectPtr<ASignal>, ESignalState> SignalPool;
+	const int POOL_SIZE = 25;
+	
+	void ActivateSignal(FSignalData Signal, FVector Location);
+	void DeactivateSignal(FSignalData Signal);
+	void ClearSignalPool();
+	
+	int32 NextID; 
+};
+	
 
 UCLASS(Config=Game, DefaultConfig)
 class AI_PROJECT_API UDataContainerSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
+
 public:
 	UPROPERTY(EditAnywhere, Config)
-	TArray<TSubclassOf<URule>> Rules;
-	
-	UPROPERTY(EditAnywhere, Config)
 	TSubclassOf<URuleBreakSound> BrokenRules;
-	
+
 	EPrisonState CurrentState;
 };
 
 
-
-
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class AI_PROJECT_API URuleContainer : public UActorComponent
-{
-	GENERATED_BODY()
-	public:
-	
-	UPROPERTY(VisibleAnywhere)
-	TArray<FRuleContext> Rules;
-	
-	UFUNCTION(BlueprintCallable)
-	void AddBrokenRule(const FRuleContext& BrokenRule); 
-	
-	
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FRuleBrokenDelegate);
-	
-	FRuleBrokenDelegate OnRuleBroken;
-	
-	
-
-	UFUNCTION(BlueprintCallable)
-	void DecideConsequence(); 
-	
-	
-	protected:
-	
-	virtual void BeginPlay() override;
-
-};
 
 
 UCLASS(Blueprintable)
@@ -151,29 +131,29 @@ class AI_PROJECT_API UAnimImpactObject : public UAnimNotifyState
 	GENERATED_BODY()
 
 public:
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName SocketName;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<USoundWave*> HitSounds;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<FString, UAnimMontage*> Montages;
+
 protected:
-	
-	ACharacter* GetResultingCharacter(USkeletalMeshComponent* MeshComponent); 
-	AActor* GetActorFromSphereTrace(USkeletalMeshComponent* MeshComponent, FHitResult& HitResult, TArray<AActor*>& ActorsToIgnore); 
-	void AdjustDamageAndRules(ACharacter* Instigator, ACharacter* OtherInstigator); 
+	ACharacter* GetResultingCharacter(USkeletalMeshComponent* MeshComponent);
+	AActor* GetActorFromSphereTrace(USkeletalMeshComponent* MeshComponent, FHitResult& HitResult,
+	                                TArray<AActor*>& ActorsToIgnore);
+	void AdjustDamageAndRules(ACharacter* Instigator, ACharacter* OtherInstigator);
 	void PlayDamageSound(FVector Location, AActor* HitActor);
 	void PlayDamageAnim(AActor* HitActor, AActor* Instigator);
-	
+
 	virtual void NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
-		float FrameDeltaTime) override;
-	
+	                        float FrameDeltaTime) override;
+
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
 
 public:
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration,
-		const FAnimNotifyEventReference& EventReference) override;
+	                         const FAnimNotifyEventReference& EventReference) override;
 };

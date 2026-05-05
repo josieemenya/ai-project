@@ -60,10 +60,6 @@ void ARangedAmmo::InjuredCombatant(UPrimitiveComponent* HitComponent, AActor* Ot
 	ACharacter* PrisonGuard = Cast<ACharacter>(OtherActor); 
 	if (PrisonGuard)
 	{
-		if (PrisonGuard->GetComponentByClass(URuleContainer::StaticClass()) == nullptr)
-		{
-			return;
-		}
 	}
 	
 	if (UDamage* GetComp = Cast<UDamage>(PrisonGuard->GetComponentByClass(UDamage::StaticClass())))
