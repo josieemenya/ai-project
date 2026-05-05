@@ -172,74 +172,7 @@ bool AGPController::RegisterSeePlayer(UPlannerComponent* MyPlanner)
 	return false;
 }
 
-bool AGPController::RuleBreakVision(UPlannerComponent* InPlanner)
-{
-	
-	TArray<AActor*> SeeActors;
-	
-	if (auto HasPerception = FindComponentByClass<UAIPerceptionComponent>())
-	{
-		HasPerception->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), SeeActors);
-	} else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Can't find perception component"));
-	}
-	
-	ACharacter* Player = GetWorld()->GetFirstPlayerController()->GetCharacter();
-	
-	
-	for (AActor* Actor : SeeActors)
-	{
-		ACharacter* PrisonCast = Cast<ACharacter>(Actor);
-		if (!PrisonCast) continue;
 
-		URuleContainer* HasContainer = PrisonCast->FindComponentByClass<URuleContainer>(); 
-		
-		if (HasContainer)
-		{
-			if (HasContainer->Rules.Num() > 0)
-			{
-				
-			}
-		}
-		
-		
-		
-		/*if (Actor && Actor == Player) // processing holding items; 
-		{
-			auto TPC = Cast<AAI_ProjectCharacter>(Player);
-			auto GetRuleContainer = TPC->FindComponentByClass<URuleContainer>();
-			if (TPC->CurrentlyHoldingItem)
-			{
-				switch (TPC->HeldInvItem.ItemTypes)
-				{
-					case EItemType::CONTRABAND: 
-						FRuleContext Context = FRuleContext();
-						Context.ActionType = EActionType::CONTRABAND;
-						Context.Location = Actor->GetActorLocation();
-						Context.ManagementSystem  = GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>();
-						Context.OffendingCharacter = TPC; 
-						GetRuleContainer->Rules.Add(Context);
-					break;
-					case EItemType::WEAPON:
-						FRuleContext WeaponContext = FRuleContext();
-						WeaponContext.ActionType = EActionType::CONTRABAND;
-						WeaponContext.Location = Actor->GetActorLocation();
-						WeaponContext.ManagementSystem  = GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>();
-						WeaponContext.OffendingCharacter = TPC; 
-						GetRuleContainer->Rules.Add(WeaponContext);
-					break;
-				}
-			}
-		}*/
-	}
-	
-	
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Perceived Jack Shit"));
-	}
-	return true;
-}
 
 void AGPController::OnCharacterDeathAnim(AAIController* ParentController)
 {

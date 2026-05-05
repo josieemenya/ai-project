@@ -24,8 +24,23 @@ UInventory::UInventory()
 void UInventory::BeginPlay()
 {
 	Super::BeginPlay();
-
+	RefereshInventory(); 
 	// ...
+}
+
+void UInventory::RefereshInventory()
+{
+	for (FInventoryItem& Item : ItemsInInventory)
+	{
+		// find in inventory db and update
+		FString ContextString = FString();
+		FInventoryItem* ItemDB = ItemDatabase->FindRow<FInventoryItem>(Item.ID, ContextString, true);
+		if (ItemDB)
+		{
+			Item = *ItemDB;
+		}
+	}
+	InventoryRefreshed.Broadcast();
 }
 
 
@@ -74,6 +89,7 @@ bool UInventory::OnAddToInventory(FName ItemName)
 		return true;
 	}
 
+	RefereshInventory(); 
 	return false;
 
 }
@@ -92,6 +108,8 @@ bool UInventory::OnAddRefToInventory(FInventoryItem& Reference)
 		ItemsInInventory.Add(Reference);
 		return true;
 	}
+	
+	RefereshInventory();
 	return false;
 }
 

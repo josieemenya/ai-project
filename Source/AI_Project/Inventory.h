@@ -33,7 +33,7 @@ struct FItemHoldable
 	AActor* Actor;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName Socket; 
+	FName Socket = FName("middle_01_rSocket"); 
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FTransform Transform;
@@ -111,6 +111,13 @@ public:
 	// Called every frame
 	// has an array of Items
 	
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryRefreshed); 
+	
+	void RefereshInventory(); 
+	
+	
+	//UPROPERTY(BlueprintAssignable)
+	FOnInventoryRefreshed InventoryRefreshed; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FInventoryItem> ItemsInInventory; 

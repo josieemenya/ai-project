@@ -66,7 +66,6 @@ AAI_ProjectCharacter::AAI_ProjectCharacter()
 	CraftingComp = CreateDefaultSubobject<UCraftingComponent>(TEXT("Crafting Component"));
 	PGComp = CreateDefaultSubobject<UPrisonGuardComponent>(TEXT("PG Comp"));
 	Inventory = CreateDefaultSubobject<UInventory>(TEXT("Inventory Component"));
-	RuleContainer = CreateDefaultSubobject<URuleContainer>("RuleComp"); 
 }
 
 void AAI_ProjectCharacter::BeginPlay()

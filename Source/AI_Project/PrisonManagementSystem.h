@@ -122,8 +122,6 @@ public:
 	
 	void InitializeRulesFromSettings();
 	
-	UPROPERTY()
-	TArray<URule*> AllRules;
 	
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	
@@ -140,9 +138,6 @@ public:
 	void RemoveFlag(EPrisonState State);
 	
 	void RemoveAllFlags();
-	
-	
-	void OnRuleBreakOccured(const FRuleContext Context, AAIController* Controller); 
 	
 	UPROPERTY(BlueprintReadWrite)
 	bool bLockdown; 

@@ -17,7 +17,6 @@ struct FInputActionValue;
 class URoomComponent;
 class UCraftingComponent;
 class UPrisonGuardComponent;
-class URuleContainer; 
 class UInventory; 
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
@@ -69,9 +68,7 @@ class AAI_ProjectCharacter : public ACharacter
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UPrisonGuardComponent* PGComp;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
-	URuleContainer* RuleContainer;
+
 	
 	
 

@@ -42,57 +42,57 @@ FReply UInventoryHotBarItem::NativeOnMouseButtonDoubleClick(const FGeometry& InG
 }
 
 void UInventoryHotBarItem::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
-	UDragDropOperation*& OutOperation)
+                                                UDragDropOperation*& OutOperation)
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
-	
+
 	GEngine->AddOnScreenDebugMessage(123, 45.f, FColor::Magenta, TEXT("Drag Detected"));
-	
+
 	auto DD = Cast<UDragDropOP>(UWidgetBlueprintLibrary::CreateDragDropOperation(UDragDropOP::StaticClass()));
-	
+
 	if (!DD)
 	{
 		return;
 	}
-	
+
 	if (!DragVisual)
 	{
 		return;
 	}
-	
+
 	auto CreatedVisual = CreateWidget<UDragVisualWidget>(GetWorld()->GetFirstPlayerController(), DragVisual);
-	
-	FSlateBrush Brush; 
+
+	FSlateBrush Brush;
 	Brush.SetResourceObject(ItemData.Icon);
-	
+
 	CreatedVisual->ItemIcon->SetBrush(Brush);
-	
+
 	DD->DefaultDragVisual = CreatedVisual;
 	DD->ItemData = ItemData;
-	DD->SourceWidget = this; 
-	
+	DD->SourceWidget = this;
+
 	OutOperation = DD;
 }
 
 bool UInventoryHotBarItem::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
-	UDragDropOperation* InOperation)
+                                        UDragDropOperation* InOperation)
 {
 	//return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 	auto DD = Cast<UDragDropOP>(InOperation);
 	if (!DD || !DD->SourceWidget)
 	{
-		return false; 
+		return false;
 	}
-	
-	
+
+
 	UInventoryHotBarItem* Source = DD->SourceWidget;
-	UInventoryHotBarItem* Target = this; 
-	
+	UInventoryHotBarItem* Target = this;
+
 	if (Source == Target)
 	{
 		return false;
 	}
-	
+
 	FInventoryItem Temp = Target->ItemData;
 	Target->ItemData = Source->ItemData;
 	Source->ItemData = Temp;
@@ -103,56 +103,91 @@ bool UInventoryHotBarItem::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 	return true;
 }
 
-
-
-FReply UInventoryHotBarItem::NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InKeyEvent)
+void UInventoryHotBar::RefreshInventory()
 {
+	if (!InventoryRef || !HorizontalBox) return;
+
+	HorizontalBox->ClearChildren();
+
+	for (int i = 0; i < MaxHotBarItems; i++)
+	{
+		if (!InventoryRef->ItemsInInventory.IsValidIndex(i))
+			continue;
+
+		const FInventoryItem& Item = InventoryRef->ItemsInInventory[i];
+
+		UInventoryHotBarItem* ItemWidget = MakeHotBarItem(Item); 
+		
+		UE_LOG(LogTemp, Warning, TEXT("item made")); 
+		HorizontalBox->AddChild(ItemWidget);
+	}
+}
+
+void UInventoryUI::RefreshInventory()
+{
+	if (!InventoryRef || !ScrollBar) return;
+
+	ScrollBar->ClearChildren();
+
+	for (const FInventoryItem& Item : InventoryRef->ItemsInInventory)
+	{
+		ScrollBar->AddChild(MakeItem(Item));
+	}
+}
+
+UInventoryHotBarItem* UInventoryHotBar::MakeHotBarItem(const FInventoryItem& Data)
+{
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	UInventoryHotBarItem* HotBarItem = Cast<UInventoryHotBarItem>(CreateWidget(PC, InventoryHotBarItemClass));
+
+	HotBarItem->ItemData = Data;
+	FSlateBrush Brush;
+	Brush.SetResourceObject(Data.Icon);
+	HotBarItem->InventoryItemImage->SetBrush(Brush);
+	HotBarItem->QuantityText->SetText(FText::AsNumber(Data.Quantity));
+	HotBarItem->UpdateUI();
+
+	UE_LOG(LogTemp, Warning, TEXT("ItemWidget created: %s"), *GetNameSafe(HotBarItem));
 	
+	return HotBarItem;
+}
+
+
+FReply UInventoryHotBarItem::NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry,
+                                                            const FPointerEvent& InKeyEvent)
+{
 	if (InKeyEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
 		return UWidgetBlueprintLibrary::DetectDragIfPressed(InKeyEvent, this, EKeys::LeftMouseButton).NativeReply;
 	}
-	
+
 	return Super::NativeOnPreviewMouseButtonDown(InGeometry, InKeyEvent);
 }
 
 void UInventoryHotBar::NativeConstruct()
 {
 	Super::NativeConstruct();
-	
-		
+
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (!PC) return;
+
 	ACharacter* PlayerChar = Cast<ACharacter>(PC->GetCharacter());
-	
-	if (PlayerChar)
+	if (!PlayerChar) return;
+
+	InventoryRef = PlayerChar->FindComponentByClass<UInventory>();
+
+	if (InventoryRef)
 	{
-		InventoryRef = PlayerChar->FindComponentByClass<UInventory>();
-	}
-	
-	TArray<FInventoryItem> InventoryItems;
-	
-	for (int i = 0; i < MaxHotBarItems; i++)
-	{
-		if (InventoryRef->ItemsInInventory.IsValidIndex(i))
-		{
-			InventoryItems.Add(InventoryRef->ItemsInInventory[i]);
-		}
-	}
-	
-	for (FInventoryItem& InventoryItem : InventoryItems)
-	{
-		auto ItemHotBar = Cast<UInventoryHotBarItem>(CreateWidget(PC, InventoryHotBarItemClass)); 
-		if (ItemHotBar)
-		{
-			ItemHotBar->ItemData = InventoryItem;
-			ItemHotBar->UpdateUI();
-			HorizontalBox->AddChild(ItemHotBar);
-		}
+		InventoryRef->InventoryRefreshed.AddDynamic(
+			this, &UInventoryHotBar::RefreshInventory);
+		RefreshInventory();
 	}
 }
 
-
-
+void UInventoryHotBar::NativeOnInitialized()
+{
+	Super::NativeOnInitialized();
+}
 
 
 void UInventoryItemUI::NativeConstruct()
@@ -182,23 +217,26 @@ void UInventoryItemUI::InitializeItem(const FInventoryItem& InItem)
 UInventoryItemUI* UInventoryUI::MakeItem(const FInventoryItem& InventoryItem)
 {
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
-	UInventoryItemUI* ItemUI = Cast<UInventoryItemUI>(CreateWidget(PC, InventoryItemClass)); 
+	UInventoryItemUI* ItemUI = Cast<UInventoryItemUI>(CreateWidget(PC, InventoryItemClass));
 
 	if (ItemUI)
 	{
 		ItemUI->InitializeItem(InventoryItem);
 	}
-	
+
 	return ItemUI;
 }
 
 void UInventoryUI::NativeConstruct()
 {
 	Super::NativeConstruct();
-	
+
+	InventoryRef->InventoryRefreshed.AddDynamic(this, &UInventoryUI::RefreshInventory);
+
+
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	ACharacter* PlayerChar = Cast<ACharacter>(PC->GetCharacter());
-	
+
 	if (PlayerChar)
 	{
 		InventoryRef = PlayerChar->FindComponentByClass<UInventory>();

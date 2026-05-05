@@ -15,42 +15,62 @@
 // Sets default values for this component's properties
 
 
-bool URule::bIsRuleBroken_Implementation(UObject* World, const FRuleContext& Context)
+void USignalManagement::Initialize(FSubsystemCollectionBase& Collection)
 {
-	return false;
-}
-
-void URule::EstablishRuleBreak_Implementation(AAIController* ResultingController)
-{
-}
-
-void URuleContainer::AddBrokenRule(const FRuleContext& BrokenRule)
-{
-	Rules.Add(BrokenRule);
-	OnRuleBroken.Broadcast();
-}
-
-
-
-void URuleContainer::DecideConsequence()
-{
-	auto PCharacter = Cast<ACharacter>(GetOuter());
-	AGPController* PController = Cast<AGPController>(PCharacter->GetController());
-	if (!PController)
+	Super::Initialize(Collection);
+	
+	for (int i = 0; i < POOL_SIZE; i++)
 	{
-		return;
+		FActorSpawnParameters SpawnInfo;
+		ASignal* NewSignal = GetWorld()->SpawnActor<ASignal>(ASignal::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo); 
+		NewSignal->SignalData.ID = i;
+		SignalPool.FindOrAdd(NewSignal, ESignalState::IGNORED);
 	}
-	for (FRuleContext& Context : Rules)
+	
+	NextID = POOL_SIZE; 
+}
+
+void USignalManagement::ActivateSignal(FSignalData Data, FVector Location)
+{
+	
+	for (TPair<TObjectPtr<ASignal>, ESignalState>& NewSignal : SignalPool)
 	{
-		GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>()->OnRuleBreakOccured(Context, PController); 
+		if (NewSignal.Value == ESignalState::IGNORED)
+		{
+			Data.ID = NextID++; 
+			NewSignal.Key->SignalData = Data;
+			NewSignal.Value = ESignalState::ACTIVE; 
+			NewSignal.Key->SetActorLocation(Location);
+			return;
+		}
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("AllActive Signals are In Use"));
+}
+
+void USignalManagement::DeactivateSignal(FSignalData Signal)
+{
+	for (TPair<TObjectPtr<ASignal>, ESignalState>& NewSignal : SignalPool)
+	{
+		if (NewSignal.Key->SignalData == Signal && NewSignal.Value == ESignalState::ACTIVE)
+		{
+			NewSignal.Value = ESignalState::IGNORED;
+			NewSignal.Key->SetActorLocation(FVector::Zero());
+			return;
+		}
 	}
 }
 
-void URuleContainer::BeginPlay()
+void USignalManagement::ClearSignalPool()
 {
-	Super::BeginPlay();
-	OnRuleBroken.AddDynamic(this, &URuleContainer::DecideConsequence);   
+	for (TPair<TObjectPtr<ASignal>, ESignalState>& NewSignal : SignalPool)
+	{
+		NewSignal.Value = ESignalState::IGNORED;
+		NewSignal.Key->SetActorLocation(FVector::Zero());
+	}
 }
+
+
 
 ACharacter* UAnimImpactObject::GetResultingCharacter(USkeletalMeshComponent* MeshComponent)
 {
@@ -123,50 +143,17 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 		DamageComp->DamageHealth(10.f);
 		// MAKE RuleBreak
 
-
-		FRuleContextMultiple Fighting = FRuleContextMultiple();
-		Fighting.OffendingCharacter = Instigator;
-		Fighting.OtherOffendingCharacter = OtherInstigator;
-		Fighting.ActionType = EActionType::FIGHTING;
-		Fighting.Location = Fighting.OffendingCharacter->GetActorLocation();
-		Fighting.ManagementSystem = GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>(); 
-
+		FSignalData FightingSignal = FSignalData();
+	
+		FightingSignal.ActionType = EActionType::FIGHTING; 
+		FightingSignal.StimulusLocation = Instigator->GetActorLocation();
+		FightingSignal.ID = Instigator->GetUniqueID();
+		FightingSignal.SignalLifeSpan = 7.f; 
+		FightingSignal.InvolvedCharacters.Add(Instigator);
+		FightingSignal.InvolvedCharacters.Add(OtherInstigator);
+		
+		GetWorld()->GetGameInstance()->GetSubsystem<USignalManagement>()->ActivateSignal(FightingSignal, FightingSignal.StimulusLocation); 
 		// add to rule breaking class 
-
-		URuleContainer* ContainerComp = Cast<URuleContainer>(
-			Fighting.OffendingCharacter->GetComponentByClass(URuleContainer::StaticClass()));
-
-		if (ContainerComp)
-		{
-			if (!ContainerComp->Rules.Contains(Fighting))
-			{
-				ContainerComp->Rules.Add(Fighting);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Rules: AlreadyBroken this rule"));
-			}
-			UE_LOG(LogTemp, Warning, TEXT("Rules: Fighting"));
-			// get the other one 
-			URuleContainer* GetOtherContainer = Cast<URuleContainer>(
-				Fighting.OtherOffendingCharacter->GetComponentByClass(URuleContainer::StaticClass()));
-			if (GetOtherContainer)
-			{
-				if (!GetOtherContainer->Rules.Find(Fighting))
-				{
-					GetOtherContainer->Rules.Add(Fighting);
-				}
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Rules: No ContainerComp, Relevant Actor: %s"),
-			       *Fighting.OffendingCharacter->GetName());
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Rules: NoDmgComp"));
 	}
 }
 

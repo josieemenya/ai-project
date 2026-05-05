@@ -56,16 +56,6 @@ void UPrisonManagementSystem::InitializeRulesFromSettings()
 {
 	const UDataContainerSettings* Settings = GetDefault<UDataContainerSettings>(); 
 	
-	for (TSubclassOf<URule> Rule : Settings->Rules)
-	{
-		if (!Rule)
-		{
-			continue;
-		}
-		URule* CreateRule = NewObject<URule>();
-		AllRules.Add(CreateRule);
-	}
-	
 	if (Settings->BrokenRules){
 		BreakSounds = NewObject<URuleBreakSound>(this, Settings->BrokenRules);
 	}
@@ -89,19 +79,6 @@ void UPrisonManagementSystem::RemoveFlag(EPrisonState State)
 void UPrisonManagementSystem::RemoveAllFlags()
 {
 	PrisonStateFlags = 0;
-}
-
-void UPrisonManagementSystem::OnRuleBreakOccured(const FRuleContext Context, AAIController* Controller)
-{
-	for (URule* Rule : AllRules)
-	{
-		if (Rule->bIsRuleBroken(Controller, Context))
-		{
-			int32 RandomIndex = FMath::RandRange(0, AllRules.Num() - 1);
-			UGameplayStatics::PlaySoundAtLocation(Controller->GetWorld(), BreakSounds->RuleBreakSounds[RandomIndex], Controller->GetPawn()->GetActorLocation());  
-			Rule->EstablishRuleBreak(Controller);
-		}
-	}
 }
 
 

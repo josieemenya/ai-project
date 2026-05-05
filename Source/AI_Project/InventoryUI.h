@@ -93,7 +93,13 @@ class AI_PROJECT_API UInventoryHotBar : public UUserWidget
 	
 	public:
 	
+	UFUNCTION(BlueprintCallable)
+	void RefreshInventory();
+	
 	const int32 MaxHotBarItems = 6; 
+	
+	
+	UInventoryHotBarItem* MakeHotBarItem(const FInventoryItem& Data); 
 	
 	UPROPERTY(BlueprintReadWrite)
 	class UInventory* InventoryRef;
@@ -113,7 +119,7 @@ class AI_PROJECT_API UInventoryHotBar : public UUserWidget
 protected:
 	
 	virtual void NativeConstruct() override;
-	
+	virtual void NativeOnInitialized() override;
 };
 
 // make an inventory tool tip ui
@@ -159,6 +165,10 @@ class AI_PROJECT_API UInventoryUI : public UUserWidget
 	GENERATED_BODY()
 	
 	public:
+	
+	
+	UFUNCTION(BlueprintCallable)
+	void RefreshInventory();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UInventoryItemUI> InventoryItemClass;
