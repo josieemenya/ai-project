@@ -2,6 +2,8 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "PrisonManagementSystem.h"
+
+#include "AIController.h"
 #include "Sound/SoundCue.h"
 #include "Sound/SoundBase.h"
 #include "PrisonRules.h"
@@ -56,12 +58,51 @@ void UPrisonManagementSystem::InitializeRulesFromSettings()
 	
 	for (TSubclassOf<URule> Rule : Settings->Rules)
 	{
+		if (!Rule)
+		{
+			continue;
+		}
 		URule* CreateRule = NewObject<URule>();
 		AllRules.Add(CreateRule);
 	}
+	
+	if (Settings->BrokenRules){
+		BreakSounds = NewObject<URuleBreakSound>(this, Settings->BrokenRules);
+	}
+}
+void UPrisonManagementSystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+	InitializeRulesFromSettings(); 
 }
 
+void UPrisonManagementSystem::AddFlag(EPrisonState State)
+{
+	PrisonStateFlags |= static_cast<int32>(State);
+}
 
+void UPrisonManagementSystem::RemoveFlag(EPrisonState State)
+{
+	PrisonStateFlags &= ~static_cast<int32>(State);
+}
+
+void UPrisonManagementSystem::RemoveAllFlags()
+{
+	PrisonStateFlags = 0;
+}
+
+void UPrisonManagementSystem::OnRuleBreakOccured(const FRuleContext Context, AAIController* Controller)
+{
+	for (URule* Rule : AllRules)
+	{
+		if (Rule->bIsRuleBroken(Controller, Context))
+		{
+			int32 RandomIndex = FMath::RandRange(0, AllRules.Num() - 1);
+			UGameplayStatics::PlaySoundAtLocation(Controller->GetWorld(), BreakSounds->RuleBreakSounds[RandomIndex], Controller->GetPawn()->GetActorLocation());  
+			Rule->EstablishRuleBreak(Controller);
+		}
+	}
+}
 
 
 /*void UPrisonManagementSystem::OnRuleBreakOccured()

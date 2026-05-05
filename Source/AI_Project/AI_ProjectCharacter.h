@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Inventory.h"
 #include "Logging/LogMacros.h"
 #include "AI_ProjectCharacter.generated.h"
 
@@ -71,6 +72,8 @@ class AAI_ProjectCharacter : public ACharacter
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	URuleContainer* RuleContainer;
+	
+	
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
@@ -83,6 +86,12 @@ private:
 
 public:
 	AAI_ProjectCharacter();
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	bool CurrentlyHoldingItem;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	FInventoryItem HeldInvItem;
 
 protected:
 	/** Called for movement input */

@@ -6,6 +6,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Damage.h"
 #include "PlannerComponent.h"
+#include "PrisonManagementSystem.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -14,13 +15,41 @@
 // Sets default values for this component's properties
 
 
-bool URule::bIsRuleBroken_Implementation(const FRuleContext& Context)
+bool URule::bIsRuleBroken_Implementation(UObject* World, const FRuleContext& Context)
 {
-	return true;
+	return false;
 }
 
 void URule::EstablishRuleBreak_Implementation(AAIController* ResultingController)
 {
+}
+
+void URuleContainer::AddBrokenRule(const FRuleContext& BrokenRule)
+{
+	Rules.Add(BrokenRule);
+	OnRuleBroken.Broadcast();
+}
+
+
+
+void URuleContainer::DecideConsequence()
+{
+	auto PCharacter = Cast<ACharacter>(GetOuter());
+	AGPController* PController = Cast<AGPController>(PCharacter->GetController());
+	if (!PController)
+	{
+		return;
+	}
+	for (FRuleContext& Context : Rules)
+	{
+		GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>()->OnRuleBreakOccured(Context, PController); 
+	}
+}
+
+void URuleContainer::BeginPlay()
+{
+	Super::BeginPlay();
+	OnRuleBroken.AddDynamic(this, &URuleContainer::DecideConsequence);   
 }
 
 ACharacter* UAnimImpactObject::GetResultingCharacter(USkeletalMeshComponent* MeshComponent)
@@ -100,6 +129,7 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 		Fighting.OtherOffendingCharacter = OtherInstigator;
 		Fighting.ActionType = EActionType::FIGHTING;
 		Fighting.Location = Fighting.OffendingCharacter->GetActorLocation();
+		Fighting.ManagementSystem = GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>(); 
 
 		// add to rule breaking class 
 
@@ -236,7 +266,7 @@ void UAnimImpactObject::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSeque
 
 				//GEngine->AddOnScreenDebugMessage(10, 5.f, FColor::Red, FString::Printf(TEXT("Current Goal : %s"), *GetPrisonController->CurrentGoal->Name));
 				//GEngine->AddOnScreenDebugMessage(11, 5.f, FColor::Red, FString::Printf(TEXT("Is AI in Combat : %s"), *UKismetStringLibrary::Conv_BoolToString(Blackboard->GetValueAsBool("InCombat"))));
-
+				
 				
 			}
 		}

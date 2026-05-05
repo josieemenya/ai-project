@@ -7,6 +7,7 @@
 #include "BrainComponent.h"
 #include "Damage.h"
 #include "PlannerComponent.h"
+#include "PrisonRules.h"
 #include "Routine.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -168,6 +169,62 @@ bool AGPController::RegisterSeePlayer(UPlannerComponent* MyPlanner)
 	//UE_LOG(LogTemp, Warning, TEXT("No player found"));
 	
 	return false;
+}
+
+bool AGPController::RuleBreakVision(UPlannerComponent* InPlanner)
+{
+	
+	TArray<AActor*> SeeActors;
+	
+	if (auto HasPerception = FindComponentByClass<UAIPerceptionComponent>())
+	{
+		HasPerception->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), SeeActors);
+	} else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't find perception component"));
+	}
+	
+	ACharacter* Player = GetWorld()->GetFirstPlayerController()->GetCharacter();
+	
+	
+	for (AActor* Actor : SeeActors)
+	{
+		ACharacter* PrisonCast = Cast<ACharacter>(Actor);
+		if (!PrisonCast) continue;
+
+		AGPController* C = Cast<AGPController>(PrisonCast->GetController());
+		if (!C) continue;
+
+		URuleContainer* HasContainer = C->GetPawn()->FindComponentByClass<URuleContainer>();
+		if (!HasContainer) continue;
+
+		if (HasContainer->Rules.Num() > 0)
+		{
+			//i've confused myself, move on
+			return true; // or handle multiple actors if needed
+		}
+		
+		if (Actor && Actor == Player)
+		{
+			auto TPC = Cast<AAI_ProjectCharacter>(Player);
+			if (TPC->CurrentlyHoldingItem)
+			{
+				switch (TPC->HeldInvItem.ItemTypes)
+				{
+					case EItemType::CONTRABAND: 
+					break;
+					case EItemType::WEAPON:
+					break; 
+				}
+			}
+		}
+	}
+	
+	
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Perceived Jack Shit"));
+	}
+	return true;
 }
 
 void AGPController::OnCharacterDeathAnim(AAIController* ParentController)

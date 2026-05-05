@@ -7,6 +7,7 @@
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "PrisonRules.generated.h"
 
+class UWorld; 
 
 UENUM(BlueprintType)
 enum class EActionType : uint8
@@ -28,7 +29,13 @@ struct FRuleContext
 	ACharacter* OffendingCharacter; 
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	ACharacter* ReportingCharacter; 
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EActionType ActionType;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UPrisonManagementSystem* ManagementSystem; 
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector Location; // Location where the offending crime took place, I don't think I need that though
@@ -63,8 +70,8 @@ class AI_PROJECT_API URule : public UDataAsset
 	
 public:
 	
-	UFUNCTION(BlueprintNativeEvent)
-	bool bIsRuleBroken(const FRuleContext &Context); 
+	UFUNCTION(BlueprintNativeEvent, meta = (WorldContext = "WorldContextObject"))
+	bool bIsRuleBroken(UObject* WorldContext, const FRuleContext &Context); 
 	
 	UFUNCTION(BlueprintNativeEvent)
 	void EstablishRuleBreak(AAIController* ResultingController); // set flag in BlackBorad 
@@ -80,6 +87,17 @@ enum class EPrisonState : uint8 // using bitmasking && left shift notation, beca
 	TAKEOVER = 1 << 3 // value = 8
 };
 
+UCLASS(Blueprintable)
+class URuleBreakSound : public UDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<TObjectPtr<USoundWave>> RuleBreakSounds;
+};
+
 UCLASS(Config=Game, DefaultConfig)
 class AI_PROJECT_API UDataContainerSettings : public UDeveloperSettings
 {
@@ -88,10 +106,16 @@ public:
 	UPROPERTY(EditAnywhere, Config)
 	TArray<TSubclassOf<URule>> Rules;
 	
+	UPROPERTY(EditAnywhere, Config)
+	TSubclassOf<URuleBreakSound> BrokenRules;
+	
 	EPrisonState CurrentState;
 };
 
-UCLASS(Blueprintable)
+
+
+
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class AI_PROJECT_API URuleContainer : public UActorComponent
 {
 	GENERATED_BODY()
@@ -99,6 +123,25 @@ class AI_PROJECT_API URuleContainer : public UActorComponent
 	
 	UPROPERTY(VisibleAnywhere)
 	TArray<FRuleContext> Rules;
+	
+	UFUNCTION(BlueprintCallable)
+	void AddBrokenRule(const FRuleContext& BrokenRule); 
+	
+	
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FRuleBrokenDelegate);
+	
+	FRuleBrokenDelegate OnRuleBroken;
+	
+	
+
+	UFUNCTION(BlueprintCallable)
+	void DecideConsequence(); 
+	
+	
+	protected:
+	
+	virtual void BeginPlay() override;
+
 };
 
 

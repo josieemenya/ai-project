@@ -32,7 +32,7 @@ void UInventory::BeginPlay()
 FInventoryItem* UInventory::FindInInventory(FInventoryItem& SearchedItem)
 {
 	FInventoryItem EmptyItem;
-	for (auto Item : ItemsInInventory)
+	for (auto &Item : ItemsInInventory)
 	{
 		if (SearchedItem == Item)
 		{
@@ -68,7 +68,8 @@ bool UInventory::OnAddToInventory(FName ItemName)
 	
 	if (SpaceInInventory())
 	{
-		ItemRef->Quantity = 1; // make sure it's one to create new item; 
+		FInventoryItem NewItem = *ItemRef;
+		NewItem.Quantity = 1;
 		ItemsInInventory.Add(*ItemRef);
 		return true;
 	}

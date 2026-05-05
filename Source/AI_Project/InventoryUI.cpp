@@ -45,6 +45,9 @@ void UInventoryHotBarItem::NativeOnDragDetected(const FGeometry& InGeometry, con
 	UDragDropOperation*& OutOperation)
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
+	
+	GEngine->AddOnScreenDebugMessage(123, 45.f, FColor::Magenta, TEXT("Drag Detected"));
+	
 	auto DD = Cast<UDragDropOP>(UWidgetBlueprintLibrary::CreateDragDropOperation(UDragDropOP::StaticClass()));
 	
 	if (!DD)
@@ -132,7 +135,10 @@ void UInventoryHotBar::NativeConstruct()
 	
 	for (int i = 0; i < MaxHotBarItems; i++)
 	{
-		InventoryItems.Add(InventoryRef->ItemsInInventory[i]);
+		if (InventoryRef->ItemsInInventory.IsValidIndex(i))
+		{
+			InventoryItems.Add(InventoryRef->ItemsInInventory[i]);
+		}
 	}
 	
 	for (FInventoryItem& InventoryItem : InventoryItems)
@@ -142,6 +148,7 @@ void UInventoryHotBar::NativeConstruct()
 		{
 			ItemHotBar->ItemData = InventoryItem;
 			ItemHotBar->UpdateUI();
+			HorizontalBox->AddChild(ItemHotBar);
 		}
 	}
 }
@@ -160,18 +167,18 @@ void UInventoryItemUI::InitializeItem(const FInventoryItem& InItem)
 {
 	Data = InItem;
 
-	//if (!InventoryItemText || !InventoryQuantityText || !InventoryItemImage)
-	//{
-	//	UE_LOG(LogTemp, Error, TEXT("Binding failed in InventoryItemUI"));
-	//	return;
-	//}
+	if (!InventoryItemText || !InventoryQuantityText || !InventoryItemImage)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Binding failed in InventoryItemUI"));
+		return;
+	}
 
 	InventoryItemText->SetText(FText::FromName(Data.ID));
 	InventoryQuantityText->SetText(FText::AsNumber(Data.Quantity));
 
-	//FSlateBrush Brush;
-	//Brush.SetResourceObject(Data.Icon);
-	//InventoryItemImage->SetBrush(Brush);
+	FSlateBrush Brush;
+	Brush.SetResourceObject(Data.Icon);
+	InventoryItemImage->SetBrush(Brush);
 }
 
 UInventoryItemUI* UInventoryUI::MakeItem(const FInventoryItem& InventoryItem)

@@ -49,7 +49,7 @@ class AI_PROJECT_API UInventoryHotBarItem : public UUserWidget
 	FInventoryItem ItemData;
 	
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
-	class UScaleBox* ScaleBox;
+	class UWrapBox* ScaleBox;
 	
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
 	class UImage* InventoryItemImage;
@@ -59,12 +59,6 @@ class AI_PROJECT_API UInventoryHotBarItem : public UUserWidget
 	
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
 	class UTextBlock* HotBarSlotText;
-	
-	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
-	UInventoryHotBarItem* Copy; 
-	
-	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
-	UInventoryHotBarItem* SwapItem;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UDragVisualWidget> DragVisual; 

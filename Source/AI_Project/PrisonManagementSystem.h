@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PrisonRules.h"
 #include "Blueprint/UserWidget.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Engine/DeveloperSettings.h"
@@ -121,12 +122,28 @@ public:
 	
 	void InitializeRulesFromSettings();
 	
+	UPROPERTY()
 	TArray<URule*> AllRules;
 	
-	//virtual void Initialize(FSubsystemCollectionBase& Collection) override;
-	int32 PrisonStateFlags; 
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	
-	//void OnRuleBreakOccured(); 
+	UPROPERTY(BlueprintReadWrite, meta = (Bitflags))
+	int32 PrisonStateFlags;
 	
+	UPROPERTY(BlueprintReadOnly)
+	URuleBreakSound* BreakSounds; 	
+	
+	UFUNCTION(BlueprintCallable)
+	void AddFlag(EPrisonState State); 
+	
+	UFUNCTION(BlueprintCallable)
+	void RemoveFlag(EPrisonState State);
+	
+	void RemoveAllFlags();
+	
+	
+	void OnRuleBreakOccured(const FRuleContext Context, AAIController* Controller); 
+	
+	UPROPERTY(BlueprintReadWrite)
 	bool bLockdown; 
 };
