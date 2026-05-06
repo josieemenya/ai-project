@@ -238,17 +238,26 @@ void AGPController::Tick(float DeltaTime)
 
 void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	// definitely not correct
 	
 	if (Actor)
 	{
-		if (Cast<AAI_ProjectCharacter>(Actor))
+		if (auto PC = Cast<AAI_ProjectCharacter>(Actor))
 		{
-			Planner->BB_Planner->SetValueAsVector("LastKnownPlayerLocation", Stimulus.StimulusLocation); 
-		
-			if (!Stimulus.WasSuccessfullySensed())
+			if (Stimulus.WasSuccessfullySensed())
 			{
-				//UE_LOG(LogTemp, Warning, TEXT("LostSightofPlauyer"));
+				if (PC->CurrentlyHoldingItem)
+				{
+					if (PC->HeldInvItem.ItemTypes.Contains(EItemType::CONTRABAND) || PC->HeldInvItem.ItemTypes.Contains(EItemType::WEAPON))
+					{
+						FSignalData VisiblyArmed = FSignalData();
+						VisiblyArmed.InvolvedCharacters.Add(PC);
+						VisiblyArmed.ActionType = EActionType::CONTRABAND; 
+						VisiblyArmed.SignalLifeSpan = 10.f; 
+						VisiblyArmed.StimulusLocation = PC->GetActorLocation();
+						
+						GetWorld()->GetGameInstance()->GetSubsystem<USignalManagement>()->ActivateSignal(VisiblyArmed, PC->GetActorLocation()); 
+					}
+				}
 			}
 		}
 	}

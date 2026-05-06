@@ -74,6 +74,7 @@ public:
 	
 	//UTime
 	
+	UPROPERTY(BlueprintReadOnly)
 	ETimeOfDay CurrentTimeOfDay;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -135,6 +136,10 @@ public:
 public:
 	//virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Init() override;
+	
+	UFUNCTION(BlueprintCallable)
+	bool WithinTimeRange(const FTimeData& Data, const FTimeRange& TimeRange) const;
+
 
 protected:
 	virtual void OnStart() override;

@@ -81,6 +81,8 @@ protected:
 
 public:
 	virtual void Tick(float DeltaTime) override;
+	
+	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
 protected:

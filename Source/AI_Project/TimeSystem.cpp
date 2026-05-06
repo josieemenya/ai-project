@@ -18,9 +18,9 @@ UTimeSystem::UTimeSystem()
 
 void UTimeSystem::TransitionTimeOfDay(ETimeOfDay e)
 {
-	float TimeLength = 7.0f; 
-	
-	
+	float TimeLength = 7.0f;
+
+
 	switch (e)
 	{
 	case ETimeOfDay::AFTERNOON:
@@ -39,7 +39,7 @@ void UTimeSystem::TransitionTimeOfDay(ETimeOfDay e)
 		DesiredPosition = DayPositions["Twilight"];
 		break;
 	}
-	
+
 	CurrentPosition = FMath::FInterpTo(CurrentPosition, DesiredPosition, 1.0f, TimeLength);
 	//Timeline->PlayFromStart();
 }
@@ -56,12 +56,12 @@ void UTimeSystem::UpdateTime()
 	if (TimeData.Hour > 23)
 	{
 		TimeData.Day += 1;
-		TotalSecondsElapsed = 0; 
+		TotalSecondsElapsed = 0;
 		// Reset Everything
 		//FOnDayChanged
 	}
-	
-	TotalSecondsElapsed += 72; 
+
+	TotalSecondsElapsed += 72;
 
 	int32 TotalSeconds = static_cast<int32>(TotalSecondsElapsed);
 
@@ -86,27 +86,26 @@ void UTimeSystem::UpdateTime()
 				UE_LOG(LogTemp, Warning, TEXT("Changing LightActor Position"))
 				TransitionTimeOfDay(CurrentTimeOfDay);
 			}
-			break; 
+			break;
 		}
 	}
-	
-	OnTimelineUpdated.Broadcast(TimeData); 
+
+	OnTimelineUpdated.Broadcast(TimeData);
 }
 
 void UTimeSystem::OnTimelineUpdate(float val)
 {
-	
 	StartPosition = CurrentPosition;
-	
+
 	CurrentPosition = FMath::Lerp(StartPosition, DesiredPosition, val);
-	
-	
+
+
 	if (LightActor)
 	{
 		FRotator Rot = LightActor->GetActorRotation();
 		Rot.Pitch = CurrentPosition;
-		Rot.Yaw = 0; 
-		Rot.Roll = 0; 
+		Rot.Yaw = 0;
+		Rot.Roll = 0;
 		LightActor->SetActorRotation(Rot);
 	}
 }
@@ -127,10 +126,10 @@ void UTimeSystem::InitTimeline()
 	Timeline->RegisterComponent();
 	Timeline->SetTimelineLength(7.0f);
 	Timeline->AddInterpFloat(TimeCurve, OnTimeline);
-	
+
 	for (auto DayPos : DayPositions)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Postitons: %f"), DayPos.Value); 
+		UE_LOG(LogTemp, Warning, TEXT("Postitons: %f"), DayPos.Value);
 	}
 }
 
@@ -141,13 +140,20 @@ const FTimeData& UTimeSystem::GetTimeData()
 
 void UTimeSystem::Init()
 {
-
 	Super::Init();
 	DayPositions.FindOrAdd("Morning", -45.f);
 	DayPositions.FindOrAdd("Evening", -10.f);
 	DayPositions.FindOrAdd("Afternoon", -135.f);
 	DayPositions.FindOrAdd("Twilight", 0);
-	
+}
+
+bool UTimeSystem::WithinTimeRange(const FTimeData& Data, const FTimeRange& TimeRange) const
+{
+	int Current = Data.Hour * 60 + Data.Minute;
+	int Start = TimeRange.StartHourRange * 60 + TimeRange.StartMinuteRange;
+	int End = TimeRange.EndHourRange * 60 + TimeRange.EndMinuteRange;
+
+	return Current >= Start && Current <= End;
 }
 
 void UTimeSystem::OnStart()
@@ -155,49 +161,47 @@ void UTimeSystem::OnStart()
 	Super::OnStart();
 	UE_LOG(LogTemp, Warning, TEXT("OnStart"));
 	LightActor = Cast<ADirectionalLight>(
-	UGameplayStatics::GetActorOfClass(GetWorld(), ADirectionalLight::StaticClass())
-);
-	
+		UGameplayStatics::GetActorOfClass(GetWorld(), ADirectionalLight::StaticClass())
+	);
+
 	TotalSecondsElapsed = 9 * 3600.0f;
-	
+
 	TimeData.Set.Add(TTuple<FTimeRange, ETimeOfDay>(
-	FTimeRange(9, 12),
-	ETimeOfDay::MORNING));
-	
+		FTimeRange(9, 12),
+		ETimeOfDay::MORNING));
+
 	TimeData.Set.Add(TTuple<FTimeRange, ETimeOfDay>(
-	FTimeRange(12, 15),
-	ETimeOfDay::AFTERNOON));
-	
+		FTimeRange(12, 15),
+		ETimeOfDay::AFTERNOON));
+
 	TimeData.Set.Add(TTuple<FTimeRange, ETimeOfDay>(
-	FTimeRange(15, 18),
-	ETimeOfDay::EVENING));
-	
+		FTimeRange(15, 18),
+		ETimeOfDay::EVENING));
+
 	TimeData.Set.Add(TTuple<FTimeRange, ETimeOfDay>(
-	FTimeRange(18, 21),
-	ETimeOfDay::TWILIGHT));
+		FTimeRange(18, 21),
+		ETimeOfDay::TWILIGHT));
 
 	StartDay();
 	//InitTimeline();
-	
+
 	CurrentPosition = DayPositions["Morning"];
 	CurrentTimeOfDay = ETimeOfDay::MORNING;
 	TransitionTimeOfDay(ETimeOfDay::MORNING);
 
 	FTimerHandle Timer;
 	GetWorld()->GetTimerManager().SetTimer(Timer, this, &UTimeSystem::UpdateTime, 1.f, true);
-	
+
 	if (LightActor)
 	{
 		FRotator Rot;
-		Rot.Roll = 0; 
+		Rot.Roll = 0;
 		Rot.Yaw = 0;
-		Rot.Pitch = -45; 
-		LightActor->SetActorRotation(Rot); 
-	} else
+		Rot.Pitch = -45;
+		LightActor->SetActorRotation(Rot);
+	}
+	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Failed to create a TimelineComponent"));
 	}
 }
-
-
-

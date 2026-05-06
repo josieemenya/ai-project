@@ -38,6 +38,13 @@ public:
 	class UImage* ItemIcon;
 };
 
+/*UCLASS(Blueprintable)
+class AI_PROJECT_API UItemTooltipOptions : public UUserWidget
+{
+	GENERATED_BODY()
+
+};*/
+
 UCLASS(Blueprintable)
 class AI_PROJECT_API UInventoryHotBarItem : public UUserWidget
 {

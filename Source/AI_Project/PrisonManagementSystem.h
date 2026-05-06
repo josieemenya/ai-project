@@ -13,6 +13,7 @@
  * 
  */
 
+class UTimeSystem;
 class URule; 
 class UBackgroundBlur;
 
@@ -142,3 +143,14 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool bLockdown; 
 };
+
+/*UCLASS()
+class AI_PROJECT_API URollcallManagement : public UGameInstanceSubsystem
+{
+	
+	GENERATED_BODY()
+	
+	UTimeSystem* Time; 
+	
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+};*/

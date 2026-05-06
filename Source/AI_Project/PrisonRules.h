@@ -102,8 +102,13 @@ public:
 	TMap<TObjectPtr<ASignal>, ESignalState> SignalPool;
 	const int POOL_SIZE = 25;
 	
+	UFUNCTION(BlueprintCallable)
 	void ActivateSignal(FSignalData Signal, FVector Location);
+	
+	UFUNCTION(BlueprintCallable)
 	void DeactivateSignal(FSignalData Signal);
+	
+	UFUNCTION(BlueprintCallable)
 	void ClearSignalPool();
 	
 	int32 NextID; 
