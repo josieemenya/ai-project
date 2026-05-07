@@ -125,7 +125,7 @@ public:
 	
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	
-	UPROPERTY(BlueprintReadWrite, meta = (Bitflags))
+	UPROPERTY(BlueprintReadWrite, meta =  (Bitmask, BitmaskEnum = "EPrisonState"))
 	int32 PrisonStateFlags;
 	
 	UPROPERTY(BlueprintReadOnly)
@@ -138,7 +138,6 @@ public:
 	void RemoveFlag(EPrisonState State);
 	
 	void RemoveAllFlags();
-	
 	
 	UPROPERTY(BlueprintReadWrite)
 	bool bLockdown; 

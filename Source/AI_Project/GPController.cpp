@@ -7,9 +7,11 @@
 #include "BrainComponent.h"
 #include "Damage.h"
 #include "PlannerComponent.h"
+#include "PrisonManagementSystem.h"
 #include "PrisonRules.h"
 #include "Routine.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Engine/SceneCapture2D.h"
 #include "Kismet/GameplayStatics.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISense_Sight.h"
@@ -52,6 +54,7 @@ void AGPController::StartPlanning()
 	SetActorTickEnabled(true);
 	if (Planner->ToDoStack.Num() > 0) // don't plan of we have a task
 	{
+		UE_LOG(LogTemp, Warning, TEXT("TASK TASK TASK"));
 		return;
 	}
 	
@@ -109,6 +112,7 @@ void AGPController::Replan()
 {
 	if (Planner->ToDoStack.Num() > 0)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("TASK TASK"));
 		return;
 	}
 	
@@ -216,8 +220,18 @@ void AGPController::BeginPlay()
 void AGPController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	
+	
 	if (Planner->ToDoStack.Num() > 0) // goal
 	{
+		if (ShouldInterruptCurrentPlan())
+		{
+			Planner->ToDoStack.Empty();
+			Planner->CurrentAction = nullptr;
+			StartPlanning();
+			return;
+		}
 		UpdateActions();
 		return;
 	}
@@ -256,9 +270,28 @@ void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulu
 						VisiblyArmed.StimulusLocation = PC->GetActorLocation();
 						
 						GetWorld()->GetGameInstance()->GetSubsystem<USignalManagement>()->ActivateSignal(VisiblyArmed, PC->GetActorLocation()); 
+						
 					}
 				}
 			}
 		}
 	}
+	
+	if (Actor->IsA(ASignal::StaticClass()) && Actor->IsA(ASmartObject::StaticClass()))
+	{ // action, move to player, investigate, G_Investigate then G_Enforcement
+		GetBlackboardComponent()->SetValueAsObject(FName("Target"), Actor); 
+		GetBlackboardComponent()->SetValueAsBool(FName("Engaged"), true); // necessary
+		GetBlackboardComponent()->SetValueAsBool(FName("SeenSignal"), true);
+	}
+}
+
+bool AGPController::ShouldInterruptCurrentPlan()
+{
+	if (GetBlackboardComponent()->GetValueAsBool("SeenSignal"))
+		return true;
+
+	if (GetBlackboardComponent()->GetValueAsBool("Engaged"))
+		return true;
+
+	return false;
 }

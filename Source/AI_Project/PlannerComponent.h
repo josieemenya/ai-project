@@ -51,7 +51,7 @@ struct FTaggedValue
 
 
 
-UCLASS(Blueprintable, BlueprintType)
+UCLASS(Blueprintable, BlueprintType,  meta=(ShowWorldContextPin))
 class AI_PROJECT_API UGoal : public UDataAsset
 {
 public : 
@@ -162,7 +162,7 @@ public:
 	TArray<UAction*> PlanGoal(FWorldState& CurrentState, FWorldState DesiredState); // keep in planner
 
 	TArray<UAction*> BuildPlan(Node* Last); // keep in planner
-	TArray<UAction*> FilterAvailableActions(TArray<TSubclassOf<UAction>> Actions, FWorldState CurrentState); // keep in planner
+	TArray<UAction*> FilterAvailableActions(TArray<UAction*> Actions, FWorldState CurrentState); // keep in planner
 	
 	UFUNCTION(BlueprintCallable)
 	void UpdateSmartObjects(FWorldState& Current);
@@ -194,6 +194,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TSubclassOf<UAction>> AvailableActions; // the actions that the planner can use to achieve goals, this should be populated by the actor that implements the planner interfac
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<UAction*> ActionList;
+	
 	UFUNCTION(BlueprintCallable, Category="Planner")
 	void SetGoal(TSubclassOf<UGoal> GoalClass);
 	

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SmartObject.h"
 #include "Components/ActorComponent.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "PrisonRules.generated.h"
@@ -68,14 +69,16 @@ struct FSignalData
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 ID;
+	
+	
 
 	bool operator==(const FSignalData& Other) const
 	{
-		return ID == Other.ID;
+		return InvolvedCharacters == Other.InvolvedCharacters && ActionType == Other.ActionType;
 	}
 };
 UCLASS()
-class ASignal : public AActor
+class ASignal : public ASmartObject
 {
 	GENERATED_BODY()
 
@@ -89,6 +92,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* Root;
+	
+	virtual void BeginPlay() override;
 };
 
 UCLASS()

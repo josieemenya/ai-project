@@ -11,6 +11,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
 
 // Sets default values for this component's properties
 
@@ -19,6 +21,19 @@ ASignal::ASignal()
 {
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent = Root;
+	
+}
+
+void ASignal::BeginPlay()
+{
+	Super::BeginPlay();
+	if (SeeObject)
+	{
+		SeeObject->RegisterForSense(UAISense_Sight::StaticClass());
+		SeeObject->RegisterWithPerceptionSystem();
+		SeeObject->bAutoRegister = true;
+		GEngine->AddOnScreenDebugMessage(1232, 32.f, FColor::MakeRandomColor(), TEXT("buddd")); 
+	}
 }
 
 void USignalManagement::Initialize(FSubsystemCollectionBase& Collection)
@@ -38,6 +53,16 @@ void USignalManagement::Initialize(FSubsystemCollectionBase& Collection)
 
 void USignalManagement::ActivateSignal(FSignalData Data, FVector Location)
 {
+	for (TPair<TObjectPtr<ASignal>, ESignalState>& NewSignal : SignalPool)
+	{
+		if (NewSignal.Key->SignalData == Data && NewSignal.Value == ESignalState::ACTIVE)
+		{
+			NewSignal.Value = ESignalState::IGNORED;
+			break;
+		}
+	}
+	
+	
 	for (TPair<TObjectPtr<ASignal>, ESignalState>& NewSignal : SignalPool)
 	{
 		if (NewSignal.Value == ESignalState::IGNORED)
