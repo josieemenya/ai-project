@@ -194,11 +194,6 @@ class AI_PROJECT_API UInventoryUI : public UUserWidget
 	
 	protected:
 	
-	
-	
-	
-	
-	
 	virtual void NativeConstruct() override;
 	
 };

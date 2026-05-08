@@ -2,6 +2,8 @@
 
 
 #include "InventoryUI.h"
+
+#include "AI_ProjectCharacter.h"
 #include "Components/HorizontalBox.h"
 #include "Components/Image.h"
 #include "Components/ScrollBox.h"
@@ -9,6 +11,7 @@
 #include "GameFramework/Character.h"
 #include "InputCoreTypes.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 
 void UInventoryHotBarItem::NativeConstruct()
@@ -200,7 +203,34 @@ FReply UInventoryItemUI::NativeOnMouseButtonDoubleClick(const FGeometry& InGeome
 		
 		// spawn item, deincreemtn by one
 		// AActor
-		// GetWorld()->Spawn
+		FActorSpawnParameters SpawnParams;
+		
+		AAI_ProjectCharacter* PC = Cast<AAI_ProjectCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+
+		auto InventoryItemRef = PC->Inventory->FindInInventory(Data); 
+		if (InventoryItemRef && InventoryItemRef->Quantity > 0)
+		{
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		
+			FVector SpawnLocation = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)->GetActorLocation();
+			AActor* Ref = GetWorld()->SpawnActor(AItem::StaticClass(), &SpawnLocation, &FRotator::ZeroRotator, SpawnParams); 
+		
+			Cast<AItem>(Ref)->StaticMesh->SetStaticMesh(Data.StaticMesh);
+			Cast<AItem>(Ref)->StaticMesh->SetSimulatePhysics(true);
+			Cast<AItem>(Ref)->StaticMesh->SetEnableGravity(true);
+		
+			InventoryItemRef->Quantity--;
+			Data.Quantity--; 
+			InventoryQuantityText->SetText(FText::AsNumber(Data.Quantity));
+			if (Data.Quantity <= 0)
+			{
+				UScrollBox* Box = Cast<UScrollBox>(GetOuter());
+				if (Box)
+				{
+					Box->RemoveChild(this); 
+				}
+			}
+		}
 	}
 	
 	return Super::NativeOnMouseButtonDoubleClick(InGeometry, InMouseEvent);

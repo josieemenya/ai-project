@@ -3,11 +3,40 @@
 
 #include "Inventory.h"
 
+#include "AI_ProjectCharacter.h"
 #include "AudioMixerBlueprintLibrary.h"
 #include "IDetailTreeNode.h"
+#include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
 #
 
 // ad this to presentations
+
+AItem::AItem()
+{
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>("StaticMesh");
+	SphereComponent = CreateDefaultSubobject<USphereComponent>("SphereComponent");
+	StaticMesh->SetupAttachment(GetRootComponent());
+}
+
+void AItem::Clicked(AActor* TouchedActor, FKey Key)
+{
+	if (Key == EKeys::LeftMouseButton)
+	{
+		AAI_ProjectCharacter* Character = Cast<AAI_ProjectCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+		
+		if (Character)
+		{
+			Character->Inventory->OnAddRefToInventory(ItemReference); 
+		}
+	}
+}
+
+void AItem::BeginPlay()
+{
+	Super::BeginPlay();
+	OnClicked.AddDynamic(this, &AItem::Clicked); 
+}
 
 // Sets default values for this component's properties
 UInventory::UInventory()

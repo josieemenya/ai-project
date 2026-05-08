@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SmartObject.h"
 #include "Components/ActorComponent.h"
 #include "Inventory.generated.h"
 
@@ -90,6 +91,32 @@ class AI_PROJECT_API UItemUseData : public UDataAsset
 public:
 	UFUNCTION(BlueprintNativeEvent)
 	void Use();
+};
+
+UCLASS(Blueprintable)
+class AI_PROJECT_API AItem : public ASmartObject
+{
+	GENERATED_BODY()
+public: 
+	
+	AItem();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FInventoryItem ItemReference;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UStaticMeshComponent* StaticMesh;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USphereComponent* SphereComponent;
+	
+	UFUNCTION(BlueprintCallable)
+	void Clicked(AActor* Touched, FKey Key); 
+	
+	protected:
+	
+	virtual void BeginPlay() override;
+	
 };
 
 
