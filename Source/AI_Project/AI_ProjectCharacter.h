@@ -18,6 +18,7 @@ class URoomComponent;
 class UCraftingComponent;
 class UPrisonGuardComponent;
 class UInventory; 
+class UInventoryUI;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -55,6 +56,9 @@ class AAI_ProjectCharacter : public ACharacter
 	UInputAction* SprintAction;
 	// while shift is held down increase speed, otherwise, normal speed, also call stamina drain function;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* OpenInvevntoryAction; 
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	bool bIsSprinting;
 	// whether the character is currently sprinting, if not use a delegate to set the speed back to normal when shift is released
@@ -96,6 +100,8 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+	
+	void OpenInventory(); 
 
 	void GoToNewRoom();
 
@@ -114,4 +120,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	UInventory* Inventory;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Camera)
+	class TSubclassOf<UInventoryUI> InventoryUIClass;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory)
+	UInventoryUI* InventoryUI;
 };

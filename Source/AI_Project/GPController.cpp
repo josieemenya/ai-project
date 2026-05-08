@@ -282,6 +282,7 @@ void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulu
 		GetBlackboardComponent()->SetValueAsObject(FName("Target"), Actor); 
 		GetBlackboardComponent()->SetValueAsBool(FName("Engaged"), true); // necessary
 		GetBlackboardComponent()->SetValueAsBool(FName("SeenSignal"), true);
+		StartPlanning(); // rerun planner
 	}
 }
 

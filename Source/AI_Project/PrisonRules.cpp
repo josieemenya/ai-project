@@ -7,6 +7,7 @@
 #include "Damage.h"
 #include "PlannerComponent.h"
 #include "PrisonManagementSystem.h"
+#include "TimeSystem.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -306,6 +307,83 @@ void UAnimImpactObject::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSeque
 				
 				
 			}
+		}
+	}
+}
+
+void URollcall::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+	
+	TimerHandle = FTimerHandle();
+	
+	
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &URollcall::HandleRollCall, 2.f, true);
+	MorningRollcall.StartHourRange = 9; 
+	MorningRollcall.EndHourRange = 9;
+	MorningRollcall.StartMinuteRange = 40;
+	MorningRollcall.EndMinuteRange = 50;
+	
+	EveningRollcall.StartHourRange = 22;
+	EveningRollcall.EndHourRange = 23;
+	EveningRollcall.StartMinuteRange = 40;
+	EveningRollcall.EndMinuteRange = 00;
+	
+	RollCallLocation = GetDefault<UDataContainerSettings>()->Locations; 
+	
+	TimeSystem = GetWorld()->GetGameInstance<UTimeSystem>();
+	bMissingRollcall = false;
+
+	if(GetWorld()){
+		UE_LOG(LogTemp, Warning, TEXT("Inint"));
+	} 
+}
+
+void URollcall::HandleRollCall()
+{
+	GEngine->AddOnScreenDebugMessage(12323, 1.f, FColor::Yellow, TEXT("Rolling call"));
+	if (TimeSystem->WithinTimeRange(TimeSystem->GetTimeData(), MorningRollcall))
+	{
+		APlayerController* PC = Cast<APlayerController>(GetWorld()->GetFirstPlayerController());
+		float Dist =  FVector::Dist(PC->GetPawn()->GetActorLocation(), RollCallLocation["MorningRollcall"]);
+		
+		if (Dist > 40)
+		{
+			bMissingRollcall = true;
+			FSignalData SignalData = FSignalData();
+			
+			SignalData.ActionType = EActionType::ROLLCALL; 
+			SignalData.ID = 0; 
+			SignalData.InvolvedCharacters.Add(Cast<ACharacter>(PC->GetPawn()));
+			SignalData.SignalLifeSpan = 5.0f; 
+			SignalData.StimulusLocation = PC->GetPawn()->GetActorLocation();
+			
+			GetWorld()->GetGameInstance()->GetSubsystem<USignalManagement>()->ActivateSignal(SignalData, SignalData.StimulusLocation); 
+			GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>()->AddFlag(EPrisonState::LOCKDOWN); 
+			
+			
+		}
+	}
+	
+	if (TimeSystem->WithinTimeRange(TimeSystem->GetTimeData(), EveningRollcall))
+	{
+		APlayerController* PC = Cast<APlayerController>(GetWorld()->GetFirstPlayerController());
+		float Dist =  FVector::Dist(PC->GetPawn()->GetActorLocation(), RollCallLocation["EveningRollcall"]);
+		
+		if (Dist > 40)
+		{
+			bMissingRollcall = true;
+			
+			FSignalData SignalData = FSignalData(); 
+			
+			SignalData.ActionType = EActionType::ROLLCALL; 
+			SignalData.ID = 0; 
+			SignalData.InvolvedCharacters.Add(Cast<ACharacter>(PC->GetPawn()));
+			SignalData.SignalLifeSpan = 5.0f; 
+			SignalData.StimulusLocation = PC->GetPawn()->GetActorLocation();
+			
+			GetWorld()->GetGameInstance()->GetSubsystem<USignalManagement>()->ActivateSignal(SignalData, SignalData.StimulusLocation); 
+			GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>()->AddFlag(EPrisonState::LOCKDOWN);
 		}
 	}
 }

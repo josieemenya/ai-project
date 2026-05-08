@@ -3,9 +3,41 @@
 
 #include "PlayerHUDUI.h"
 
+#include "Damage.h"
 #include "TimeSystem.h"
+#include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Engine/Font.h"
+
+void UStatBarUI::NativeConstruct()
+{
+	Super::NativeConstruct();
+	if (OwningPawn)
+	{
+		DamageComp = OwningPawn->GetController()->FindComponentByClass<UDamage>();
+	}
+
+	if (PlayerHealthBar)
+	{
+		PlayerHealthBar->PercentDelegate.BindUFunction(
+			this,
+			FName("GetHealthPercent"));
+		PlayerHealthBar->SynchronizeProperties();
+	}
+}
+
+float UStatBarUI::GetHealthPercent() const
+{
+	if (!DamageComp || DamageComp->CharacterMaxHealth <= 0.f)
+	{
+		return 0.f;
+	}
+
+	GEngine->AddOnScreenDebugMessage(233, 12, FColor::Yellow, FString::Printf(TEXT("Health: %f"), DamageComp->CharacterHealth)); 
+	
+	return DamageComp->CharacterHealth /
+		   DamageComp->CharacterMaxHealth;
+}
 
 void UPlayerHUDUI::NativeConstruct()
 {

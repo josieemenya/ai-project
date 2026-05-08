@@ -125,6 +125,7 @@ protected:
 
 // make an inventory tool tip ui
 
+
 UCLASS(Blueprintable) 
 class AI_PROJECT_API UInventoryItemUI : public UUserWidget
 {
@@ -157,6 +158,10 @@ protected:
 	virtual void NativeConstruct() override;
 public:
 	void InitializeItem(const FInventoryItem& InItem);
+
+protected:
+	virtual FReply
+	NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 };
  
  
@@ -182,10 +187,17 @@ class AI_PROJECT_API UInventoryUI : public UUserWidget
 	/*UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<FInventoryItem> InventoryItems; */
 	
+	bool bInventoryOpen; 
+	
 	UFUNCTION()
 	UInventoryItemUI* MakeItem(const FInventoryItem& InventoryItem); 
 	
 	protected:
+	
+	
+	
+	
+	
 	
 	virtual void NativeConstruct() override;
 	

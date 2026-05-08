@@ -16,6 +16,8 @@
 #include "CraftingComponent.h"
 #include "PrisonGuardComponent.h"
 #include "PrisonRules.h"
+#include "Blueprint/UserWidget.h"
+#include "InventoryUI.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -73,6 +75,9 @@ void AAI_ProjectCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 	CraftingComp->InventoryRef = Inventory; 
+	
+	InventoryUI = CreateWidget<UInventoryUI>(GetWorld(), InventoryUIClass);
+	InventoryUI->InventoryRef = Inventory; 
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -126,6 +131,11 @@ void AAI_ProjectCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		{
 			EnhancedInputComponent->BindAction(PGComp->StealAction, ETriggerEvent::Triggered, PGComp, &UPrisonGuardComponent::TakeItems); 
 		}
+		
+		if (Inventory)
+		{
+			EnhancedInputComponent->BindAction(OpenInvevntoryAction, ETriggerEvent::Triggered, this, &AAI_ProjectCharacter::OpenInventory); 
+		}
 	}
 	else
 	{
@@ -178,6 +188,26 @@ void AAI_ProjectCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void AAI_ProjectCharacter::OpenInventory()
+{
+	auto GameState = UGameplayStatics::IsGamePaused(GetWorld()); 
+	if (InventoryUI->IsInViewport())
+	{
+		InventoryUI->RemoveFromParent(); 
+	} else
+	{
+		InventoryUI->AddToViewport();
+	}
+	
+	/*if (GameState)
+	{
+		UGameplayStatics::SetGamePaused(GetWorld(), false);		
+	} else
+	{
+		UGameplayStatics::SetGamePaused(GetWorld(), true);
+	}*/
 }
 
 

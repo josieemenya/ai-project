@@ -11,12 +11,37 @@
  */
 struct FTimeData;
 
+UCLASS(Blueprintable)
+class UStatBarUI : public UUserWidget
+{
+	GENERATED_BODY()
+public : 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UVerticalBox* PlayerStatBox;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UProgressBar* PlayerHealthBar;
+	
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UProgressBar* StaminaBar;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UDamage* DamageComp; 
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class APawn* OwningPawn;
+	
+	virtual void NativeConstruct() override;
+	
+	UFUNCTION(BlueprintPure)
+	float GetHealthPercent() const;
+};
+
 UCLASS()
 class AI_PROJECT_API UPlayerHUDUI : public UUserWidget
 {
 	GENERATED_BODY()
-	
-	
+
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UWrapBox* WrapBox;
 	

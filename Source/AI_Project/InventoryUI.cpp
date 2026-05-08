@@ -160,6 +160,7 @@ void UInventoryHotBar::NativeConstruct()
 void UInventoryItemUI::NativeConstruct()
 {
 	Super::NativeConstruct();
+	
 }
 
 
@@ -167,7 +168,7 @@ void UInventoryItemUI::InitializeItem(const FInventoryItem& InItem)
 {
 	Data = InItem;
 
-	if (!InventoryItemText || !InventoryQuantityText || !InventoryItemImage)
+	if (!InventoryItemText || !InventoryQuantityText)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Binding failed in InventoryItemUI"));
 		return;
@@ -177,19 +178,54 @@ void UInventoryItemUI::InitializeItem(const FInventoryItem& InItem)
 	InventoryQuantityText->SetText(FText::AsNumber(Data.Quantity));
 
 	FSlateBrush Brush;
-	Brush.SetResourceObject(Data.Icon);
-	InventoryItemImage->SetBrush(Brush);
+	if (InventoryItemImage)
+	{
+		Brush.SetResourceObject(Data.Icon);
+		InventoryItemImage->SetBrush(Brush);
+	}
+}
+
+FReply UInventoryItemUI::NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	FKey RMButton = EKeys::RightMouseButton;
+	FKey LMButton = EKeys::LeftMouseButton;
+	
+	if (InMouseEvent.GetPressedButtons().Contains(LMButton))
+	{
+		
+	}
+	if (InMouseEvent.GetPressedButtons().Contains(RMButton))
+	{
+		GEngine->AddOnScreenDebugMessage(10,23.f, FColor::Yellow, TEXT("ClickedRMB"));
+		
+		// spawn item, deincreemtn by one
+		// AActor
+		// GetWorld()->Spawn
+	}
+	
+	return Super::NativeOnMouseButtonDoubleClick(InGeometry, InMouseEvent);
 }
 
 UInventoryItemUI* UInventoryUI::MakeItem(const FInventoryItem& InventoryItem)
 {
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
-	UInventoryItemUI* ItemUI = Cast<UInventoryItemUI>(CreateWidget(PC, InventoryItemClass)); 
+	
+	if (!PC || !InventoryItemClass)
+	{
+		return nullptr;
+	}
+	
+	UInventoryItemUI* ItemUI = CreateWidget<UInventoryItemUI>(PC, InventoryItemClass);
+	
 
 	if (ItemUI)
 	{
 		ItemUI->InitializeItem(InventoryItem);
-	}
+		ItemUI->SynchronizeProperties();
+	} else
+	{
+		UE_LOG(LogTemp, Error, TEXT("No ItemUI")); 
+	} 
 	
 	return ItemUI;
 }
@@ -198,6 +234,7 @@ void UInventoryUI::NativeConstruct()
 {
 	Super::NativeConstruct();
 	
+	bInventoryOpen = false; 
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	ACharacter* PlayerChar = Cast<ACharacter>(PC->GetCharacter());
 	
@@ -206,9 +243,18 @@ void UInventoryUI::NativeConstruct()
 		InventoryRef = PlayerChar->FindComponentByClass<UInventory>();
 		if (InventoryRef)
 		{
+			
+			if (InventoryRef->ItemsInInventory.IsEmpty())
+			{
+				return;
+			}
+			
+			ScrollBar->ClearChildren(); 
+			
 			for (const FInventoryItem& InventoryItem : InventoryRef->ItemsInInventory)
 			{
 				ScrollBar->AddChild(MakeItem(InventoryItem));
+				//RefreshUI(); 
 			}
 			UE_LOG(LogTemp, Error, TEXT("Inventory."))
 		}

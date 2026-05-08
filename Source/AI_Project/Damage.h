@@ -32,6 +32,10 @@ public:
 	UPROPERTY( EditDefaultsOnly )
 	float CharacterMaxStamina;
 	
+	UPROPERTY( EditDefaultsOnly, BlueprintReadWrite)
+	UAnimMontage* Montage;
+	
+	UPROPERTY(BlueprintReadOnly)
 	bool bMortis; 
 	
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AAIController*, ParentController);
@@ -48,6 +52,8 @@ protected:
 
 public:	
 	// Called every frame
+	void UnlockMovement(); 
+	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 	UFUNCTION( BlueprintPure )
@@ -87,7 +93,7 @@ public:
 	void SetCharacterStamina( float stamina );
 	
 	UFUNCTION( BlueprintCallable )
-	void HandleDeath(); 
+	void HandleDeath(AAIController* CharacterController); 
 	
 	
 	UPROPERTY( BlueprintAssignable )

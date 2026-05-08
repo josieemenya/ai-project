@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "SmartObject.h"
+#include "TimeSystem.h"
 #include "Components/ActorComponent.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "PrisonRules.generated.h"
@@ -128,6 +129,9 @@ class AI_PROJECT_API UDataContainerSettings : public UDeveloperSettings
 public:
 	UPROPERTY(EditAnywhere, Config)
 	TSubclassOf<URuleBreakSound> BrokenRules;
+	
+	UPROPERTY(EditAnywhere, Config)
+	TMap<FString, FVector> Locations;
 
 	EPrisonState CurrentState;
 };
@@ -166,4 +170,28 @@ protected:
 public:
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration,
 	                         const FAnimNotifyEventReference& EventReference) override;
+};
+
+
+UCLASS()
+class URollcall : public UGameInstanceSubsystem
+{
+	GENERATED_BODY()
+	
+	
+	
+	public:
+	FTimerHandle TimerHandle;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bMissingRollcall;
+	
+	TMap<FString, FVector> RollCallLocation;
+	
+	FTimeRange MorningRollcall;
+	FTimeRange EveningRollcall;
+	
+	UTimeSystem* TimeSystem;
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	void HandleRollCall();
 };

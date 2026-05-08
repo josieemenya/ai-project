@@ -16,6 +16,7 @@ ADrawers::ADrawers()
 	DrawersMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DrawersMesh"));
 	SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComponent");
 	InventoryRef = CreateDefaultSubobject<UInventory>("Inventory");
+	RootComponent = SphereComp;
 }
 
 void ADrawers::OnOverlapSphere(UPrimitiveComponent* OverlappingComp, AActor* OtherActor,
