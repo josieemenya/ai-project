@@ -89,18 +89,6 @@ void ADrawers::OnClickedDraw(AActor* ClickedActor, FKey ButtonPress)
 	
 	GEngine->AddOnScreenDebugMessage(100, 34.f, FColor::MakeRandomColor(), TEXT("CreatedWidget")); 
 	
-	for (auto Bar : DrawerWidget->ScrollBar->GetAllChildren())
-	{
-		if (UInventoryItemUI* ItemUI =  Cast<UInventoryItemUI>(Bar))
-		{
-			if (InteractingCharacter)
-			{
-				UInventory* CharacterInventory = Cast<UInventory>(InteractingCharacter->FindComponentByClass(UInventory::StaticClass()));
-				ItemUI->TargetInventory = CharacterInventory;
-			}
-		}
-	}
-	
 	if (bIsOverlapped && InteractingCharacter && InteractingCharacter != OwningCharacter)
 	{
 		FSignalData StealingData = FSignalData();

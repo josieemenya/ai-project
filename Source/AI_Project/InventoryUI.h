@@ -152,10 +152,6 @@ class AI_PROJECT_API UInventoryItemUI : public UUserWidget
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
 	class UTextBlock* InventoryQuantityText;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	class UInventory* TargetInventory; 
-	
-	
 	
 protected:
 	

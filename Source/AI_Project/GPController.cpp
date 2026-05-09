@@ -29,7 +29,7 @@ AGPController::AGPController()
 UGoal* AGPController::GetBestGoal()
 {
 	UGoal* bestGoal = nullptr;
-	float BestScore = -1;
+	float BestScore = INT_MIN;
 	
 	for (UGoal* Goal : InstancedGoals)
 	{
@@ -39,11 +39,6 @@ UGoal* AGPController::GetBestGoal()
 		UE_LOG(LogTemp, Warning, TEXT("Evaluating Goal: %s"), *Goal->GetName());
 		UE_LOG(LogTemp, Warning, TEXT("%s Goal Value: %f"), *Goal->GetName(), utility);
 		
-
-		if (utility < 0){
-			UE_LOG(LogTemp, Error, TEXT("Goal Utility less than zero, Goal Name: %s, Goal Value: %f"), *Goal->GetName(), utility); 			
-		}
-
 		if (BestScore < utility)
 		{
 			bestGoal = Goal;
@@ -226,28 +221,22 @@ void AGPController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	UGoal* NewGoal = GetBestGoal(); 
 	
-	if (NewGoal != CurrentGoal)
-	{
-		ShouldInterruptCurrentPlan = true; 
-	}
 	
 	if (Planner->ToDoStack.Num() > 0) // goal
 	{
-		if (ShouldInterruptCurrentPlan)
+		if (ShouldInterruptCurrentPlan())
 		{
 			Planner->ToDoStack.Empty();
 			Planner->CurrentAction = nullptr;
 			StartPlanning();
-			ShouldInterruptCurrentPlan = false; 
 			return;
 		}
 		UpdateActions();
 		return;
 	}
 	
-	if (Goals.Num() > 0) 
+	if (Goals.Num() > 0)
 	{
 		StartPlanning();
 	}
@@ -293,8 +282,17 @@ void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulu
 		GetBlackboardComponent()->SetValueAsObject(FName("Target"), Actor); 
 		GetBlackboardComponent()->SetValueAsBool(FName("Engaged"), true); // necessary
 		GetBlackboardComponent()->SetValueAsBool(FName("SeenSignal"), true);
-		ShouldInterruptCurrentPlan = true; 
+		StartPlanning(); // rerun planner
 	}
 }
 
+bool AGPController::ShouldInterruptCurrentPlan()
+{
+	if (GetBlackboardComponent()->GetValueAsBool("SeenSignal"))
+		return true;
 
+	if (GetBlackboardComponent()->GetValueAsBool("Engaged"))
+		return true;
+
+	return false;
+}

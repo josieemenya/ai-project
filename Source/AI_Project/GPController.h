@@ -84,7 +84,7 @@ public:
 	
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
-	bool ShouldInterruptCurrentPlan;
+	bool ShouldInterruptCurrentPlan();
 
 protected:
 	//void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

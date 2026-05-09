@@ -68,7 +68,6 @@ void UPrisonManagementSystem::Initialize(FSubsystemCollectionBase& Collection)
 void UPrisonManagementSystem::AddFlag(EPrisonState State)
 {
 	PrisonStateFlags |= static_cast<int32>(State);
-	UE_LOG(LogTemp, Warning, TEXT("PrisonFlagsValue: %d"), PrisonStateFlags)
 }
 
 void UPrisonManagementSystem::RemoveFlag(EPrisonState State)
@@ -81,15 +80,6 @@ void UPrisonManagementSystem::RemoveAllFlags()
 	PrisonStateFlags = 0;
 }
 
-void UPrisonManagementSystem::PrintPrisonState()
-{
-	UE_LOG(LogTemp, Warning, TEXT("-----"))
-	UE_LOG(LogTemp, Warning, TEXT("Lockdown : %d"), (PrisonStateFlags & (int32)EPrisonState::LOCKDOWN ))
-	UE_LOG(LogTemp, Warning, TEXT("Routine : %d"), (PrisonStateFlags & (int32)EPrisonState::ROUTINE ))
-	UE_LOG(LogTemp, Warning, TEXT("Takeover : %d"), (PrisonStateFlags & (int32)EPrisonState::TAKEOVER ))
-	UE_LOG(LogTemp, Warning, TEXT("Lightsout : %d"), (PrisonStateFlags & (int32)EPrisonState::LIGHTSOUT ))
-	UE_LOG(LogTemp, Warning, TEXT("------"))
-}
 
 
 /*void UPrisonManagementSystem::OnRuleBreakOccured()
