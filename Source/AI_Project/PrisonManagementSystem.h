@@ -141,6 +141,9 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite)
 	bool bLockdown; 
+	
+	UFUNCTION(BlueprintCallable)
+	void PrintPrisonState(); 
 };
 
 /*UCLASS()

@@ -195,7 +195,13 @@ FReply UInventoryItemUI::NativeOnMouseButtonDoubleClick(const FGeometry& InGeome
 	
 	if (InMouseEvent.GetPressedButtons().Contains(LMButton))
 	{
-		
+		if (TargetInventory)
+		{
+			TargetInventory->OnAddRefToInventory(Data); 
+		}else
+		{
+			
+		}
 	}
 	if (InMouseEvent.GetPressedButtons().Contains(RMButton))
 	{
@@ -214,21 +220,29 @@ FReply UInventoryItemUI::NativeOnMouseButtonDoubleClick(const FGeometry& InGeome
 		
 			FVector SpawnLocation = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)->GetActorLocation();
 			AActor* Ref = GetWorld()->SpawnActor(AItem::StaticClass(), &SpawnLocation, &FRotator::ZeroRotator, SpawnParams); 
+			
 		
-			Cast<AItem>(Ref)->StaticMesh->SetStaticMesh(Data.StaticMesh);
-			Cast<AItem>(Ref)->StaticMesh->SetSimulatePhysics(true);
-			Cast<AItem>(Ref)->StaticMesh->SetEnableGravity(true);
+			AItem* ItemActor = Cast<AItem>(Ref);
+
+			if (ItemActor)
+			{
+				ItemActor->StaticMesh->SetStaticMesh(Data.StaticMesh);
+				ItemActor->StaticMesh->SetSimulatePhysics(true);
+				ItemActor->StaticMesh->SetEnableGravity(true);
+
+				ItemActor->ItemReference = Data;
+				ItemActor->ItemReference.Quantity = 1;
+			}
 		
 			InventoryItemRef->Quantity--;
 			Data.Quantity--; 
 			InventoryQuantityText->SetText(FText::AsNumber(Data.Quantity));
+			
 			if (Data.Quantity <= 0)
 			{
-				UScrollBox* Box = Cast<UScrollBox>(GetOuter());
-				if (Box)
-				{
-					Box->RemoveChild(this); 
-				}
+				SetVisibility(ESlateVisibility::Collapsed);
+
+				RemoveFromParent(); 
 			}
 		}
 	}

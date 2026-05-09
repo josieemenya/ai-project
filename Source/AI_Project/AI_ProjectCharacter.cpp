@@ -78,6 +78,11 @@ void AAI_ProjectCharacter::BeginPlay()
 	
 	InventoryUI = CreateWidget<UInventoryUI>(GetWorld(), InventoryUIClass);
 	InventoryUI->InventoryRef = Inventory; 
+	
+	if (Controller)
+	{
+		Cast<APlayerController>(Controller)->bEnableClickEvents = true; 
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
