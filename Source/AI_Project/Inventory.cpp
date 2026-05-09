@@ -28,6 +28,7 @@ void AItem::Clicked(AActor* TouchedActor, FKey Key)
 		if (Character)
 		{
 			Character->Inventory->OnAddRefToInventory(ItemReference); 
+			Destroy(); 
 		}
 	}
 }
