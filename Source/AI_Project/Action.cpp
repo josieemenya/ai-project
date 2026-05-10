@@ -7,5 +7,5 @@
 EExitSequenceType UAction::Execute_Implementation(AActor* Owner)
 {
 	
-	return EExitSequenceType::SUCCESS; 
+	return EExitSequenceType::RUNNING; 
 }

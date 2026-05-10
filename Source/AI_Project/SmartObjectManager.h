@@ -11,11 +11,11 @@
  * 
  */
 UCLASS()
-class AI_PROJECT_API USmartObjectManager : public UGameInstance
+class AI_PROJECT_API USmartObjectManager : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 	
 	public:
-	UPROPERTY(EditAnywhere)
-	TMap<int32, ASmartObject* > SmartObjects;
+	//UPROPERTY(EditAnywhere)
+	TMap<int32, ASmartObject*> SmartObjects;
 };

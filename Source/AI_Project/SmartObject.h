@@ -51,15 +51,28 @@ public:
 
 inline void ASmartObject::WriteToWorldState(FWorldState& TargetState)
 {
-    FString KeyString = ObjectName.ToString(); 
+	UE_LOG(LogTemp, Warning, TEXT("Writing %s to StateValues"), *ObjectName.ToString());
+	auto AlreadyFound = TargetState.StateValues.Find(ObjectName.ToString()); 
+	if (!AlreadyFound)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Map count before (Adding): %d"), TargetState.StateValues.Num());
+		TargetState.StateValues.Add(ObjectName.ToString(), true);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Map count before(Updating): %d"), TargetState.StateValues.Num());
+		TargetState.StateValues[ObjectName.ToString()] = true;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Map count after: %d"), TargetState.StateValues.Num());
 
-    if (TargetState.StateValues.Contains(KeyString))
-    {
-        TargetState.StateValues[KeyString] = true;
-    }
-    else
-    {
-        TargetState.StateValues.Add(KeyString, true);
-    }
 }
 
+
+UCLASS(Blueprintable)
+class AI_PROJECT_API USmartObjectContainer : public UObject
+{
+	GENERATED_BODY()
+public:	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<ASmartObject*> RegisteredObjects;
+};

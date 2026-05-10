@@ -2,8 +2,14 @@
 
 
 #include "Attack.h"
+
+#include "Damage.h"
 #include "GameFramework/Character.h"
 #include "Animation/AnimationAsset.h"
+#include "Animation/AnimMontage.h"
+#include "Animation/AnimInstance.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 
 // Sets default values for this component's properties
 UAttack::UAttack()
@@ -34,13 +40,55 @@ void UAttack::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponen
 	// ...
 }
 
+void UAttack::OnEnemyHit(AActor* EnemyActor)
+{
+	if (Cast<ACharacter>(EnemyActor)) // to be replaced by a base enemy class
+	{
+		if (EnemyActor->Implements<UDamage>())
+		{
+			// then register damage
+		} 
+	}
+}
+
 void UAttack::Attack()
 {
+	
 	auto Mesh = Cast<ACharacter>(GetOwner())->GetMesh(); 
 	if (Mesh)
 	{
-		if (AttackAnim)
+		if (!AttackMontages.IsEmpty())
+		{
+			TriggerAttackAnim(MontageIndex); 
+		}
+		
+		if (TestMontage)
+		{
+			if (UAnimInstance* Instance = Mesh->GetAnimInstance())
+			{
+				Instance->Montage_Play(TestMontage);
+				
+				if (!AttackSounds.IsEmpty())
+				{
+					// play one at random 
+					int SoundsSize = AttackSounds.Num() - 1; 
+					int SoundIndex = FMath::RandRange(0, SoundsSize);
+					USoundBase* RandSound = AttackSounds[SoundIndex];
+					
+					if (RandSound)
+					{
+						UGameplayStatics::PlaySoundAtLocation(GetWorld(), RandSound, GetOwner()->GetActorLocation());
+					}
+				}
+			}
+		}
+		if (AttackAnim && AttackMontages.IsEmpty())
 			Mesh->PlayAnimation(AttackAnim, false); // anim notify
 	}
 	UE_LOG(LogTemp, Warning, TEXT("woo bam bam")); 
+}
+
+void UAttack::TriggerAttackAnim_Implementation(int32 Index)
+{
+	
 }

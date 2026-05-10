@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ExitSequence.h"
 #include "Components/ActorComponent.h"
 #include "TreeComponent.generated.h"
 
@@ -14,20 +15,28 @@ class UTreeNode : public UObject
 {
 	GENERATED_BODY()
 public : 
-	UTreeNode* parent;
-	virtual bool StatusRun()
+	
+	UPROPERTY()
+	UTreeNode* Parent;
+	
+	
+	virtual EExitSequenceType StatusRun()
 	{
-		return true;
+		return EExitSequenceType::DEFAULT;
 	}; 
 };
 
 
-UCLASS(ABSTRACT)
+UCLASS(Blueprintable)
 class UComposite : public UTreeNode
 {
 	GENERATED_BODY()
 public:
-	TArray<UTreeNode*> children; 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TArray<TSubclassOf<UTreeNode>> ChildrenClasses;
+	
+	UPROPERTY(EditAnywhere, Instanced)
+	TArray<UTreeNode*> InstancedChildren; 
 };
 
 UCLASS(BlueprintType, Blueprintable)
@@ -36,7 +45,7 @@ class AI_PROJECT_API UConditionNode : public UTreeNode
 	GENERATED_BODY()
 public:
 	bool FCondition;
-	bool StatusRun() override; // always override
+	EExitSequenceType StatusRun() override; // always override
 	virtual ~UConditionNode() = default;
 };
 
@@ -45,7 +54,9 @@ class AI_PROJECT_API UTreeAction : public UTreeNode // very customizable
 {
 	public:
 	GENERATED_BODY()
-	virtual bool StatusRun() override;
+	
+	UFUNCTION(BlueprintNativeEvent)
+	EExitSequenceType StatusRun() override;
 };
 
 UCLASS(BlueprintType, Blueprintable)
@@ -57,10 +68,10 @@ public :
 	UAnimMontage* AnimToPlay; // i don
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	ACharacter* Target;
+	TObjectPtr<ACharacter> Target;
 	
 	UFUNCTION(BlueprintCallable)
-	virtual bool StatusRun() override;
+	virtual EExitSequenceType StatusRun() override;
 };
 
 UCLASS(BlueprintType, Blueprintable)
@@ -78,7 +89,7 @@ public:
 	ACharacter* Target;
 	
 	UFUNCTION(BlueprintCallable)
-	virtual bool StatusRun() override;
+	virtual EExitSequenceType StatusRun() override;
 };
 
 UCLASS(BlueprintType, Blueprintable)
@@ -89,7 +100,7 @@ class AI_PROJECT_API USelector : public UComposite
 public:
 	
 	UFUNCTION(BlueprintCallable)
-	virtual bool StatusRun() override; 
+	virtual EExitSequenceType StatusRun() override; 
 };
 
 UCLASS(BlueprintType, Blueprintable)
@@ -99,7 +110,7 @@ class AI_PROJECT_API USequences : public UComposite
 
 public:
 	UFUNCTION(BlueprintCallable)
-	virtual bool StatusRun() override;
+	virtual EExitSequenceType StatusRun() override;
 };
 
 
@@ -116,8 +127,13 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	
+	void InitializeNode(UTreeNode* Node); 
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	USelector* RootNode;
+	TSubclassOf<UTreeNode> RootNodeClass;
+	
+	UPROPERTY(Transient)
+	UTreeNode* RootNode;
 
 public:	
 	// Called every frame

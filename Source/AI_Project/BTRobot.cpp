@@ -28,9 +28,9 @@ void ABTRobot::BeginPlay()
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld()); 
 	FNavLocation NavLocation;
 	Super::BeginPlay();
-	Root->children.Add(Patrol);
+	//Root->children.Add(Patrol);
 	//Root->children.Add(Chase);
-	Patrol->children.Add(WalkTo);
+	//Patrol->children.Add(WalkTo);
 	WalkTo->Target = this;
 	WalkTo->Condition = Condition;
 	WalkTo->Condition->FCondition = GetDistanceTo(PC) < 4.0f; 

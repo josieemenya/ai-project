@@ -31,7 +31,7 @@ void ASmartObject::BeginPlay()
 
 	if (UWorld* World = GetWorld())
 	{
-	    if (auto GI = World->GetGameInstance<USmartObjectManager>())
+	    if (auto GI = World->GetGameInstance()->GetSubsystem<USmartObjectManager>())
 	    {
 	        GI->SmartObjects.Add(ObjectID, this);
 	    }
@@ -52,6 +52,7 @@ void ASmartObject::Tick(float DeltaTime)
 
 void ASmartObject::RegisterInBlackboard(UBlackboardCustom* BB)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Registering smart object key: %s"), *ObjectName.ToString());
 	FBlackboardCustomEntry Obj = FBlackboardCustomEntry(ObjectName, EBlackboardKey::SmartObject);
 	Obj.SmartObjectValue = this;
 	BB->BlackboardEntries.Add(Obj);

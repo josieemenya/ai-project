@@ -31,6 +31,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UPlannerComponent* PlannerComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UDamage* DamageComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TSubclassOf<UGoal>> Goals;
@@ -60,6 +63,5 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-
+	bool RegisterSeePlayer(UPlannerComponent* Planner); 
 };
