@@ -1,5 +1,5 @@
 Engine/Binaries/Win64/EOSSDK-Win64-Shipping.dll	2026-02-15T15:51:14.875Z
-AI_Project/Binaries/Win64/AI_Project-Win64-Shipping.exe	2026-05-10T21:07:39.373Z
+AI_Project/Binaries/Win64/AI_Project-Win64-DebugGame.exe	2026-05-10T21:28:38.854Z
 AI_Project/Binaries/Win64/D3D12/D3D12Core.dll	2026-02-15T15:51:09.624Z
 AI_Project/Binaries/Win64/D3D12/d3d12SDKLayers.dll	2026-02-15T15:51:09.810Z
 AI_Project/Binaries/Win64/OpenImageDenoise.dll	2026-02-15T16:01:34.584Z
@@ -13,7 +13,8 @@ Engine/Binaries/ThirdParty/NVIDIA/NVaftermath/Win64/GFSDK_Aftermath_Lib.x64.dll	
 Engine/Binaries/ThirdParty/Ogg/Win64/VS2015/libogg_64.dll	2026-02-15T15:51:00.739Z
 Engine/Binaries/ThirdParty/Vorbis/Win64/VS2015/libvorbis_64.dll	2026-02-15T15:51:06.664Z
 Engine/Binaries/ThirdParty/Vorbis/Win64/VS2015/libvorbisfile_64.dll	2026-02-15T15:51:06.665Z
+Engine/Binaries/ThirdParty/Windows/WinPixEventRuntime/x64/WinPixEventRuntime.dll	2026-02-15T15:51:10.039Z
 Engine/Binaries/ThirdParty/Windows/XAudio2_9/x64/xaudio2_9redist.dll	2026-02-15T15:51:10.040Z
 Engine/Content/Renderer/TessellationTable.bin	2026-02-15T15:53:10.260Z
 Engine/Content/Slate/Cursor/invisible.cur	2026-02-15T15:53:10.274Z
-AI_Project.exe	2026-05-10T21:08:14.531Z
+AI_Project.exe	2026-05-10T21:29:15.734Z

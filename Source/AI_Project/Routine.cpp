@@ -103,9 +103,6 @@ EExitSequenceType URoutineComponent::TransitionRoutine()
 				return EExitSequenceType::DEFAULT;
 		}
 		
-		UE_LOG(LogTemp, Warning, TEXT("Target: %s"), *CurrentState.Location.ToString());
-		
-		
 	}
 
 	UE_LOG(LogTemp, Error, TEXT("Default Dialogue reached."))
