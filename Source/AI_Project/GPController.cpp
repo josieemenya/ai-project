@@ -75,7 +75,7 @@ void AGPController::StartPlanning()
 		RegisterSeePlayer(Planner); // if can see player update black board to reflect that
 	
 		Planner->UpdateSmartObjects(BaseCurrentState); 
-			
+		
 		CurrentGoal = GetBestGoal(); 
 		
 		if (!CurrentGoal) return;
@@ -96,9 +96,9 @@ void AGPController::StartPlanning()
 
 		for (auto& Pair : CurrentGoal->DesiredState.StateValues)
 		{
-    		/*UE_LOG(LogTemp, Warning, TEXT("Goal requires: %s = %s"),
+    		UE_LOG(LogTemp, Warning, TEXT("Goal requires: %s = %s"),
         	*Pair.Key,
-        	Pair.Value ? TEXT("true") : TEXT("false"));*/
+        	Pair.Value ? TEXT("true") : TEXT("false"));
 		}
 		
 		if (Planner->ToDoStack.Num() > 0) // if we have a sequence of actions we have a goal so 
@@ -268,6 +268,30 @@ void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulu
 	{
 		if (auto PC = Cast<AAI_ProjectCharacter>(Actor))
 		{
+			
+			// debug on
+			UBlackboardComponent* BB = GetBlackboardComponent();
+			if (BB)
+			{
+				BB->SetValueAsObject("Player", PC);
+                
+				// IMMEDIATELY VERIFY
+				UObject* TestGet = BB->GetValueAsObject("Player");
+				if (TestGet)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("SUCCESS: Set Player to %s"), *TestGet->GetName());
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("FAILED: SetValueAsObject didn't work! Player is still NULL!"));
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("GetBlackboardComponent returned NULL!"));
+			}
+			
+			// debug off
 			if (Stimulus.WasSuccessfullySensed())
 			{
 				if (PC->CurrentlyHoldingItem)

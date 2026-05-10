@@ -52,9 +52,7 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	URoutineComponent* RoutineComp;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FAIContextStruct AContext;
+
 	
 	
 	// should i mark with UFUNCTION() ? leaning towards no.

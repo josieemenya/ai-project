@@ -4,8 +4,6 @@
 #include "Inventory.h"
 
 #include "AI_ProjectCharacter.h"
-#include "AudioMixerBlueprintLibrary.h"
-#include "IDetailTreeNode.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #
@@ -71,6 +69,18 @@ FInventoryItem* UInventory::FindInInventory(FInventoryItem& SearchedItem)
 	}
 	
 	return nullptr; 
+}
+
+bool UInventory::FindItemNameInInventory(FName ItemName)
+{
+	for (const FInventoryItem& Item : ItemsInInventory)
+	{
+		if (Item.ID == ItemName && Item.Quantity > 0)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 bool UInventory::SpaceInInventory()

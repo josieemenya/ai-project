@@ -6,7 +6,9 @@
 #include "PrisonRules.h"
 #include "Blueprint/UserWidget.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Sound/SoundCue.h"
 #include "Engine/DeveloperSettings.h"
+
 #include "PrisonManagementSystem.generated.h"
 
 /**
@@ -42,7 +44,7 @@ public:
 	class UAudioComponent* AudioComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	USoundCue* LevelMusic;
+	class USoundCue* LevelMusic;
 	
 	void UpdateLevelMusicVolume(float Val);
 	

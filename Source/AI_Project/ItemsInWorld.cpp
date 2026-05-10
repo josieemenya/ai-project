@@ -5,8 +5,7 @@
 
 #include "AI_ProjectCharacter.h"
 #include "Components/SphereComponent.h"
-#include "DataWrappers/ChaosVDParticleDataWrapper.h"
-#include "Misc/MapErrors.h"
+
 
 AItemsInWorld::AItemsInWorld()
 {

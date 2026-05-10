@@ -125,14 +125,14 @@ void UInventoryHotBar::NativeConstruct()
 {
 	Super::NativeConstruct();
 	
-		
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (!PC) return;
+
 	ACharacter* PlayerChar = Cast<ACharacter>(PC->GetCharacter());
-	
-	if (PlayerChar)
-	{
-		InventoryRef = PlayerChar->FindComponentByClass<UInventory>();
-	}
+	if (!PlayerChar) return;
+
+	InventoryRef = PlayerChar->FindComponentByClass<UInventory>();
+	if (!InventoryRef) return;
 	
 	TArray<FInventoryItem> InventoryItems;
 	

@@ -2,8 +2,6 @@
 
 
 #include "CraftingComponent.h"
-
-#include "IDetailTreeNode.h"
 #include "Inventory.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"

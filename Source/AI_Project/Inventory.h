@@ -147,6 +147,8 @@ public:
 
 	//UFUNCTION(BlueprintCallable)
 	FInventoryItem* FindInInventory(FInventoryItem& SearchedItem); 
+
+	bool FindItemNameInInventory(FName ItemName);
 	
 	UFUNCTION(BlueprintCallable)
 	bool SpaceInInventory();

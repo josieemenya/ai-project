@@ -24,7 +24,7 @@ class AI_PROJECT_API ADrawers : public ASmartObject
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UInventory* InventoryRef; 
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ACharacter* OwningCharacter;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)

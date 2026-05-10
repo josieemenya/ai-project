@@ -165,15 +165,17 @@ void UDamage::HandleDeath(AAIController* CharacterController)
 	{
 		if ((GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>()->PrisonStateFlags & (int32)EPrisonState::LOCKDOWN) != 0)
 		{
-			if (!OnDeathScreen)
+			if (OnDeathScreen)
 			{
 				UUserWidget* DScreen = CreateWidget<UUserWidget>(GetWorld(),OnDeathScreen);		
 				DScreen->AddToViewport();
 				UGameplayStatics::SetGamePaused(GetWorld(), true);
-				
 				// solitary, Restart Game, Go To Main Menu
 			}
 		} // else get cutscene, refresh everything, clear chest and everything with contraband
-
+		else
+		{
+			
+		}
 	} 
 }

@@ -4,6 +4,7 @@
 #include "BlackboardSystem.h"
 #include "GameFramework/Character.h"
 #include "ComponentUtils.h"
+#include "GPController.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
 #include "Algo/Transform.h"
@@ -64,7 +65,7 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 {
 	
 	//UE_LOG(LogTemp, Warning, TEXT("Planning"));
-
+	
 	TArray<Node*> Open;
 	TArray<Node*> Close;
 	
@@ -260,7 +261,7 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
 
 	if (LastAction && CurrentAction != LastAction)
 	{
-		// UE_LOG(LogTemp, Warning, TEXT("Executing action: %s"), *CurrentAction->Name.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("Executing action: %s"), *CurrentAction->Name.ToString());
 	}
 	
     EExitSequenceType Result = CurrentAction->Execute(Owner);
@@ -277,7 +278,7 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
             return;
 
         case EExitSequenceType::SUCCESS:
-            if (auto Bot = Cast<ABaseAI>(GetOwner()))
+            if (auto Bot = Cast<AGPController>(GetOwner()))
             {
                 for (auto& Effect : CurrentAction->Effects.StateValues)
                 {
