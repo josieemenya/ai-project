@@ -3,6 +3,40 @@
 
 #include "Inventory.h"
 
+#include "AI_ProjectCharacter.h"
+#include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
+#
+
+// ad this to presentations
+
+AItem::AItem()
+{
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>("StaticMesh");
+	SphereComponent = CreateDefaultSubobject<USphereComponent>("SphereComponent");
+	StaticMesh->SetupAttachment(GetRootComponent());
+}
+
+void AItem::Clicked(AActor* TouchedActor, FKey Key)
+{
+	if (Key == EKeys::LeftMouseButton)
+	{
+		AAI_ProjectCharacter* Character = Cast<AAI_ProjectCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+		
+		if (Character)
+		{
+			Character->Inventory->OnAddRefToInventory(ItemReference); 
+			Destroy(); 
+		}
+	}
+}
+
+void AItem::BeginPlay()
+{
+	Super::BeginPlay();
+	OnClicked.AddDynamic(this, &AItem::Clicked); 
+}
+
 // Sets default values for this component's properties
 UInventory::UInventory()
 {
@@ -20,7 +54,90 @@ void UInventory::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
+}
+
+
+FInventoryItem* UInventory::FindInInventory(FInventoryItem& SearchedItem)
+{
+	FInventoryItem EmptyItem;
+	for (auto &Item : ItemsInInventory)
+	{
+		if (SearchedItem == Item)
+		{
+			return &Item;
+		}
+	}
 	
+	return nullptr; 
+}
+
+bool UInventory::FindItemNameInInventory(FName ItemName)
+{
+	for (const FInventoryItem& Item : ItemsInInventory)
+	{
+		if (Item.ID == ItemName && Item.Quantity > 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool UInventory::SpaceInInventory()
+{
+	return ItemsInInventory.Num() < MAX_INVENTORY_ITEMS;
+}
+
+bool UInventory::OnAddToInventory(FName ItemName)
+{
+	if (ItemName.IsNone()) return false;
+	
+	
+	FString ContextString = FString(); 
+
+	auto ItemRef = ItemDatabase->FindRow<FInventoryItem>(ItemName, ContextString, true); 
+
+	if (auto InventoryItemRef = FindInInventory(*ItemRef))
+	{
+		if (InventoryItemRef->Quantity < MAX_INVENTORY_ITEMS)
+		{
+			InventoryItemRef->Quantity++;
+			return true;
+		}
+	}
+	
+	if (SpaceInInventory())
+	{
+		FInventoryItem NewItem = *ItemRef;
+		NewItem.Quantity = 1;
+		ItemsInInventory.Add(*ItemRef);
+		return true;
+	}
+
+	return false;
+
+}
+
+bool UInventory::OnAddRefToInventory(FInventoryItem& Reference)
+{
+	// this is worng
+	if (auto HasItems = FindInInventory(Reference))
+	{
+		HasItems->Quantity++;
+		return true;
+	}
+	
+	if (SpaceInInventory())
+	{
+		ItemsInInventory.Add(Reference);
+		return true;
+	}
+	return false;
+}
+
+
+void UItemUseData::Use_Implementation()
+{
 }
 
 

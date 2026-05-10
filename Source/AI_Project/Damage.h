@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AIController.h"
 #include "Components/ActorComponent.h"
 #include "Damage.generated.h"
 
 
+class AAIController;
 class UUserWidget;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -30,9 +32,13 @@ public:
 	UPROPERTY( EditDefaultsOnly )
 	float CharacterMaxStamina;
 	
+	UPROPERTY( EditDefaultsOnly, BlueprintReadWrite)
+	UAnimMontage* Montage;
+	
+	UPROPERTY(BlueprintReadOnly)
 	bool bMortis; 
 	
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AAIController*, ParentController);
 
 	UPROPERTY(BlueprintAssignable)
 	FOnDeath OnDeath;
@@ -46,6 +52,8 @@ protected:
 
 public:	
 	// Called every frame
+	void UnlockMovement(); 
+	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 	UFUNCTION( BlueprintPure )
@@ -85,7 +93,11 @@ public:
 	void SetCharacterStamina( float stamina );
 	
 	UFUNCTION( BlueprintCallable )
-	void HandleDeath(); 
+	void HandleDeath(AAIController* CharacterController); 
+	
+	
+	UPROPERTY( BlueprintAssignable )
+	FOnDeath OnCharacterDeath; 
 };
 
 inline float UDamage::GetCharacterHealth() const

@@ -1,5 +1,5 @@
 Engine/Binaries/Win64/EOSSDK-Win64-Shipping.dll	2026-02-15T15:51:14.875Z
-AI_Project/Binaries/Win64/AI_Project.exe	2026-03-08T20:26:19.767Z
+AI_Project/Binaries/Win64/AI_Project-Win64-DebugGame.exe	2026-05-10T21:28:38.854Z
 AI_Project/Binaries/Win64/D3D12/D3D12Core.dll	2026-02-15T15:51:09.624Z
 AI_Project/Binaries/Win64/D3D12/d3d12SDKLayers.dll	2026-02-15T15:51:09.810Z
 AI_Project/Binaries/Win64/OpenImageDenoise.dll	2026-02-15T16:01:34.584Z
@@ -17,14 +17,4 @@ Engine/Binaries/ThirdParty/Windows/WinPixEventRuntime/x64/WinPixEventRuntime.dll
 Engine/Binaries/ThirdParty/Windows/XAudio2_9/x64/xaudio2_9redist.dll	2026-02-15T15:51:10.040Z
 Engine/Content/Renderer/TessellationTable.bin	2026-02-15T15:53:10.260Z
 Engine/Content/Slate/Cursor/invisible.cur	2026-02-15T15:53:10.274Z
-Engine/Binaries/ThirdParty/Vulkan/Win64/VkLayer_api_dump.dll	2026-02-15T15:51:08.924Z
-Engine/Binaries/ThirdParty/Vulkan/Win64/VkLayer_api_dump.json	2026-02-15T15:51:08.925Z
-Engine/Binaries/ThirdParty/Vulkan/Win64/VkLayer_gfxreconstruct.dll	2026-02-15T15:51:09.068Z
-Engine/Binaries/ThirdParty/Vulkan/Win64/VkLayer_gfxreconstruct.json	2026-02-15T15:51:09.070Z
-Engine/Binaries/ThirdParty/Vulkan/Win64/VkLayer_khronos_profiles.dll	2026-02-15T15:51:09.070Z
-Engine/Binaries/ThirdParty/Vulkan/Win64/VkLayer_khronos_profiles.json	2026-02-15T15:51:09.071Z
-Engine/Binaries/ThirdParty/Vulkan/Win64/VkLayer_khronos_synchronization2.dll	2026-02-15T15:51:09.071Z
-Engine/Binaries/ThirdParty/Vulkan/Win64/VkLayer_khronos_synchronization2.json	2026-02-15T15:51:09.071Z
-Engine/Binaries/ThirdParty/Vulkan/Win64/VkLayer_khronos_validation.dll	2026-02-15T15:51:09.412Z
-Engine/Binaries/ThirdParty/Vulkan/Win64/VkLayer_khronos_validation.json	2026-02-15T15:51:09.416Z
-AI_Project.exe	2026-03-08T20:26:43.342Z
+AI_Project.exe	2026-05-10T21:29:15.734Z

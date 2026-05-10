@@ -16,7 +16,8 @@ enum class EExitSequenceType : uint8
 	FAILURE,
 	INTERRUPTED,
 	INVALID,
-	RUNNING
+	RUNNING,
+	DEFAULT UMETA(Hidden)
 };
 
 UCLASS()

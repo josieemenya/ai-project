@@ -3,9 +3,15 @@
 
 #include "Damage.h"
 
+#include "AIController.h"
+#include "AI_ProjectCharacter.h"
 #include "AI_ProjectGameMode.h"
 #include "BaseAI.h"
+#include "GPController.h"
+#include "PrisonManagementSystem.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "ProfilingDebugging/CookStats.h"
 
@@ -29,8 +35,31 @@ void UDamage::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OnDeath.AddDynamic(this, &UDamage::HandleDeath); 
-	
+	OnDeath.AddDynamic(this, &UDamage::HandleDeath);
+	AActor* AttachedActor = Cast<AActor>(GetOwner());
+	if (auto GetCharacterRef = Cast<ACharacter>(AttachedActor))
+	{
+		if (AGPController* CharacterController = Cast<AGPController>(GetCharacterRef->GetController()))
+		{
+			CharacterController->Planner->BB_Planner->SetValueAsFloat("Health", CharacterMaxHealth);
+			CharacterController->Planner->BB_Planner->SetValueAsFloat("Opinion", 50);
+		}
+	}
+}
+
+void UDamage::UnlockMovement()
+{
+	if (AAIController* AIController = Cast<AAIController>(GetOwner()))
+	{
+		if (ACharacter* Character = Cast<ACharacter>(AIController->GetPawn()))
+		{
+			Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+			CharacterHealth = CharacterMaxHealth;
+		}
+	}
+
+	// Delay this until AFTER animation recovery if needed
+	bMortis = false; 
 }
 
 
@@ -68,12 +97,34 @@ void UDamage::UpdateMaxStamina(float maxStamina)
 
 void UDamage::DamageHealth(float DamageAmount)
 {
-	if (bMortis || DamageAmount <= 0) return;
+	
+	AActor* AttachedActor = GetOwner();
+	
+	if (bMortis || DamageAmount <= 0) return; // if character is already dead and or damage is negligent
 	CharacterHealth = FMath::Max(0, CharacterHealth - DamageAmount);
 	bMortis = (CharacterHealth == 0); 
 	
+	if (auto GetCharacterRef = Cast<ACharacter>(AttachedActor))
+	{
+		if (AGPController* CharacterController = Cast<AGPController>(GetCharacterRef->GetController()))
+		{	
+			CharacterController->Planner->BB_Planner->SetValueAsFloat("Health", CharacterHealth);
+			CharacterController->Planner->BB_Planner->SetValueAsBool("InCombat", true);
+			if (bMortis)
+			{
+				CharacterController->Planner->BB_Planner->SetValueAsBool("KnockedOut", bMortis);
+				OnCharacterDeath.Broadcast(CharacterController);
+			}
+		}
+	}
+	
 	if (bMortis)
-		OnDeath.Broadcast();
+	{
+		if (AAIController* CharacterController =  Cast<AAIController>(GetOwner()))
+		{
+			OnDeath.Broadcast(CharacterController);
+		}
+	}
 }
 
 void UDamage::DamageStamina(float stamina)
@@ -96,17 +147,35 @@ void UDamage::SetCharacterStamina(float stamina)
 }
 
 
-void UDamage::HandleDeath()
+void UDamage::HandleDeath(AAIController* CharacterController)
 {
-	
-	if (!OnDeathScreen) return; 
-	if (GetOwner() == UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
+	GEngine->AddOnScreenDebugMessage(33, 2.f, FColor::Yellow, "BRPPPPP");
+	if (CharacterController)
 	{
-		UUserWidget* DScreen = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), OnDeathScreen);
-		if (DScreen)
-			DScreen->AddToViewport();
-	} else if (auto Bot = Cast<ABaseAI>(GetOwner()))
+		GEngine->AddOnScreenDebugMessage(33, 2.f, FColor::Yellow, "DoUnlockMovement");
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(
+			TimerHandle,
+			this,
+			&UDamage::UnlockMovement,
+			10.f,
+			false
+		);
+	} else
 	{
-		// do bot death anim and others
-	}
+		if ((GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>()->PrisonStateFlags & (int32)EPrisonState::LOCKDOWN) != 0)
+		{
+			if (OnDeathScreen)
+			{
+				UUserWidget* DScreen = CreateWidget<UUserWidget>(GetWorld(),OnDeathScreen);		
+				DScreen->AddToViewport();
+				UGameplayStatics::SetGamePaused(GetWorld(), true);
+				// solitary, Restart Game, Go To Main Menu
+			}
+		} // else get cutscene, refresh everything, clear chest and everything with contraband
+		else
+		{
+			
+		}
+	} 
 }

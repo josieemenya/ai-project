@@ -4,33 +4,49 @@
 #include "BlackboardSystem.h"
 #include "GameFramework/Character.h"
 #include "ComponentUtils.h"
+#include "GPController.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
 #include "Algo/Transform.h"
 #include "Algo/Reverse.h"
-#include "Engine/SceneCapture2D.h"
+#include "Animation/AnimMontage.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISense_Sight.h"
 #include "Perception/PawnSensingComponent.h"
+#include "BehaviorTree/BlackboardComponent.h" 
+#include "TimeSystem.h"
+#include "Navigation/PathFollowingComponent.h"
+
+
+float UGoal::GetUtility_Implementation(const UBlackboardComponent* BlackBoard)
+{
+	return 0.f; 
+}
 
 // Sets default values for this component's properties
 UPlannerComponent::UPlannerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	BB_Planner = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BB_Blackboard"));
 }
 
 // Called when the game starts
 void UPlannerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	AIbBlackboardSystem = NewObject<UBlackboardSystem>(this);
-	AIbBlackboardSystem->Blackboard = NewObject<UBlackboardCustom>(this);
+	LastSmartObjectContainer = NewObject<USmartObjectContainer>(this);
+	for (TSubclassOf<UAction> ActionClass : AvailableActions)
+	{
+		UAction* InstanceAction = NewObject<UAction>(this, ActionClass.Get());
+		ActionList.Add(InstanceAction);
+	}
 }
 
 // Called every frame
 void UPlannerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
 	
 }
 
@@ -48,8 +64,8 @@ void UPlannerComponent::AddToAvailableActions(UAction* NewAction)
 TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldState DesiredState)
 {
 	
-	UE_LOG(LogTemp, Warning, TEXT("Planning"));
-
+	//UE_LOG(LogTemp, Warning, TEXT("Planning"));
+	
 	TArray<Node*> Open;
 	TArray<Node*> Close;
 	
@@ -79,11 +95,13 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 		Open.RemoveAt(0);
 		Close.Add(CurrentNode);
 		
+		UE_LOG(LogTemp, Warning, TEXT("NODE EXPAND START"));
+		
 		// check for completion
 		if (CurrentNode->State.Satisfies(DesiredState))
 		{
-			auto Path = BuildPlan(CurrentNode);
-			
+			auto Path = BuildPlan(CurrentNode);		
+
 			ToDoStack = Path; 
 			for (auto n : Open)
 				delete n;
@@ -93,8 +111,13 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 		}
 		
 		// filter against valid actions,  check against precomditions
-		UE_LOG(LogTemp, Warning, TEXT("PlanGoal running, CurrentNode->State keys = %d"), CurrentNode->State.StateValues.Num());
-		auto validActions = FilterAvailableActions(AvailableActions, CurrentNode->State);
+		//UE_LOG(LogTemp, Warning, TEXT("PlanGoal running, CurrentNode->State keys = %d"), CurrentNode->State.StateValues.Num());
+		
+		
+		
+		auto validActions = FilterAvailableActions(ActionList, CurrentNode->State);
+		
+		UE_LOG(LogTemp, Warning, TEXT("ValidActions = %d"), validActions.Num());
 		
 		// filter actions that satisfy our goal, 
 		//auto satisfyingActions = GetSatisfyingActions(validActions, DesiredState);
@@ -118,6 +141,10 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 			Child->hCost = getHCost(Child, DesiredState);
 			Child->fCost = Child->gCost + Child->hCost;
 			Open.Add(Child); 
+
+			UE_LOG(LogTemp, Warning, TEXT("Open size: %d"), Open.Num())	
+			UE_LOG(LogTemp, Warning, TEXT("SOpen: %d Close: %d"), Open.Num(), Close.Num());
+		
 		}
 	}
 
@@ -125,86 +152,86 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 }
 
 
-TArray<UAction*> UPlannerComponent::FilterAvailableActions(TArray<TSubclassOf<UAction>> Actions, FWorldState CurrentState)
+TArray<UAction*> UPlannerComponent::FilterAvailableActions(TArray<UAction*> Actions, FWorldState CurrentState)
 {
-	UE_LOG(LogTemp, Warning, TEXT("FilterAvailableActions called, AvailableActions.Num() = %d"), Actions.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("FilterAvailableActions called, AvailableActions.Num() = %d"), Actions.Num());
 	
-	TArray<UAction*> ActionList;
+	TArray<UAction*> ResultActionList;
 
-	for (TSubclassOf<UAction> ActionClass : Actions)
+	for (UAction* Instance : Actions)
 	{
-		if (!ActionClass) continue;
+		if (!Instance) continue;
 
-		UAction* A = NewObject<UAction>(this, ActionClass.Get());
-		UE_LOG(LogTemp, Warning, TEXT("Checking action %s"), *A->Name.ToString());
-
-		for (auto& Pair : CurrentState.StateValues)
+		
+		//UE_LOG(LogTemp, Warning, TEXT("Checking action %s"), *Instance->Name.ToString());
+		
+		if (CurrentState.Satisfies(Instance->Context))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("CurrentState: %s = %s"), *Pair.Key, Pair.Value ? TEXT("true") : TEXT("false"));
-		}
-
-
-		if (CurrentState.Satisfies(A->Context))
-		{
-			ActionList.Add(A);
-			UE_LOG(LogTemp, Warning, TEXT("Action %s is valid"), *A->Name.ToString());
+			ResultActionList.Add(Instance);
+			//UE_LOG(LogTemp, Warning, TEXT("Action %s is valid"), *Instance->Name.ToString());
 
 		} else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Action %s rejected"), *A->Name.ToString());
+			//UE_LOG(LogTemp, Warning, TEXT("Action %s rejected"), *Instance->Name.ToString());
 		}
 			
 	}
 
-	return ActionList;
+	return ResultActionList;
 }
 
 void UPlannerComponent::UpdateSmartObjects(FWorldState& Current)
 {
 	AllSmartObjectsNearby.Empty();
-
-	if (auto AI = Cast<APawn>(GetOwner())) {
+	
+	auto Owner = Cast<AAIController>(GetOwner()); 
+	auto AI = (Owner)? Owner->GetPawn() : Cast<APawn>(GetOwner()); // owner shouldl either be the pawn itself or the controller
+	
+	if (AI) {
 		auto Steer =  AI->GetController(); 
 		if (auto Senser = Steer->FindComponentByClass<UAIPerceptionComponent>())
 		{
 			Senser->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), AllSmartObjectsNearby); 
-			UE_LOG(LogTemp, Warning, TEXT("Collected All Smart Objects"));
+			//UE_LOG(LogTemp, Warning, TEXT("Collected All Smart Objects"));
 		}	else
 		{
-			UE_LOG(LogTemp, Error, TEXT("No PerceptionComponent on BaseAI"));
+			//UE_LOG(LogTemp, Error, TEXT("No PerceptionComponent on BaseAI"));
 		}
 	} else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Owning AI is not a pawn"));
+		//UE_LOG(LogTemp, Error, TEXT("Owning AI is not a pawn, or a controller"));
 	}
 	
-	for (ASmartObject* SmartObj : LastSmartObjectsNearby)
+	for (ASmartObject* SmartObj : LastSmartObjectContainer->RegisteredObjects)
 	{
-		Current.StateValues.Remove(SmartObj->ObjectName.ToString());
+		if (SmartObj)
+			Current.StateValues.Remove(SmartObj->ObjectName.ToString());
 	}
 	
-	LastSmartObjectsNearby.Empty();
+	LastSmartObjectContainer->RegisteredObjects.Empty();
 	
 	for (auto SObj : AllSmartObjectsNearby)
 	{
 		if (ASmartObject* SmartObj = Cast<ASmartObject>(SObj))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Writing to World State"));
+			//UE_LOG(LogTemp, Warning, TEXT("Writing to World State"));
 			SmartObj->WriteToWorldState(Current);
 			
-			LastSmartObjectsNearby.Add(SmartObj);
-			if (!AIbBlackboardSystem)
+			LastSmartObjectContainer->RegisteredObjects.Add(SmartObj);
+			if (!BB_Planner->GetBlackboardAsset())
 			{
-				UE_LOG(LogTemp, Error, TEXT("AIbBlackboardSystem is null"));
+				//UE_LOG(LogTemp, Error, TEXT("BlackboardComponent is null"));
 				return;
 			}
-
-			if (!AIbBlackboardSystem->Blackboard)
+			
+			
+			if (BB_Planner->GetBlackboardAsset())
 			{
-				UE_LOG(LogTemp, Error, TEXT("Blackboard is null"));
-				return;
+				BB_Planner->SetValueAsObject("Smart Objects", LastSmartObjectContainer);
+			}else
+			{
+				//UE_LOG(LogTemp, Error, TEXT("No Value Asset for Blackboard Object"));
 			}
-			SmartObj->RegisterInBlackboard(AIbBlackboardSystem->Blackboard);
 		}
 	}
 	
@@ -232,8 +259,11 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
 	if (!CurrentAction)
         return; 
 
-    UE_LOG(LogTemp, Warning, TEXT("Executing action: %s"), *CurrentAction->Name.ToString());
-
+	if (LastAction && CurrentAction != LastAction)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Executing action: %s"), *CurrentAction->Name.ToString());
+	}
+	
     EExitSequenceType Result = CurrentAction->Execute(Owner);
 
     switch (Result)
@@ -243,22 +273,35 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
 
         case EExitSequenceType::INVALID:
             OnPlanInvalid.Broadcast();
+			LastAction = CurrentAction;
             CurrentAction = nullptr;
             return;
 
         case EExitSequenceType::SUCCESS:
-            if (auto Bot = Cast<ABaseAI>(GetOwner()))
+            if (auto Bot = Cast<AGPController>(GetOwner()))
             {
                 for (auto& Effect : CurrentAction->Effects.StateValues)
                 {
                     Bot->CurrentState.StateValues.FindOrAdd(Effect.Key) = Effect.Value;
-                    UE_LOG(LogTemp, Warning, TEXT("Updated CurrentState: %s = %s"),
-                        *Effect.Key, Effect.Value ? TEXT("true") : TEXT("false"));
+                    /*UE_LOG(LogTemp, Warning, TEXT("Updated CurrentState: %s = %s"),
+                        *Effect.Key, Effect.Value ? TEXT("true") : TEXT("false"));*/
                 }
             }
+    		LastAction = CurrentAction;
 			ToDoStack.RemoveAt(0);
             CurrentAction = nullptr;
             break;
+    	
+		case EExitSequenceType::FAILURE:
+    		UE_LOG(LogTemp, Error, TEXT("%s's Action execution ended in failure, please see Execute action for details."), CurrentAction ? *CurrentAction->Name.ToString() : TEXT("UnknownAction"))
+    		break; 
+    	
+		case EExitSequenceType::DEFAULT:
+    		UE_LOG(LogTemp, Error, TEXT("Hidden Enum Type reached, check %s's Execute function to see if it has not been overriden"), CurrentAction ? *CurrentAction->Name.ToString() : TEXT("UnknownAction"));
+    		break;
+    	
+    	default:
+    		UE_LOG(LogTemp, Error, TEXT("Impossible Result Type Reached. Please check %s's Execute."), CurrentAction ? *CurrentAction->Name.ToString() : TEXT("UnknownAction"));
     }
 }
 

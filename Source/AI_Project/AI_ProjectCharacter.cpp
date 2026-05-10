@@ -13,6 +13,11 @@
 #include "RoomComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Attack.h"
+#include "CraftingComponent.h"
+#include "PrisonGuardComponent.h"
+#include "PrisonRules.h"
+#include "Blueprint/UserWidget.h"
+#include "InventoryUI.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -21,7 +26,6 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 AAI_ProjectCharacter::AAI_ProjectCharacter()
 {
-	PlayerRoom = CreateDefaultSubobject<URoomComponent>(TEXT("PlayerRoom"));
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
@@ -60,15 +64,25 @@ AAI_ProjectCharacter::AAI_ProjectCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 	
-	AttackComp = CreateDefaultSubobject<UAttack>(TEXT("Attack Component")); 
+	AttackComp = CreateDefaultSubobject<UAttack>(TEXT("Attack Component.w")); 
+	CraftingComp = CreateDefaultSubobject<UCraftingComponent>(TEXT("Crafting Component"));
+	PGComp = CreateDefaultSubobject<UPrisonGuardComponent>(TEXT("PG Comp"));
+	Inventory = CreateDefaultSubobject<UInventory>(TEXT("Inventory Component"));
 }
 
 void AAI_ProjectCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
-	if (PlayerRoom)
-		PlayerRoom->ChangeRoom.AddUObject(this, &AAI_ProjectCharacter::GoToNewRoom);
+	CraftingComp->InventoryRef = Inventory; 
+	
+	InventoryUI = CreateWidget<UInventoryUI>(GetWorld(), InventoryUIClass);
+	InventoryUI->InventoryRef = Inventory; 
+	
+	if (Controller)
+	{
+		Cast<APlayerController>(Controller)->bEnableClickEvents = true; 
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -100,9 +114,6 @@ void AAI_ProjectCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AAI_ProjectCharacter::Look);
 
-		// Changing camera view
-		EnhancedInputComponent->BindAction(ChangeViewActionE, ETriggerEvent::Started, this, &AAI_ProjectCharacter::ChangeViewE);
-		EnhancedInputComponent->BindAction(ChangeViewActionQ, ETriggerEvent::Started, this, &AAI_ProjectCharacter::ChangeViewQ);
 		
 		if (AttackComp)
 		{
@@ -110,6 +121,25 @@ void AAI_ProjectCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		} else
 		{
 			UE_LOG(LogTemp, Error, TEXT("Attack Component Not Valid")); 
+		}
+		
+		if (CraftingComp)
+		{
+			EnhancedInputComponent->BindAction(CraftingComp->ToggleCraftingMenu, ETriggerEvent::Triggered, CraftingComp, &UCraftingComponent::ToggleMenu);
+			
+		} else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Crafting Component Not Valid"));
+		}
+		
+		if (PGComp)
+		{
+			EnhancedInputComponent->BindAction(PGComp->StealAction, ETriggerEvent::Triggered, PGComp, &UPrisonGuardComponent::TakeItems); 
+		}
+		
+		if (Inventory)
+		{
+			EnhancedInputComponent->BindAction(OpenInvevntoryAction, ETriggerEvent::Triggered, this, &AAI_ProjectCharacter::OpenInventory); 
 		}
 	}
 	else
@@ -165,72 +195,28 @@ void AAI_ProjectCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void AAI_ProjectCharacter::ChangeViewE(const FInputActionValue& Value)
+void AAI_ProjectCharacter::OpenInventory()
 {
-	UE_LOG(LogTemp, Warning, TEXT("E ACTION FIRED"));
-
-	CameraPositionIndex = (CameraPositionIndex + 1) % 4;
-	// q is negate, e is positive
-	UE_LOG(LogTemp, Warning, TEXT("Camera Position Index: %d"), CameraPositionIndex);
-	switch (CameraPositionIndex)
+	auto GameState = UGameplayStatics::IsGamePaused(GetWorld()); 
+	if (InventoryUI->IsInViewport())
 	{
-	case 0:
-		CameraBoom->TargetOffset = FVector(0.f, 200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, -45, 0));
-		break;
-	case 1:
-		CameraBoom->TargetOffset = FVector(400.f, 200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, -135, 0));
-		break;
-	case 2:
-		CameraBoom->TargetOffset = FVector(400.f, -200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, 135, 0));
-		break;
-	case 3:
-		CameraBoom->TargetOffset = FVector(0.f, -200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, 45, 0));
-		break;
-	default :
-		CameraPositionIndex = (CameraPositionIndex < 0) ? 3 : 0;
-		break; 
+		InventoryUI->RemoveFromParent(); 
+	} else
+	{
+		InventoryUI->AddToViewport();
 	}
+	
+	/*if (GameState)
+	{
+		UGameplayStatics::SetGamePaused(GetWorld(), false);		
+	} else
+	{
+		UGameplayStatics::SetGamePaused(GetWorld(), true);
+	}*/
 }
 
-void AAI_ProjectCharacter::ChangeViewQ(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("Q ACTION FIRED"));
-
-	CameraPositionIndex = (CameraPositionIndex + 3) % 4;
-	UE_LOG(LogTemp, Warning, TEXT("Camera Position Index: %d"), CameraPositionIndex);
-	switch (CameraPositionIndex)
-	{
-	case 0:
-		CameraBoom->TargetOffset = FVector(0.f, 200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, -45, 0));
-		break;
-	case 1:
-		CameraBoom->TargetOffset = FVector(400.f, 200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, -135, 0));
-		break;
-	case 2:
-		CameraBoom->TargetOffset = FVector(400.f, -200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, 135, 0));
-		break;
-	case 3:
-		CameraBoom->TargetOffset = FVector(0.f, -200, 150.f);
-		FollowCamera->SetRelativeRotation(FRotator(-25, 45, 0));
-		break;
-	default:
-		CameraPositionIndex = (CameraPositionIndex < 0) ? 3 : 0;
-		break;
-	}
-}
 
 void AAI_ProjectCharacter::GoToNewRoom()
 {
-	if (PlayerRoom){
-		auto Room = PlayerRoom->CurrentRoom; 
-		if (Room)
-			UGameplayStatics::OpenLevel(GetWorld(), FName(Room->RoomLevel->GetName())); 
-	}
+	
 }

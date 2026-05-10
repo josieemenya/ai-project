@@ -14,4 +14,6 @@ Saved
 *.xcworkspace
 Content/StarterContent/Architecture/Floor_400x400.uasset
 Content/StarterContent/HDRI/HDRI_Epic_Courtyard_Daylight.uasset
-/Build/Windows/AI_Project/Content/Paks
+*.ucas
+Content/StarterContent/Architecture/Floor_400x400.uasset
+Content/StarterContent/Architecture/Floor_400x400.uasset
