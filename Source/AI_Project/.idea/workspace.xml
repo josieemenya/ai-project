@@ -17,11 +17,7 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="596157be-c7ca-408e-b4b7-7d808f2bd79e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GPController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/GPController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PrisonManagementSystem.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/PrisonManagementSystem.cpp" afterDir="false" />
-    </list>
+    <list default="true" id="596157be-c7ca-408e-b4b7-7d808f2bd79e" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -77,7 +73,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "checkout-two",
+    "git-widget-placeholder": "master-branch",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -103,6 +99,7 @@
       <workItem from="1774986682480" duration="13000" />
       <workItem from="1777288565024" duration="116000" />
       <workItem from="1778015123391" duration="619000" />
+      <workItem from="1778521443681" duration="21000" />
     </task>
     <servers />
   </component>
