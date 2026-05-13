@@ -96,7 +96,7 @@ inline int getHCost(Node* A, FWorldState B)
 
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class DESIGNER_FRIENDLY_GOAP_API UPlannerComponent : public UActorComponent
 {
 	GENERATED_BODY()
