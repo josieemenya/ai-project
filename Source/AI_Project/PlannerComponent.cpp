@@ -27,22 +27,24 @@ float UGoal::GetUtility_Implementation(const UBlackboardComponent* BlackBoard)
 UPlannerComponent::UPlannerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+
 }
 
 // Called when the game starts
 void UPlannerComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	if (AAIController* AIController = Cast<AAIController>(GetOwner()))
+	{
+		BB_Planner = AIController->GetBlackboardComponent();
+	}
+	
 	LastSmartObjectContainer = NewObject<USmartObjectContainer>(this);
 	for (TSubclassOf<UAction> ActionClass : AvailableActions)
 	{
 		UAction* InstanceAction = NewObject<UAction>(this, ActionClass.Get());
 		ActionList.Add(InstanceAction);
-	}
-	
-	if (AAIController* AIController = Cast<AAIController>(GetOwner()))
-	{
-		BB_Planner = AIController->GetBlackboardComponent();
 	}
 }
 
@@ -50,10 +52,8 @@ void UPlannerComponent::BeginPlay()
 void UPlannerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	if (BB_Planner)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Planner component has been destroyed"));
-	}
+	
+	
 }
 
 void UPlannerComponent::SetGoal(TSubclassOf<UGoal> GoalClass)
@@ -226,7 +226,7 @@ void UPlannerComponent::UpdateSmartObjects(FWorldState& Current)
 			LastSmartObjectContainer->RegisteredObjects.Add(SmartObj);
 			if (!BB_Planner->GetBlackboardAsset())
 			{
-				UE_LOG(LogTemp, Error, TEXT("BlackboardComponent is null"));
+				//UE_LOG(LogTemp, Error, TEXT("BlackboardComponent is null"));
 				return;
 			}
 			

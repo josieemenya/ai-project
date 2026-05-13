@@ -2,16 +2,14 @@
 
 
 #include "PrisonRules.h"
-
-#include "Attack.h"
 #include "GPController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Damage.h"
+#include "Attack.h"
 #include "PlannerComponent.h"
 #include "PrisonManagementSystem.h"
 #include "TimeSystem.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -25,6 +23,7 @@ ASignal::ASignal()
 {
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent = Root;
+	
 }
 
 void ASignal::BeginPlay()
@@ -35,24 +34,23 @@ void ASignal::BeginPlay()
 		SeeObject->RegisterForSense(UAISense_Sight::StaticClass());
 		SeeObject->RegisterWithPerceptionSystem();
 		SeeObject->bAutoRegister = true;
-		GEngine->AddOnScreenDebugMessage(1232, 32.f, FColor::MakeRandomColor(), TEXT("buddd"));
+		GEngine->AddOnScreenDebugMessage(1232, 32.f, FColor::MakeRandomColor(), TEXT("buddd")); 
 	}
 }
 
 void USignalManagement::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-
+	
 	for (int i = 0; i < POOL_SIZE; i++)
 	{
 		FActorSpawnParameters SpawnInfo;
-		ASignal* NewSignal = GetWorld()->SpawnActor<ASignal>(ASignal::StaticClass(), FVector::ZeroVector,
-		                                                     FRotator::ZeroRotator, SpawnInfo);
+		ASignal* NewSignal = GetWorld()->SpawnActor<ASignal>(ASignal::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo); 
 		NewSignal->SignalData.ID = i;
 		SignalPool.FindOrAdd(NewSignal, ESignalState::IGNORED);
 	}
-
-	NextID = POOL_SIZE;
+	
+	NextID = POOL_SIZE; 
 }
 
 void USignalManagement::ActivateSignal(FSignalData Data, FVector Location)
@@ -65,21 +63,21 @@ void USignalManagement::ActivateSignal(FSignalData Data, FVector Location)
 			break;
 		}
 	}
-
-
+	
+	
 	for (TPair<TObjectPtr<ASignal>, ESignalState>& NewSignal : SignalPool)
 	{
 		if (NewSignal.Value == ESignalState::IGNORED)
 		{
-			Data.ID = NextID++;
+			Data.ID = NextID++; 
 			NewSignal.Key->SignalData = Data;
-			NewSignal.Value = ESignalState::ACTIVE;
+			NewSignal.Value = ESignalState::ACTIVE; 
 			NewSignal.Key->SetActorLocation(Location);
 			UE_LOG(LogTemp, Warning, TEXT("New Signal: %s"), *NewSignal.Key.GetName())
 			return;
 		}
 	}
-
+	
 	UE_LOG(LogTemp, Warning, TEXT("AllActive Signals are In Use"));
 }
 
@@ -95,7 +93,6 @@ void USignalManagement::DeactivateSignal(FSignalData Signal)
 		}
 	}
 }
-
 void USignalManagement::ClearSignalPool()
 {
 	for (TPair<TObjectPtr<ASignal>, ESignalState>& NewSignal : SignalPool)
@@ -114,12 +111,6 @@ ACharacter* UAnimImpactObject::GetResultingCharacter(USkeletalMeshComponent* Mes
 AActor* UAnimImpactObject::GetActorFromSphereTrace(USkeletalMeshComponent* MeshComponent, FHitResult& HitResult,
                                                    TArray<AActor*>& ActorsToIgnore)
 {
-	if (!MeshComponent || !MeshComponent->DoesSocketExist(SocketName))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("MeshComponent doesn't exist, or Socket does not exist"));
-		return nullptr;
-	}
-	
 	FTransform SocketTransform = MeshComponent->GetSocketTransform(SocketName);
 
 	FVector Start = SocketTransform.GetLocation();
@@ -132,14 +123,8 @@ AActor* UAnimImpactObject::GetActorFromSphereTrace(USkeletalMeshComponent* MeshC
 
 	AActor* HitActor;
 
-	AActor* MeshOwner = MeshComponent->GetOwner();
-	
-	if (!MeshOwner)
-	{
-		return nullptr;
-	}
 
-	ActorsToIgnore.Add(MeshOwner);
+	ActorsToIgnore.Add(MeshComponent->GetOwner());
 
 
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
@@ -175,7 +160,7 @@ AActor* UAnimImpactObject::GetActorFromSphereTrace(USkeletalMeshComponent* MeshC
 	if (HitActor)
 	{
 		PlayDamageSound(HitActor->GetActorLocation(), HitActor);
-		PlayDamageAnim(HitActor, MeshOwner);
+		PlayDamageAnim(HitActor, MeshComponent->GetOwner());
 		UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitActor->GetName())
 	}
 	return HitActor;
@@ -188,7 +173,7 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 		UE_LOG(LogTemp, Warning, TEXT("Invalid instigators"));
 		return;
 	}
-
+	
 
 	AController* Controller = OtherInstigator->GetController();
 	if (!Controller)
@@ -203,8 +188,6 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 
 	if (!DamageComp)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No Damage component found on controller"));
-		
 		// because this might be the player character
 		DamageComp = Cast<UDamage>(OtherInstigator->GetComponentByClass(UDamage::StaticClass())); 
 		
@@ -214,20 +197,19 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 			return;
 		}
 	}
-
+	
 	if (DamageComp)
 	{
 		DamageComp->DamageHealth(10.f);
 		// MAKE RuleBreak
-
+		
 		FSignalData FightingData = FSignalData();
 		FightingData.InvolvedCharacters.Add(Instigator);
 		FightingData.InvolvedCharacters.Add(OtherInstigator);
 		FightingData.ActionType = EActionType::FIGHTING;
 		FightingData.ID = FMath::RandRange(25, 99);
-		FightingData.SignalLifeSpan = 7.f;
+		FightingData.SignalLifeSpan = 7.f; 
 		FightingData.StimulusLocation = Instigator->GetActorLocation();
-
 		
 		UWorld* World = Instigator->GetWorld();
 		
@@ -236,7 +218,7 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 			return;
 		}
 		
-		UGameInstance* GameInstance = World->GetGameInstance(); 
+		UGameInstance* GameInstance = World->GetGameInstance();
 		
 		if (!GameInstance)
 		{
@@ -244,12 +226,12 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 		}
 		
 		USignalManagement* Signals = GameInstance->GetSubsystem<USignalManagement>();
-		
+
 		if (!Signals)
 		{
 			return;
 		}
-
+		
 		Signals->ActivateSignal(FightingData, FightingData.StimulusLocation);
 	}
 }
@@ -269,29 +251,17 @@ void UAnimImpactObject::PlayDamageAnim(AActor* HitActor, AActor* Instigator)
 	ACharacter* InstigatorCharacter = Cast<ACharacter>(Instigator);
 
 	if (!HitActor || !Instigator || !HitCharacter) return;
+	
 
 	FVector ToInstigator = (Instigator->GetActorLocation() - HitActor->GetActorLocation()).GetSafeNormal();
 	float Product = FVector::DotProduct(HitActor->GetActorForwardVector(), ToInstigator);
 	if (Product > 0.5f)
 	{
-		UAnimMontage** AnimMontagePtr = Montages.Find("Front"); 
-		
-		if (!AnimMontagePtr || !(*AnimMontagePtr))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Montage not found"));
-			return;
-		}
-		
-		UAnimMontage* AnimToPlay = *AnimMontagePtr;
-		
+		UAnimMontage* AnimToPlay = Montages["Front"];
 		if (AnimToPlay)
 		{
 			if (HitCharacter)
 			{
-				if (!HitCharacter->GetMesh())
-				{
-					return; 
-				}
 				if (UAnimInstance* AnimInstance = HitCharacter->GetMesh()->GetAnimInstance())
 				{
 					auto Result = AnimInstance->Montage_Play(AnimToPlay);
@@ -310,22 +280,9 @@ void UAnimImpactObject::PlayDamageAnim(AActor* HitActor, AActor* Instigator)
 	}
 	else if (Product < -0.5f)
 	{
-		UAnimMontage** AnimMontagePtr = Montages.Find("Back"); 
-		
-		if (!AnimMontagePtr || !(*AnimMontagePtr))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Montage not found"));
-			return;
-		}
-		
-		UAnimMontage* AnimToPlay = *AnimMontagePtr;
+		UAnimMontage* AnimToPlay = Montages["Back"];
 		if (AnimToPlay)
 		{
-			if (!HitCharacter->GetMesh())
-			{
-				return; 
-			}
-			
 			if (UAnimInstance* AnimInstance = HitCharacter->GetMesh()->GetAnimInstance())
 			{
 				auto Result = AnimInstance->Montage_Play(AnimToPlay);
@@ -372,26 +329,13 @@ void UAnimImpactObject::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSeque
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
-	if (!MeshComp || !MeshComp->GetOwner())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("MeshComp is NULL"));
-		return;
-	}
+	UE_LOG(LogTemp, Warning, TEXT("logging from the west side"));
 
 	ACharacter* ResultingCharacter = Cast<ACharacter>(MeshComp->GetOwner());
-	
-	if (!ResultingCharacter)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Resulting Character is NULL"));
-		return;
-	}
-	
-	
 	TArray<AActor*> ActorsToIgnore;
 	FHitResult Hit;
 	if (ResultingCharacter)
 	{
-
 		if (ACharacter* PrisonCharacter = Cast<ACharacter>(GetActorFromSphereTrace(MeshComp, Hit, ActorsToIgnore)))
 		{
 			//UDamage* DamageComp = Cast<UDamage>(PrisonCharacter->GetComponentByClass(UDamage::StaticClass()));
@@ -400,11 +344,14 @@ void UAnimImpactObject::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSeque
 			AGPController* GetPrisonController = Cast<AGPController>(PrisonCharacter->GetController());
 			if (GetPrisonController)
 			{
-				if (GetPrisonController && GetPrisonController->Planner && GetPrisonController->Planner->BB_Planner)
-				{
-					UBlackboardComponent* Blackboard = GetPrisonController->Planner->BB_Planner;
-					Blackboard->SetValueAsBool("bInCombat", true);
-				}
+				// forward declare if i forgot, might also need to change the name Blackboard
+				UBlackboardComponent* Blackboard = GetPrisonController->Planner->BB_Planner;
+				Blackboard->SetValueAsBool("bInCombat", true);
+
+				//GEngine->AddOnScreenDebugMessage(10, 5.f, FColor::Red, FString::Printf(TEXT("Current Goal : %s"), *GetPrisonController->CurrentGoal->Name));
+				//GEngine->AddOnScreenDebugMessage(11, 5.f, FColor::Red, FString::Printf(TEXT("Is AI in Combat : %s"), *UKismetStringLibrary::Conv_BoolToString(Blackboard->GetValueAsBool("InCombat"))));
+				
+				
 			}
 		}
 	}
@@ -413,135 +360,76 @@ void UAnimImpactObject::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSeque
 void URollcall::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-
+	
 	TimerHandle = FTimerHandle();
-
-	UWorld* GameWorld = GetWorld();
-
-	if (!GameWorld)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("GameWorld is null"));
-		return;
-	}
-
-
-	GetWorld()->GetTimerManager().SetTimerForNextTick([this]
-	{
-		UWorld* World = GetWorld();
-		if (!World)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("World is null"));
-			return;
-		}
-		World->GetTimerManager().SetTimer(TimerHandle, this, &URollcall::HandleRollCall, 2.f, true);
-	});
-
-	MorningRollcall.StartHourRange = 9;
+	
+	
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &URollcall::HandleRollCall, 2.f, true);
+	MorningRollcall.StartHourRange = 9; 
 	MorningRollcall.EndHourRange = 9;
 	MorningRollcall.StartMinuteRange = 40;
 	MorningRollcall.EndMinuteRange = 50;
-
+	
 	EveningRollcall.StartHourRange = 22;
 	EveningRollcall.EndHourRange = 23;
 	EveningRollcall.StartMinuteRange = 40;
 	EveningRollcall.EndMinuteRange = 00;
-
-	RollCallLocation = GetDefault<UDataContainerSettings>()->Locations;
-
+	
+	RollCallLocation = GetDefault<UDataContainerSettings>()->Locations; 
+	
 	TimeSystem = GetWorld()->GetGameInstance<UTimeSystem>();
 	bMissingRollcall = false;
+
+	if(GetWorld()){
+		UE_LOG(LogTemp, Warning, TEXT("Inint"));
+	} 
 }
 
 void URollcall::HandleRollCall()
 {
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("World is null"));
-		return;
-	}
-
-	if (!TimeSystem)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Time System is null"));
-		return;
-	}
-
 	GEngine->AddOnScreenDebugMessage(12323, 1.f, FColor::Yellow, TEXT("Rolling call"));
 	if (TimeSystem->WithinTimeRange(TimeSystem->GetTimeData(), MorningRollcall))
 	{
 		APlayerController* PC = Cast<APlayerController>(GetWorld()->GetFirstPlayerController());
-
-		if (!PC || !PC->GetPawn())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("PlayerController is null"));
-			return;
-		}
-
-		float Dist = FVector::Dist(PC->GetPawn()->GetActorLocation(), RollCallLocation["MorningRollcall"]);
-
+		float Dist =  FVector::Dist(PC->GetPawn()->GetActorLocation(), RollCallLocation["MorningRollcall"]);
+		
 		if (Dist > 40)
 		{
 			bMissingRollcall = true;
 			FSignalData SignalData = FSignalData();
-
-			SignalData.ActionType = EActionType::ROLLCALL;
-			SignalData.ID = 0;
-			if (PC->GetPawn())
-			{
-				SignalData.InvolvedCharacters.Add(Cast<ACharacter>(PC->GetPawn()));
-				SignalData.StimulusLocation = PC->GetPawn()->GetActorLocation();
-			}
-			SignalData.SignalLifeSpan = 5.0f;
-
-			if (USignalManagement* Management = World->GetGameInstance()->GetSubsystem<USignalManagement>())
-			{
-				Management->ActivateSignal(SignalData, SignalData.StimulusLocation);
-				if (UPrisonManagementSystem* PrisonManagement = World->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>())
-				{
-					PrisonManagement->AddFlag(EPrisonState::LOCKDOWN);
-				}
-			}
+			
+			SignalData.ActionType = EActionType::ROLLCALL; 
+			SignalData.ID = 0; 
+			SignalData.InvolvedCharacters.Add(Cast<ACharacter>(PC->GetPawn()));
+			SignalData.SignalLifeSpan = 5.0f; 
+			SignalData.StimulusLocation = PC->GetPawn()->GetActorLocation();
+			
+			GetWorld()->GetGameInstance()->GetSubsystem<USignalManagement>()->ActivateSignal(SignalData, SignalData.StimulusLocation); 
+			GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>()->AddFlag(EPrisonState::LOCKDOWN); 
+			
+			
 		}
 	}
-
+	
 	if (TimeSystem->WithinTimeRange(TimeSystem->GetTimeData(), EveningRollcall))
 	{
 		APlayerController* PC = Cast<APlayerController>(GetWorld()->GetFirstPlayerController());
+		float Dist =  FVector::Dist(PC->GetPawn()->GetActorLocation(), RollCallLocation["EveningRollcall"]);
 		
-		if (!PC || !PC->GetPawn())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("PlayerController is null"));
-			return;
-		}
-		
-		float Dist = FVector::Dist(PC->GetPawn()->GetActorLocation(), RollCallLocation["EveningRollcall"]);
-
 		if (Dist > 40)
 		{
 			bMissingRollcall = true;
-
-			FSignalData SignalData = FSignalData();
-
-			SignalData.ActionType = EActionType::ROLLCALL;
-			SignalData.ID = 0;
 			
-			if (PC->GetPawn())
-			{
-				SignalData.InvolvedCharacters.Add(Cast<ACharacter>(PC->GetPawn()));
-				SignalData.StimulusLocation = PC->GetPawn()->GetActorLocation();
-			}
+			FSignalData SignalData = FSignalData(); 
 			
+			SignalData.ActionType = EActionType::ROLLCALL; 
+			SignalData.ID = 0; 
+			SignalData.InvolvedCharacters.Add(Cast<ACharacter>(PC->GetPawn()));
+			SignalData.SignalLifeSpan = 5.0f; 
 			SignalData.StimulusLocation = PC->GetPawn()->GetActorLocation();
-
-			if (USignalManagement* Management = World->GetGameInstance()->GetSubsystem<USignalManagement>())
-			{
-				Management->ActivateSignal(SignalData, SignalData.StimulusLocation);
-				if (UPrisonManagementSystem* PrisonManagement = World->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>())
-				{
-					PrisonManagement->AddFlag(EPrisonState::LOCKDOWN);
-				}
-			}
+			
+			GetWorld()->GetGameInstance()->GetSubsystem<USignalManagement>()->ActivateSignal(SignalData, SignalData.StimulusLocation); 
+			GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>()->AddFlag(EPrisonState::LOCKDOWN);
 		}
 	}
 }

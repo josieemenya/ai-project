@@ -28,6 +28,7 @@ void UAttack::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
+	
 }
 
 
@@ -46,23 +47,25 @@ void UAttack::OnEnemyHit(AActor* EnemyActor)
 		if (EnemyActor->Implements<UDamage>())
 		{
 			// then register damage
-		}
+		} 
 	}
 }
 
 void UAttack::Attack()
 {
-	auto Mesh = Cast<ACharacter>(GetOwner())->GetMesh();
+	
+	auto Mesh = Cast<ACharacter>(GetOwner())->GetMesh(); 
 	if (Mesh)
 	{
 		if (!IsAttacking())
 		{
 			SetAttacking(true);
-		
-			int SoundsSize = AttackSounds.Num() - 1;
+			
+			// play one at random 
+			int SoundsSize = AttackSounds.Num() - 1; 
 			int SoundIndex = FMath::RandRange(0, SoundsSize);
 			USoundBase* RandSound = AttackSounds[SoundIndex];
-
+						
 			if (RandSound)
 			{
 				UGameplayStatics::PlaySoundAtLocation(GetWorld(), RandSound, GetOwner()->GetActorLocation());
@@ -73,4 +76,5 @@ void UAttack::Attack()
 
 void UAttack::TriggerAttackAnim_Implementation(int32 Index)
 {
+	
 }
