@@ -13,7 +13,9 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class AI_PROJECT_API UAttack : public UActorComponent
 {
 	GENERATED_BODY()
-
+	
+	bool bIsAttacking;
+	
 public:	
 	// Sets default values for this component's properties
 	UAttack();
@@ -38,7 +40,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void Attack(); 
-
+	
 	
 	UPROPERTY(BlueprintReadWrite)
 	int32 MontageIndex; 
@@ -57,4 +59,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OnEnemyHit(AActor* EnemyActor); 
 		
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE void SetAttacking(bool isAttacking) { bIsAttacking = isAttacking; }
+	
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool IsAttacking() { return bIsAttacking; }
 };

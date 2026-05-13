@@ -208,11 +208,20 @@ void AGPController::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	check(Blackboard); 
+	
+	if (!Planner)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Planner component not present on %s"), *GetName());
+		APlayerController* SpecificPlayer = GetWorld()->GetFirstPlayerController();
+		UKismetSystemLibrary::QuitGame(GetWorld(), SpecificPlayer, EQuitPreference::Quit,true);
+		return; 
+	}
+	
 	InstantiateGoals(); 
 	
-	//
-	Planner->BB_Planner->SetValueAsFloat("Health", DamageComp->CharacterMaxHealth); 
-	
+	Blackboard->SetValueAsFloat("Health", DamageComp->CharacterMaxHealth); 
+
 	Planner->OnPlanInvalid.AddUObject(this, &AGPController::Replan);
 	GetWorldTimerManager().SetTimerForNextTick([this](){
 		Planner->UpdateSmartObjects(CurrentState);
@@ -224,6 +233,8 @@ void AGPController::BeginPlay()
 
 void AGPController::Tick(float DeltaTime)
 {
+	
+	
 	Super::Tick(DeltaTime);
 	
 	UGoal* NewGoal = GetBestGoal(); 

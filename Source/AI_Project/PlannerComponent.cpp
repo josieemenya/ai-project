@@ -27,7 +27,6 @@ float UGoal::GetUtility_Implementation(const UBlackboardComponent* BlackBoard)
 UPlannerComponent::UPlannerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-	BB_Planner = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BB_Blackboard"));
 }
 
 // Called when the game starts
@@ -40,14 +39,21 @@ void UPlannerComponent::BeginPlay()
 		UAction* InstanceAction = NewObject<UAction>(this, ActionClass.Get());
 		ActionList.Add(InstanceAction);
 	}
+	
+	if (AAIController* AIController = Cast<AAIController>(GetOwner()))
+	{
+		BB_Planner = AIController->GetBlackboardComponent();
+	}
 }
 
 // Called every frame
 void UPlannerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
-	
+	if (BB_Planner)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Planner component has been destroyed"));
+	}
 }
 
 void UPlannerComponent::SetGoal(TSubclassOf<UGoal> GoalClass)
@@ -66,8 +72,8 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 	
 	//UE_LOG(LogTemp, Warning, TEXT("Planning"));
 	
-	TArray<Node*> Open;
-	TArray<Node*> Close;
+	TArray<Node*> Open = TArray<Node*>();
+	TArray<Node*> Close = TArray<Node*>();
 	
 	
 
@@ -220,7 +226,7 @@ void UPlannerComponent::UpdateSmartObjects(FWorldState& Current)
 			LastSmartObjectContainer->RegisteredObjects.Add(SmartObj);
 			if (!BB_Planner->GetBlackboardAsset())
 			{
-				//UE_LOG(LogTemp, Error, TEXT("BlackboardComponent is null"));
+				UE_LOG(LogTemp, Error, TEXT("BlackboardComponent is null"));
 				return;
 			}
 			

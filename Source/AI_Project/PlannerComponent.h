@@ -151,7 +151,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UBlackboardComponent* BB_Planner;
 	
 	

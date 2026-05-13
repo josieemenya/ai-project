@@ -2,6 +2,8 @@
 
 
 #include "PrisonRules.h"
+
+#include "Attack.h"
 #include "GPController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Damage.h"
@@ -9,6 +11,7 @@
 #include "PrisonManagementSystem.h"
 #include "TimeSystem.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -200,8 +203,16 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 
 	if (!DamageComp)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No Damage component found"));
-		return;
+		UE_LOG(LogTemp, Warning, TEXT("No Damage component found on controller"));
+		
+		// because this might be the player character
+		DamageComp = Cast<UDamage>(OtherInstigator->GetComponentByClass(UDamage::StaticClass())); 
+		
+		if (!DamageComp)
+		{
+			// in cause it isn't the Player Character
+			return;
+		}
 	}
 
 	if (DamageComp)
@@ -216,11 +227,7 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 		FightingData.ID = FMath::RandRange(25, 99);
 		FightingData.SignalLifeSpan = 7.f;
 		FightingData.StimulusLocation = Instigator->GetActorLocation();
-		
-		if (!Instigator)
-		{
-			return;
-		}
+
 		
 		UWorld* World = Instigator->GetWorld();
 		
@@ -229,7 +236,14 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 			return;
 		}
 		
-		USignalManagement* Signals = World->GetGameInstance()->GetSubsystem<USignalManagement>();
+		UGameInstance* GameInstance = World->GetGameInstance(); 
+		
+		if (!GameInstance)
+		{
+			return;
+		}
+		
+		USignalManagement* Signals = GameInstance->GetSubsystem<USignalManagement>();
 		
 		if (!Signals)
 		{
@@ -334,6 +348,23 @@ void UAnimImpactObject::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequen
 void UAnimImpactObject::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
 	Super::NotifyEnd(MeshComp, Animation);
+	
+	if (!MeshComp || !MeshComp->GetOwner())
+	{
+		return;
+	}
+	
+	ACharacter* ResultingCharacter = Cast<ACharacter>(MeshComp->GetOwner());
+	
+	if (!ResultingCharacter)
+	{
+		return;
+	}
+	
+	if (UAttack* CharAttack =  Cast<UAttack>(ResultingCharacter->GetComponentByClass(UAttack::StaticClass())))
+	{
+		CharAttack->SetAttacking(false); 
+	}
 }
 
 void UAnimImpactObject::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration,
@@ -355,10 +386,12 @@ void UAnimImpactObject::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSeque
 		return;
 	}
 	
+	
 	TArray<AActor*> ActorsToIgnore;
 	FHitResult Hit;
 	if (ResultingCharacter)
 	{
+
 		if (ACharacter* PrisonCharacter = Cast<ACharacter>(GetActorFromSphereTrace(MeshComp, Hit, ActorsToIgnore)))
 		{
 			//UDamage* DamageComp = Cast<UDamage>(PrisonCharacter->GetComponentByClass(UDamage::StaticClass()));
