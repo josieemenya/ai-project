@@ -34,7 +34,7 @@ UGoal* AGPController::GetBestGoal()
 	for (UGoal* Goal : InstancedGoals)
 	{
 		
-		float utility = Goal->GetUtility(Planner->BB_Planner);
+		float utility = Goal->GetUtility(Blackboard);
 		
 		UE_LOG(LogTemp, Warning, TEXT("Evaluating Goal: %s"), *Goal->GetName());
 		UE_LOG(LogTemp, Warning, TEXT("%s Goal Value: %f"), *Goal->GetName(), utility);
@@ -166,7 +166,7 @@ bool AGPController::RegisterSeePlayer(UPlannerComponent* MyPlanner)
 			CurrentState.StateValues.FindOrAdd("Player", true); 
 			
 			auto PlayerinWorld = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0); 
-			MyPlanner->BB_Planner->SetValueAsObject("Player", PlayerinWorld);
+			Blackboard->SetValueAsObject("Player", PlayerinWorld);
 			return true; 
 		}
 	
@@ -210,8 +210,15 @@ void AGPController::BeginPlay()
 	
 	InstantiateGoals(); 
 	
-	//
-	Planner->BB_Planner->SetValueAsFloat("Health", DamageComp->CharacterMaxHealth); 
+	check(Planner); 
+	check(Blackboard);
+	
+	if (!Planner)
+	{
+		// log returb, same with blackboard
+	}
+	
+	Blackboard->SetValueAsFloat("Health", DamageComp->CharacterMaxHealth); 
 	
 	Planner->OnPlanInvalid.AddUObject(this, &AGPController::Replan);
 	GetWorldTimerManager().SetTimerForNextTick([this](){

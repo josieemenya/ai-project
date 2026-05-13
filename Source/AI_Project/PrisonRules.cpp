@@ -5,6 +5,7 @@
 #include "GPController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Damage.h"
+#include "Attack.h"
 #include "PlannerComponent.h"
 #include "PrisonManagementSystem.h"
 #include "TimeSystem.h"
@@ -187,8 +188,14 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 
 	if (!DamageComp)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No Damage component found"));
-		return;
+		// because this might be the player character
+		DamageComp = Cast<UDamage>(OtherInstigator->GetComponentByClass(UDamage::StaticClass())); 
+		
+		if (!DamageComp)
+		{
+			// in cause it isn't the Player Character
+			return;
+		}
 	}
 	
 	if (DamageComp)
@@ -204,7 +211,28 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 		FightingData.SignalLifeSpan = 7.f; 
 		FightingData.StimulusLocation = Instigator->GetActorLocation();
 		
-		Instigator->GetWorld()->GetGameInstance()->GetSubsystem<USignalManagement>()->ActivateSignal(FightingData, FightingData.StimulusLocation); 
+		UWorld* World = Instigator->GetWorld();
+		
+		if (!World)
+		{
+			return;
+		}
+		
+		UGameInstance* GameInstance = World->GetGameInstance();
+		
+		if (!GameInstance)
+		{
+			return;
+		}
+		
+		USignalManagement* Signals = GameInstance->GetSubsystem<USignalManagement>();
+
+		if (!Signals)
+		{
+			return;
+		}
+		
+		Signals->ActivateSignal(FightingData, FightingData.StimulusLocation);
 	}
 }
 
@@ -223,6 +251,7 @@ void UAnimImpactObject::PlayDamageAnim(AActor* HitActor, AActor* Instigator)
 	ACharacter* InstigatorCharacter = Cast<ACharacter>(Instigator);
 
 	if (!HitActor || !Instigator || !HitCharacter) return;
+	
 
 	FVector ToInstigator = (Instigator->GetActorLocation() - HitActor->GetActorLocation()).GetSafeNormal();
 	float Product = FVector::DotProduct(HitActor->GetActorForwardVector(), ToInstigator);
@@ -276,6 +305,23 @@ void UAnimImpactObject::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequen
 void UAnimImpactObject::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
 	Super::NotifyEnd(MeshComp, Animation);
+	
+	if (!MeshComp || !MeshComp->GetOwner())
+	{
+		return;
+	}
+	
+	ACharacter* ResultingCharacter = Cast<ACharacter>(MeshComp->GetOwner());
+	
+	if (!ResultingCharacter)
+	{
+		return;
+	}
+	
+	if (UAttack* CharAttack =  Cast<UAttack>(ResultingCharacter->GetComponentByClass(UAttack::StaticClass())))
+	{
+		CharAttack->SetAttacking(false); 
+	}
 }
 
 void UAnimImpactObject::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration,

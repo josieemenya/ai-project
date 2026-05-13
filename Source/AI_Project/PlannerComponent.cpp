@@ -27,13 +27,19 @@ float UGoal::GetUtility_Implementation(const UBlackboardComponent* BlackBoard)
 UPlannerComponent::UPlannerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-	BB_Planner = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BB_Blackboard"));
+
 }
 
 // Called when the game starts
 void UPlannerComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	if (AAIController* AIController = Cast<AAIController>(GetOwner()))
+	{
+		BB_Planner = AIController->GetBlackboardComponent();
+	}
+	
 	LastSmartObjectContainer = NewObject<USmartObjectContainer>(this);
 	for (TSubclassOf<UAction> ActionClass : AvailableActions)
 	{
@@ -66,8 +72,8 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 	
 	//UE_LOG(LogTemp, Warning, TEXT("Planning"));
 	
-	TArray<Node*> Open;
-	TArray<Node*> Close;
+	TArray<Node*> Open = TArray<Node*>();
+	TArray<Node*> Close = TArray<Node*>();
 	
 	
 
