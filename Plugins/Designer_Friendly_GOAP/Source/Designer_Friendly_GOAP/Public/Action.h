@@ -18,7 +18,7 @@ class ASmartObject;
 class UWorldState;
 
 UCLASS(Blueprintable, BlueprintType)
-class AI_PROJECT_API UAction : public UDataAsset
+class DESIGNER_FRIENDLY_GOAP_API UAction : public UDataAsset
 {
 	GENERATED_BODY()
 	

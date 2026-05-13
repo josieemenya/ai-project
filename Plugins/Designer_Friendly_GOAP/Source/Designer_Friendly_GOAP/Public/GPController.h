@@ -5,12 +5,10 @@
 #include "CoreMinimal.h"
 #include "AIController.h"
 #include "WorldState.h"
-#include "AIContext.h"
 #include "Perception/AIPerceptionTypes.h"
 #include "GPController.generated.h"
 
-class URoutineComponent;
-class UDamage;
+
 class UGoal;
 class UAIPerceptionComponent; 
 /**
@@ -21,7 +19,7 @@ class UAIPerceptionComponent;
 
 
 UCLASS()
-class AI_PROJECT_API AGPController : public AAIController
+class DESIGNER_FRIENDLY_GOAP_API AGPController : public AAIController
 {
 	GENERATED_BODY()
 	

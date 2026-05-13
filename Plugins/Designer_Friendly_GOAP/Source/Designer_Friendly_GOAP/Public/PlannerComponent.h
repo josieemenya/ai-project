@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "SmartObject.h"
 #include "Components/ActorComponent.h"
-#include "Planner.h"
 #include "PlannerComponent.generated.h"
 
 class UBlackboardComponent;
@@ -15,44 +14,8 @@ class UBlackboardComponent;
 ///
 ///
 
-UENUM(BlueprintType)
-enum class EValueType : uint8
-{
-	Int,
-	Float,
-	Bool,
-	Vector,
-	Actor
-};
-
-USTRUCT(BlueprintType)
-struct FTaggedValue
-{
-	GENERATED_BODY()
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EValueType Type;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 intVal;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float floatVal;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool boolVal;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector vecVal;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<AActor> ActorVal;
-}; 
-
-
-
 UCLASS(Blueprintable, BlueprintType,  meta=(ShowWorldContextPin))
-class AI_PROJECT_API UGoal : public UDataAsset
+class DESIGNER_FRIENDLY_GOAP_API UGoal : public UDataAsset
 {
 public : 
 	// add contecxt values for goal
@@ -134,7 +97,7 @@ inline int getHCost(Node* A, FWorldState B)
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class AI_PROJECT_API UPlannerComponent : public UActorComponent, public IPlanner
+class DESIGNER_FRIENDLY_GOAP_API UPlannerComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

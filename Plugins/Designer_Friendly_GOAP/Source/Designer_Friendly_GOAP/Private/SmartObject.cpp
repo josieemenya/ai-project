@@ -4,7 +4,6 @@
 #include "SmartObject.h"
 #include "SmartObjectManager.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
-#include "BlackboardSystem.h"
 #include "Perception/AISense_Sight.h"
 
 
@@ -18,7 +17,6 @@ ASmartObject::ASmartObject()
 	SeeObject = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>("SeeObject");
 	SeeObject->bAutoRegister = true;
 	SeeObject->RegisterForSense(UAISense_Sight::StaticClass());
-	;
 }
 
 // Called when the game starts or when spawned

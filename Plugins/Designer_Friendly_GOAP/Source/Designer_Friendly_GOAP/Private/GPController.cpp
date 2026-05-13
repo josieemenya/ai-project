@@ -5,11 +5,9 @@
 
 #include "AI_ProjectCharacter.h"
 #include "BrainComponent.h"
-#include "Damage.h"
+
 #include "PlannerComponent.h"
-#include "PrisonManagementSystem.h"
-#include "PrisonRules.h"
-#include "Routine.h"
+
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Engine/SceneCapture2D.h"
 #include "Kismet/GameplayStatics.h"
@@ -21,8 +19,6 @@ AGPController::AGPController()
 {
 	Planner = CreateDefaultSubobject<UPlannerComponent>("PlannerComponent");
 	PerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>("PerceptionComp");
-	DamageComp = CreateDefaultSubobject<UDamage>(TEXT("DamageComp"));
-	RoutineComp = CreateDefaultSubobject<URoutineComponent>(TEXT("RoutineComp"));
 	PrimaryActorTick.bCanEverTick = true;
 }
 
@@ -226,7 +222,7 @@ void AGPController::BeginPlay()
 		StartPlanning();
 	});
 	PerceptionComp->OnTargetPerceptionUpdated.AddDynamic(this, &AGPController::OnTargetPerceptionUpdated);
-	DamageComp->OnCharacterDeath.AddDynamic(this, &AGPController::OnCharacterDeathAnim);
+	
 }
 
 void AGPController::Tick(float DeltaTime)
@@ -259,13 +255,6 @@ void AGPController::Tick(float DeltaTime)
 		StartPlanning();
 	}
 	
-	for (auto I : InstancedGoals)
-	{
-		if (I)
-		{
-			//UE_LOG(LogTemp, Warning, TEXT("Goal Name: %s, Score: %f"), *I->Name, I->GetUtility(Planner->BB_Planner));
-		}
-	}
 }
 
 void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
@@ -301,30 +290,9 @@ void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulu
 			// debug off
 			if (Stimulus.WasSuccessfullySensed())
 			{
-				if (PC->CurrentlyHoldingItem)
-				{
-					if (PC->HeldInvItem.ItemTypes.Contains(EItemType::CONTRABAND) || PC->HeldInvItem.ItemTypes.Contains(EItemType::WEAPON))
-					{
-						FSignalData VisiblyArmed = FSignalData();
-						VisiblyArmed.InvolvedCharacters.Add(PC);
-						VisiblyArmed.ActionType = EActionType::CONTRABAND; 
-						VisiblyArmed.SignalLifeSpan = 10.f; 
-						VisiblyArmed.StimulusLocation = PC->GetActorLocation();
-						
-						GetWorld()->GetGameInstance()->GetSubsystem<USignalManagement>()->ActivateSignal(VisiblyArmed, PC->GetActorLocation()); 
-						
-					}
-				}
+
 			}
 		}
-	}
-	
-	if (Actor->IsA(ASignal::StaticClass()) && Actor->IsA(ASmartObject::StaticClass()))
-	{ // action, move to player, investigate, G_Investigate then G_Enforcement
-		GetBlackboardComponent()->SetValueAsObject(FName("Target"), Actor); 
-		GetBlackboardComponent()->SetValueAsBool(FName("Engaged"), true); // necessary
-		GetBlackboardComponent()->SetValueAsBool(FName("SeenSignal"), true);
-		ShouldInterruptCurrentPlan = true; 
 	}
 }
 

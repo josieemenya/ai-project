@@ -7,10 +7,9 @@
 #include "Action.h"
 #include "SmartObject.generated.h"
 
-class UBlackboardCustom; 
 
 UCLASS()
-class AI_PROJECT_API ASmartObject : public AActor
+class DESIGNER_FRIENDLY_GOAP_API ASmartObject : public AActor
 {
 	GENERATED_BODY()
 	
@@ -69,7 +68,7 @@ inline void ASmartObject::WriteToWorldState(FWorldState& TargetState)
 
 
 UCLASS(Blueprintable)
-class AI_PROJECT_API USmartObjectContainer : public UObject
+class DESIGNER_FRIENDLY_GOAP_API USmartObjectContainer : public UObject
 {
 	GENERATED_BODY()
 public:	

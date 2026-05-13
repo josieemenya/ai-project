@@ -1,21 +1,13 @@
 #include "PlannerComponent.h"
 #include "AIController.h"
-#include "BaseAI.h"
-#include "BlackboardSystem.h"
-#include "GameFramework/Character.h"
-#include "ComponentUtils.h"
 #include "GPController.h"
 #include "GameFramework/Actor.h"
-#include "Kismet/GameplayStatics.h"
 #include "Algo/Transform.h"
 #include "Algo/Reverse.h"
 #include "Animation/AnimMontage.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISense_Sight.h"
-#include "Perception/PawnSensingComponent.h"
 #include "BehaviorTree/BlackboardComponent.h" 
-#include "TimeSystem.h"
-#include "Navigation/PathFollowingComponent.h"
 
 
 float UGoal::GetUtility_Implementation(const UBlackboardComponent* BlackBoard)

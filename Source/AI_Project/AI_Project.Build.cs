@@ -9,6 +9,6 @@ public class AI_Project : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput",  "AIModule", "NavigationSystem", "UMG", "Slate",
-			"SlateCore", "DeveloperSettings" });
+			"SlateCore", "DeveloperSettings", "Designer_Friendly_GOAP" });
 	}
 }

@@ -11,7 +11,7 @@
  * 
  */
 UCLASS()
-class AI_PROJECT_API USmartObjectManager : public UGameInstanceSubsystem
+class DESIGNER_FRIENDLY_GOAP_API USmartObjectManager : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 	
