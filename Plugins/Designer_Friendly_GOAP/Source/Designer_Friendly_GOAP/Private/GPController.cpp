@@ -2,12 +2,8 @@
 
 
 #include "GPController.h"
-
-#include "AI_ProjectCharacter.h"
 #include "BrainComponent.h"
-
 #include "PlannerComponent.h"
-
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Engine/SceneCapture2D.h"
 #include "Kismet/GameplayStatics.h"
@@ -213,9 +209,7 @@ void AGPController::BeginPlay()
 	{
 		// log returb, same with blackboard
 	}
-	
-	Blackboard->SetValueAsFloat("Health", DamageComp->CharacterMaxHealth); 
-	
+
 	Planner->OnPlanInvalid.AddUObject(this, &AGPController::Replan);
 	GetWorldTimerManager().SetTimerForNextTick([this](){
 		Planner->UpdateSmartObjects(CurrentState);
@@ -262,7 +256,7 @@ void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulu
 	
 	if (Actor)
 	{
-		if (auto PC = Cast<AAI_ProjectCharacter>(Actor))
+		if (auto PC = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
 		{
 			
 			// debug on

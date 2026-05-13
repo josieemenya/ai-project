@@ -43,15 +43,7 @@ public:
 	UGoal* CurrentGoal; 
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FWorldState CurrentState; 
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UDamage* DamageComp; 
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	URoutineComponent* RoutineComp;
-
-	
+	FWorldState CurrentState;
 	
 	// should i mark with UFUNCTION() ? leaning towards no.
 	UGoal* GetBestGoal(); 

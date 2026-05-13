@@ -42,9 +42,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SmartObjects)
 	class UAIPerceptionStimuliSourceComponent* SeeObject;
-	
-	UFUNCTION(BlueprintCallable)
-	void RegisterInBlackboard(UBlackboardCustom* BB); 
+
 	
 };
 

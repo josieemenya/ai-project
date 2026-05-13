@@ -20,9 +20,3 @@ enum class EExitSequenceType : uint8
 	DEFAULT UMETA(Hidden)
 };
 
-UCLASS()
-class AI_PROJECT_API UExitSequence : public UUserDefinedEnum
-{
-	GENERATED_BODY()
-	
-};
