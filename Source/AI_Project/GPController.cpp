@@ -281,13 +281,17 @@ void AGPController::Tick(float DeltaTime)
 
 void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
+	
+	for (auto x : Blackboard->GetBlackboardAsset()->Keys)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Key: %s, Value: %s"), *x.EntryName.ToString(), *Blackboard->GetValueAsObject(x.EntryName)->GetName())
+	}
 	if (Actor)
 	{
 		if (AAI_ProjectCharacter* PC = Cast<AAI_ProjectCharacter>(Actor))
 		{
-			UBlackboardComponent* BB = GetBlackboardComponent();
-			BB->SetValueAsObject("Player", PC);
-			BB->SetValueAsVector("LastKnownPlayerLocation", PC->GetActorLocation());
+			Blackboard->SetValueAsObject("Player", PC);
+			Blackboard->SetValueAsVector("LastKnownPlayerLocation", PC->GetActorLocation());
 
 			if (Stimulus.WasSuccessfullySensed())
 			{
@@ -304,7 +308,7 @@ void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulu
 
 						GetWorld()->GetGameInstance()->GetSubsystem<USignalManagement>()->ActivateSignal(
 							VisiblyArmed, PC->GetActorLocation());
-						BB->SetValueAsBool("SeenSignal", true);
+						Blackboard->SetValueAsBool("SeenSignal", true);
 						ShouldInterruptCurrentPlan = true;
 					}
 				}
