@@ -20,7 +20,7 @@ public:
 	// Sets default values for this component's properties
 	UDamage();
 	
-	UPROPERTY( EditDefaultsOnly )
+	UPROPERTY( VisibleAnywhere, BlueprintReadWrite )
 	float CharacterHealth; 
 	
 	UPROPERTY( EditDefaultsOnly )

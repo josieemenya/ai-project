@@ -163,14 +163,24 @@ void UDamage::HandleDeath(AAIController* CharacterController)
 		);
 	} else
 	{
-		if ((GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>()->PrisonStateFlags & (int32)EPrisonState::LOCKDOWN) != 0)
+		if ((GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>()->PrisonStateFlags & static_cast<int32>(EPrisonState::LOCKDOWN)) != 0)
 		{
-			if (OnDeathScreen)
+			APlayerController* PC = GetWorld()->GetFirstPlayerController();
+
+			if (PC && OnDeathScreen)
 			{
-				UUserWidget* DScreen = CreateWidget<UUserWidget>(GetWorld(),OnDeathScreen);		
+				UUserWidget* DScreen = CreateWidget<UUserWidget>(PC, OnDeathScreen);
+
+				if (!DScreen)
+				{
+					UE_LOG(LogTemp, Error, TEXT("Failed to create death widget"));
+					return;
+				}
+
 				DScreen->AddToViewport();
-				UGameplayStatics::SetGamePaused(GetWorld(), true);
-				// solitary, Restart Game, Go To Main Menu
+				
+				PC->SetInputMode(FInputModeUIOnly());
+				PC->SetPause(true); 
 			}
 		} // else get cutscene, refresh everything, clear chest and everything with contraband
 		else
