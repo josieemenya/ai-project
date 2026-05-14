@@ -55,6 +55,10 @@ void UDamage::UnlockMovement()
 		{
 			Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 			CharacterHealth = CharacterMaxHealth;
+			AIController->GetBlackboardComponent()->SetValueAsFloat("Health", CharacterHealth);
+			AIController->GetBlackboardComponent()->SetValueAsBool("KnockedOut", false); 
+			AIController->GetBlackboardComponent()->SetValueAsBool("InCombat", false);
+			AIController->GetBlackboardComponent()->SetValueAsBool("Engaged", false);
 		}
 	}
 
@@ -75,6 +79,11 @@ void UDamage::HealHealth(float health)
 {
 	if (bMortis || health <= 0) return;
 	CharacterHealth = FMath::Min(CharacterHealth + health, CharacterMaxHealth);
+	
+	if (AAIController* CharacterController = Cast<AAIController>(GetOwner()))
+	{
+		CharacterController->GetBlackboardComponent()->SetValueAsFloat("Health", CharacterHealth);
+	}
 }
 
 void UDamage::HealStamina(float stamina)
@@ -138,6 +147,11 @@ void UDamage::SetCharacterHealth(float health)
 {
 	if (bMortis || health <= 0 || health > CharacterMaxHealth) return;
 	CharacterHealth = health;
+	
+	if (AAIController* CharacterController = Cast<AAIController>(GetOwner()))
+	{
+		CharacterController->GetBlackboardComponent()->SetValueAsFloat("Health", CharacterHealth);
+	}
 }
 
 void UDamage::SetCharacterStamina(float stamina)
@@ -147,13 +161,17 @@ void UDamage::SetCharacterStamina(float stamina)
 }
 
 
-void UDamage::HandleDeath(AAIController* CharacterController)
+void UDamage::HandleDeath(AController* CharacterController)
 {
 	GEngine->AddOnScreenDebugMessage(33, 2.f, FColor::Yellow, "BRPPPPP");
-	if (CharacterController)
+	if (AAIController* AICharacter = Cast<AAIController>(CharacterController))
 	{
 		GEngine->AddOnScreenDebugMessage(33, 2.f, FColor::Yellow, "DoUnlockMovement");
 		FTimerHandle TimerHandle;
+		
+		AICharacter->GetBlackboardComponent()->SetValueAsBool("KnockedOut", true);
+		AICharacter->GetBlackboardComponent()->SetValueAsBool("Engaged", false);
+		
 		GetWorld()->GetTimerManager().SetTimer(
 			TimerHandle,
 			this,

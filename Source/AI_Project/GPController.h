@@ -72,7 +72,7 @@ public:
 	
 	
 	UFUNCTION()
-	void OnCharacterDeathAnim(AAIController* ParentController); 
+	void OnCharacterDeathAnim(AController* ParentController); 
 
 protected:
 	virtual void BeginPlay() override;

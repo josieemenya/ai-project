@@ -38,7 +38,7 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool bMortis; 
 	
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AAIController*, ParentController);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AController*, ParentController);
 
 	UPROPERTY(BlueprintAssignable)
 	FOnDeath OnDeath;
@@ -93,7 +93,7 @@ public:
 	void SetCharacterStamina( float stamina );
 	
 	UFUNCTION( BlueprintCallable )
-	void HandleDeath(AAIController* CharacterController); 
+	void HandleDeath(AController* CharacterController); 
 	
 	
 	UPROPERTY( BlueprintAssignable )
