@@ -85,22 +85,23 @@ EExitSequenceType URoutineComponent::TransitionRoutine()
 		
 		float Dist = FMath::Abs((AttachedActor->GetActorLocation() - CurrentState.Location).Length()); 
 		
-		if (Dist <= AcceptableRadius)
+		if (Dist <= AcceptableRadius || FMath::IsNearlyEqual(Dist, AcceptableRadius, 2))
 		{
 			return EExitSequenceType::SUCCESS; 
 		} 
 		
 		switch (SteerResult)
 		{
-			case EPathFollowingStatus::Idle:
-				Steer->MoveToLocation(CurrentState.Location, AcceptableRadius); 
-				return EExitSequenceType::RUNNING;
-			
-			case EPathFollowingStatus::Moving:
-				return EExitSequenceType::RUNNING;
-		
-			default:
-				return EExitSequenceType::DEFAULT;
+		case EPathFollowingStatus::Idle:
+			Steer->MoveToLocation(CurrentState.Location, AcceptableRadius); 
+			return EExitSequenceType::RUNNING;
+
+		case EPathFollowingStatus::Moving:
+			return EExitSequenceType::RUNNING;
+
+		case EPathFollowingStatus::Waiting:
+		case EPathFollowingStatus::Paused:
+			return EExitSequenceType::RUNNING; 
 		}
 		
 	}

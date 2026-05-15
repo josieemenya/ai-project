@@ -71,11 +71,15 @@ void AGPController::StartPlanning()
 
 		UE_LOG(LogTemp, Warning, TEXT("Updating Current Goal."));
 
-		FWorldState BaseCurrentState = CurrentState;
+		
 
 		RegisterSeePlayer(Planner); // if can see player update black board to reflect that
+		
+		SyncWorldState(CurrentState, Blackboard); 
+		
+		FWorldState BaseCurrentState = CurrentState;
 
-		Planner->UpdateSmartObjects(BaseCurrentState);
+		Planner->UpdateSmartObjects(CurrentState);
 
 		CurrentGoal = GetBestGoal();
 
@@ -88,6 +92,11 @@ void AGPController::StartPlanning()
 		// if goal needs to interact with smart obj
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("Skipping planning: no smart objects yet"));
+			return;
+		}
+		
+		if (Planner->CurrentAction)
+		{
 			return;
 		}
 
@@ -163,8 +172,7 @@ bool AGPController::RegisterSeePlayer(UPlannerComponent* MyPlanner)
 
 		if (FoundPlayer != INDEX_NONE)
 		{
-			CurrentState.StateValues.FindOrAdd("Player", true);
-
+			Blackboard->SetValueAsBool("HasSeenPlayer", true);
 			auto PlayerinWorld = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 			Blackboard->SetValueAsObject("Player", PlayerinWorld);
 			ShouldInterruptCurrentPlan = true;
@@ -182,8 +190,8 @@ bool AGPController::RegisterSeePlayer(UPlannerComponent* MyPlanner)
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Perceived Jack Shit"));
-		Blackboard->SetValueAsObject("Player", nullptr);
-		Blackboard->SetValueAsFloat("DistanceToPlayer", 0.0);
+		Blackboard->SetValueAsBool("HasSeenPlayer", false);
+		Blackboard->SetValueAsFloat("DistanceToPlayer", -1);
 		ShouldInterruptCurrentPlan = true;
 	}
 
@@ -264,6 +272,7 @@ void AGPController::Tick(float DeltaTime)
 	{
 		if (ShouldInterruptCurrentPlan)
 		{
+			SyncWorldState(CurrentState, Blackboard); 
 			UGoal* NewGoal = GetBestGoal();
 
 			if (NewGoal != CurrentGoal)
@@ -274,7 +283,6 @@ void AGPController::Tick(float DeltaTime)
 				StartPlanning();
 			}
 			ShouldInterruptCurrentPlan = false;
-			return;
 		}
 		
 		UpdateActions();

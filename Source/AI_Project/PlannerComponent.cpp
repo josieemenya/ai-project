@@ -169,16 +169,16 @@ TArray<UAction*> UPlannerComponent::FilterAvailableActions(TArray<UAction*> Acti
 		if (!Instance) continue;
 
 		
-		//UE_LOG(LogTemp, Warning, TEXT("Checking action %s"), *Instance->Name.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("Checking action %s"), *Instance->Name.ToString());
 		
 		if (CurrentState.Satisfies(Instance->Context))
 		{
 			ResultActionList.Add(Instance);
-			//UE_LOG(LogTemp, Warning, TEXT("Action %s is valid"), *Instance->Name.ToString());
+			UE_LOG(LogTemp, Warning, TEXT("Action %s is valid"), *Instance->Name.ToString());
 
 		} else
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Action %s rejected"), *Instance->Name.ToString());
+			UE_LOG(LogTemp, Warning, TEXT("Action %s rejected"), *Instance->Name.ToString());
 		}
 			
 	}
@@ -275,6 +275,8 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
     switch (Result)
     {
         case EExitSequenceType::RUNNING:
+    		LastAction = CurrentAction;
+    		UE_LOG(LogTemp, Warning, TEXT("Running Action : %s"), *CurrentAction->GetName())
             return;
 
         case EExitSequenceType::INVALID:
@@ -289,8 +291,8 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
                 for (auto& Effect : CurrentAction->Effects.StateValues)
                 {
                     Bot->CurrentState.StateValues.FindOrAdd(Effect.Key) = Effect.Value;
-                    /*UE_LOG(LogTemp, Warning, TEXT("Updated CurrentState: %s = %s"),
-                        *Effect.Key, Effect.Value ? TEXT("true") : TEXT("false"));*/
+                    UE_LOG(LogTemp, Warning, TEXT("Updated CurrentState: %s = %s"),
+                        *Effect.Key, Effect.Value ? TEXT("true") : TEXT("false"));
                 }
             }
     		LastAction = CurrentAction;
@@ -300,6 +302,8 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
     	
 		case EExitSequenceType::FAILURE:
     		UE_LOG(LogTemp, Error, TEXT("%s's Action execution ended in failure, please see Execute action for details."), CurrentAction ? *CurrentAction->Name.ToString() : TEXT("UnknownAction"))
+    		CurrentAction = nullptr;
+    		OnPlanInvalid.Broadcast();
     		break; 
     	
 		case EExitSequenceType::DEFAULT:
