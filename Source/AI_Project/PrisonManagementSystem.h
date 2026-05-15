@@ -116,7 +116,7 @@ class UOptionsUI : public UUserWidget
 
 
 UCLASS()
-class AI_PROJECT_API UPrisonManagementSystem : public UGameInstanceSubsystem
+class AI_PROJECT_API UPrisonManagementSystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 

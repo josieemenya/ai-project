@@ -98,7 +98,7 @@ protected:
 };
 
 UCLASS()
-class AI_PROJECT_API USignalManagement : public UGameInstanceSubsystem
+class AI_PROJECT_API USignalManagement : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
@@ -106,6 +106,7 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 	TMap<TObjectPtr<ASignal>, ESignalState> SignalPool;
+	
 	const int POOL_SIZE = 25;
 	
 	UFUNCTION(BlueprintCallable)
@@ -174,7 +175,7 @@ public:
 
 
 UCLASS()
-class URollcall : public UGameInstanceSubsystem
+class URollcall : public UWorldSubsystem
 {
 	GENERATED_BODY()
 	
@@ -191,7 +192,10 @@ class URollcall : public UGameInstanceSubsystem
 	FTimeRange MorningRollcall;
 	FTimeRange EveningRollcall;
 	
-	UTimeSystem* TimeSystem;
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	void HandleRollCall();
+
+	bool DoesSupportWorldType(const EWorldType::Type WorldType) const override {
+		return WorldType == EWorldType::PIE or WorldType == EWorldType::Game;	
+	}
 };

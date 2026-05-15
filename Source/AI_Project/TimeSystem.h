@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/TimelineComponent.h"
+#include "Engine/World.h"
 #include "UObject/NoExportTypes.h"
 #include "TimeSystem.generated.h"
 
@@ -65,7 +66,7 @@ struct FTimeData
 };
  
 UCLASS(Blueprintable)
-class AI_PROJECT_API UTimeSystem : public UGameInstance
+class AI_PROJECT_API UTimeSystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 public:
@@ -80,6 +81,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FTimeData TimeData;
 	
+
 	UFUNCTION(BlueprintCallable)
 	void TransitionTimeOfDay(ETimeOfDay e);
 	
@@ -98,26 +100,24 @@ public:
 	void StartDay(); 
 	
 	UFUNCTION(BlueprintCallable)
-	void UpdateTime(); 
-	
-	UFUNCTION(BlueprintCallable)
-	void OnTimelineUpdate(float val); 
-	
+	void UpdateTime();
+	void OnTimelineUpdate(float val);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float CurrentPosition; 
 	
-	UFUNCTION(BlueprintCallable)
-	void InitTimeline();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<FString, float> DayPositions;
 	
 	TArray<FString> Times;
 	float DesiredPosition;
-	
-	
+
+
+	void InitTimeline();
 	const FTimeData& GetTimeData();
-	
+	void Init();
+
 
 	class ADirectionalLight* LightActor; 
 	
@@ -126,21 +126,20 @@ public:
 	float StartPosition;
 	
 	float LastDesiredPosition;
-	
-	
+
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimelineUpdated,  const FTimeData&, TimeData);
 
-	//UPROPERTY(BlueprintAssignable)
 	FOnTimelineUpdated OnTimelineUpdated;
 
 public:
-	//virtual void Initialize(FSubsystemCollectionBase& Collection) override;
-	virtual void Init() override;
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	
 	
 	UFUNCTION(BlueprintCallable)
 	bool WithinTimeRange(const FTimeData& Data, const FTimeRange& TimeRange) const;
 
-
-protected:
-	virtual void OnStart() override;
+	bool DoesSupportWorldType(const EWorldType::Type WorldType) const override {
+		return WorldType == EWorldType::PIE or WorldType == EWorldType::Game;	
+	}
+	
 };

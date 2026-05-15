@@ -37,6 +37,9 @@ class AI_PROJECT_API UAction : public UDataAsset
 	EExitSequenceType Execute(AActor* Owner);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FWorldState Preconditions;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FWorldState Effects; 
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

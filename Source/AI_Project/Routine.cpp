@@ -25,7 +25,7 @@ URoutineComponent::URoutineComponent()
 void URoutineComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	TimeSystem = Cast<UTimeSystem>(GetWorld()->GetGameInstance());
+	TimeSystem = Cast<UTimeSystem>(GetWorld()->GetSubsystem<UTimeSystem>());
 	FString ContextString; 
 	
 	if (RoutineTable){

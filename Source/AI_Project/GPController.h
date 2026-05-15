@@ -70,6 +70,7 @@ public:
 
 	bool RegisterSeePlayer(UPlannerComponent* InPlanner);
 	
+	
 	UFUNCTION(BlueprintNativeEvent) // so it can be overriden in a planner
 	void SyncWorldState(FWorldState State, UBlackboardComponent* BBlackboard); 
 	

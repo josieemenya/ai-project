@@ -49,7 +49,7 @@ void UPlayerHUDUI::NativeConstruct()
 	TenthMinuteTextBlock->SetFont(FontInfo);
 	MinuteTextBlock->SetFont(FontInfo);
 
-	UTimeSystem* Time = Cast<UTimeSystem>(GetGameInstance());
+	UTimeSystem* Time = Cast<UTimeSystem>(GetWorld()->GetSubsystem<UTimeSystem>());
 	if (!Time) return;
 
 	Time->OnTimelineUpdated.AddDynamic(this, &UPlayerHUDUI::TimeUpdate); 

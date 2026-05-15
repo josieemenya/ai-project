@@ -157,7 +157,7 @@ public:
 	void AddToAvailableActions(UAction* NewAction); 
 	
 	UFUNCTION(BlueprintCallable, Category="Planner")
-	TArray<UAction*> PlanGoal(FWorldState& CurrentState, FWorldState DesiredState); // keep in planner
+	TArray<UAction*> PlanGoal(FWorldState& InitialWorldState, FWorldState DesiredState); // keep in planner
 
 	TArray<UAction*> BuildPlan(Node* Last); // keep in planner
 	TArray<UAction*> FilterAvailableActions(TArray<UAction*> Actions, FWorldState CurrentState); // keep in planner
@@ -192,6 +192,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TSubclassOf<UAction>> AvailableActions; // the actions that the planner can use to achieve goals, this should be populated by the actor that implements the planner interfac
 
+	TArray<UAction*> FilterSatisfyingActions(TArray<UAction*> Actions, FWorldState& DesiredState);
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<UAction*> ActionList;
 	

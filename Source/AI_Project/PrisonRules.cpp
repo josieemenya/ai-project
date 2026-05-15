@@ -55,25 +55,25 @@ void USignalManagement::Initialize(FSubsystemCollectionBase& Collection)
 
 void USignalManagement::ActivateSignal(FSignalData Data, FVector Location)
 {
-	for (TPair<TObjectPtr<ASignal>, ESignalState>& NewSignal : SignalPool)
+	for (TPair<TObjectPtr<ASignal>, ESignalState>& Signal : SignalPool)
 	{
-		if (NewSignal.Key->SignalData == Data && NewSignal.Value == ESignalState::ACTIVE)
+		if (Signal.Key->SignalData == Data && Signal.Value == ESignalState::ACTIVE)
 		{
-			NewSignal.Value = ESignalState::IGNORED;
+			Signal.Value = ESignalState::IGNORED;
 			break;
 		}
 	}
 	
 	
-	for (TPair<TObjectPtr<ASignal>, ESignalState>& NewSignal : SignalPool)
+	for (TPair<TObjectPtr<ASignal>, ESignalState>& Pair : SignalPool)
 	{
-		if (NewSignal.Value == ESignalState::IGNORED)
+		if (Pair.Value == ESignalState::IGNORED)
 		{
 			Data.ID = NextID++; 
-			NewSignal.Key->SignalData = Data;
-			NewSignal.Value = ESignalState::ACTIVE; 
-			NewSignal.Key->SetActorLocation(Location);
-			UE_LOG(LogTemp, Warning, TEXT("New Signal: %s"), *NewSignal.Key.GetName())
+			Pair.Key->SignalData = Data;
+			Pair.Value = ESignalState::ACTIVE; 
+			Pair.Key->SetActorLocation(Location);
+			UE_LOG(LogTemp, Warning, TEXT("New Signal: %s"), *Pair.Key.GetName())
 			return;
 		}
 	}
@@ -218,14 +218,8 @@ void UAnimImpactObject::AdjustDamageAndRules(ACharacter* Instigator, ACharacter*
 			return;
 		}
 		
-		UGameInstance* GameInstance = World->GetGameInstance();
 		
-		if (!GameInstance)
-		{
-			return;
-		}
-		
-		USignalManagement* Signals = GameInstance->GetSubsystem<USignalManagement>();
+		USignalManagement* Signals = World->GetSubsystem<USignalManagement>();
 
 		if (!Signals)
 		{
@@ -367,8 +361,8 @@ void URollcall::Initialize(FSubsystemCollectionBase& Collection)
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &URollcall::HandleRollCall, 2.f, true);
 	MorningRollcall.StartHourRange = 9; 
 	MorningRollcall.EndHourRange = 9;
-	MorningRollcall.StartMinuteRange = 40;
-	MorningRollcall.EndMinuteRange = 50;
+	MorningRollcall.StartMinuteRange = 10;
+	MorningRollcall.EndMinuteRange = 20;
 	
 	EveningRollcall.StartHourRange = 22;
 	EveningRollcall.EndHourRange = 23;
@@ -377,7 +371,6 @@ void URollcall::Initialize(FSubsystemCollectionBase& Collection)
 	
 	RollCallLocation = GetDefault<UDataContainerSettings>()->Locations; 
 	
-	TimeSystem = GetWorld()->GetGameInstance<UTimeSystem>();
 	bMissingRollcall = false;
 
 	if(GetWorld()){
@@ -387,10 +380,16 @@ void URollcall::Initialize(FSubsystemCollectionBase& Collection)
 
 void URollcall::HandleRollCall()
 {
+	UTimeSystem* TimeSystem = GetWorld()->GetSubsystem<UTimeSystem>();
 	GEngine->AddOnScreenDebugMessage(12323, 1.f, FColor::Yellow, TEXT("Rolling call"));
 	if (TimeSystem->WithinTimeRange(TimeSystem->GetTimeData(), MorningRollcall))
 	{
 		APlayerController* PC = Cast<APlayerController>(GetWorld()->GetFirstPlayerController());
+		
+		if (!PC->GetPawn()){
+			return;
+		}
+
 		float Dist =  FVector::Dist(PC->GetPawn()->GetActorLocation(), RollCallLocation["MorningRollcall"]);
 		
 		if (Dist > 40)
@@ -403,9 +402,10 @@ void URollcall::HandleRollCall()
 			SignalData.InvolvedCharacters.Add(Cast<ACharacter>(PC->GetPawn()));
 			SignalData.SignalLifeSpan = 5.0f; 
 			SignalData.StimulusLocation = PC->GetPawn()->GetActorLocation();
+
 			
-			GetWorld()->GetGameInstance()->GetSubsystem<USignalManagement>()->ActivateSignal(SignalData, SignalData.StimulusLocation); 
-			GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>()->AddFlag(EPrisonState::LOCKDOWN); 
+			GetWorld()->GetSubsystem<USignalManagement>()->ActivateSignal(SignalData, SignalData.StimulusLocation); 
+			GetWorld()->GetSubsystem<UPrisonManagementSystem>()->AddFlag(EPrisonState::LOCKDOWN); 
 			
 			
 		}
@@ -428,8 +428,8 @@ void URollcall::HandleRollCall()
 			SignalData.SignalLifeSpan = 5.0f; 
 			SignalData.StimulusLocation = PC->GetPawn()->GetActorLocation();
 			
-			GetWorld()->GetGameInstance()->GetSubsystem<USignalManagement>()->ActivateSignal(SignalData, SignalData.StimulusLocation); 
-			GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>()->AddFlag(EPrisonState::LOCKDOWN);
+			GetWorld()->GetSubsystem<USignalManagement>()->ActivateSignal(SignalData, SignalData.StimulusLocation); 
+			GetWorld()->GetSubsystem<UPrisonManagementSystem>()->AddFlag(EPrisonState::LOCKDOWN);
 		}
 	}
 }

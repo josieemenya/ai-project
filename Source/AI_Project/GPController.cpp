@@ -75,7 +75,7 @@ void AGPController::StartPlanning()
 
 		RegisterSeePlayer(Planner); // if can see player update black board to reflect that
 		
-		SyncWorldState(CurrentState, Blackboard); 
+		//SyncWorldState(CurrentState, Blackboard); 
 		
 		FWorldState BaseCurrentState = CurrentState;
 
@@ -303,6 +303,21 @@ void AGPController::Tick(float DeltaTime)
 	}
 }
 
+void ExtractDataToBlackboard(UBlackboardComponent& Blackboard, const ASignal& Signal)
+{
+	const FSignalData& signalData = Signal.SignalData; 
+	for (ACharacter* SeenCharacter : signalData.InvolvedCharacters)
+	{
+		if (SeenCharacter->IsA(AAI_ProjectCharacter::StaticClass()))
+		{
+			Blackboard.SetValueAsObject("Player", SeenCharacter); 
+		} else
+		{
+			UE_LOG(LogTemp, Error, TEXT("AI Signal saw a character that was not a player : %s. Please implement."), *SeenCharacter->GetName())
+		}
+	}
+}
+
 void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	
@@ -331,7 +346,7 @@ void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulu
 						VisiblyArmed.SignalLifeSpan = 10.f;
 						VisiblyArmed.StimulusLocation = PC->GetActorLocation();
 
-						GetWorld()->GetGameInstance()->GetSubsystem<USignalManagement>()->ActivateSignal(
+						GetWorld()->GetSubsystem<USignalManagement>()->ActivateSignal(
 							VisiblyArmed, PC->GetActorLocation());
 						Blackboard->SetValueAsBool("SeenSignal", true);
 						ShouldInterruptCurrentPlan = true;
@@ -341,21 +356,17 @@ void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulu
 		}
 		if (ASignal* Signal = Cast<ASignal>(Actor))
 		{
-			GetBlackboardComponent()->SetValueAsBool("SeenSignal", true);
+			Blackboard->SetValueAsBool("SeenSignal", true);
+			GetBlackboardComponent()->SetValueAsObject(FName("Target"), Actor);
+			GetBlackboardComponent()->SetValueAsBool(FName("Engaged"), true);
+			ExtractDataToBlackboard(*Blackboard, *Signal); 
 			ShouldInterruptCurrentPlan = true;
 		}
 		else
 		{
 			GetBlackboardComponent()->SetValueAsBool("SeenSignal", false);
+			GetBlackboardComponent()->SetValueAsBool(FName("Engaged"), false);
 		}
 	}
-
-	if (Actor->IsA(ASignal::StaticClass()) && Actor->IsA(ASmartObject::StaticClass()))
-	{
-		// action, move to player, investigate, G_Investigate then G_Enforcement
-		GetBlackboardComponent()->SetValueAsObject(FName("Target"), Actor);
-		GetBlackboardComponent()->SetValueAsBool(FName("Engaged"), true); // necessary
-		GetBlackboardComponent()->SetValueAsBool(FName("SeenSignal"), true);
-		ShouldInterruptCurrentPlan = true;
-	}
+	
 }

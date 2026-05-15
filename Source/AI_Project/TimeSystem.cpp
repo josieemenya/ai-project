@@ -2,7 +2,7 @@
 
 
 #include "TimeSystem.h"
-
+#include "TimerManager.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/TimelineComponent.h"
 #include "Engine/DirectionalLight.h"
@@ -89,7 +89,7 @@ void UTimeSystem::UpdateTime()
 			break;
 		}
 	}
-
+	
 	OnTimelineUpdated.Broadcast(TimeData);
 }
 
@@ -140,12 +140,13 @@ const FTimeData& UTimeSystem::GetTimeData()
 
 void UTimeSystem::Init()
 {
-	Super::Init();
+	//Super::Init();
 	DayPositions.FindOrAdd("Morning", -45.f);
 	DayPositions.FindOrAdd("Evening", -10.f);
 	DayPositions.FindOrAdd("Afternoon", -135.f);
 	DayPositions.FindOrAdd("Twilight", 0);
 }
+
 
 bool UTimeSystem::WithinTimeRange(const FTimeData& Data, const FTimeRange& TimeRange) const
 {
@@ -156,9 +157,10 @@ bool UTimeSystem::WithinTimeRange(const FTimeData& Data, const FTimeRange& TimeR
 	return Current >= Start && Current <= End;
 }
 
-void UTimeSystem::OnStart()
+void UTimeSystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	Super::OnStart();
+	Super::Initialize(Collection);
+	
 	UE_LOG(LogTemp, Warning, TEXT("OnStart"));
 	LightActor = Cast<ADirectionalLight>(
 		UGameplayStatics::GetActorOfClass(GetWorld(), ADirectionalLight::StaticClass())
@@ -190,6 +192,7 @@ void UTimeSystem::OnStart()
 	TransitionTimeOfDay(ETimeOfDay::MORNING);
 
 	FTimerHandle Timer;
+	
 	GetWorld()->GetTimerManager().SetTimer(Timer, this, &UTimeSystem::UpdateTime, 1.f, true);
 
 	if (LightActor)

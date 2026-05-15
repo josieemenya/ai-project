@@ -111,7 +111,7 @@ void UDamage::DamageHealth(float DamageAmount)
 	
 	if (bMortis || DamageAmount <= 0) return; // if character is already dead and or damage is negligent
 	CharacterHealth = FMath::Max(0, CharacterHealth - DamageAmount);
-	bMortis = (CharacterHealth == 0); 
+	bMortis = (CharacterHealth <= 0.f); 
 	
 	if (auto GetCharacterRef = Cast<ACharacter>(AttachedActor))
 	{
@@ -132,6 +132,9 @@ void UDamage::DamageHealth(float DamageAmount)
 		if (AAIController* CharacterController =  Cast<AAIController>(GetOwner()))
 		{
 			OnDeath.Broadcast(CharacterController);
+		} else {
+			ACharacter* PCharacter = Cast<ACharacter>(GetOwner());
+			OnDeath.Broadcast(Cast<AController>(PCharacter->GetController()));
 		}
 	}
 }
@@ -181,7 +184,7 @@ void UDamage::HandleDeath(AController* CharacterController)
 		);
 	} else
 	{
-		if ((GetWorld()->GetGameInstance()->GetSubsystem<UPrisonManagementSystem>()->PrisonStateFlags & static_cast<int32>(EPrisonState::LOCKDOWN)) != 0)
+		if ((GetWorld()->GetSubsystem<UPrisonManagementSystem>()->PrisonStateFlags & static_cast<int32>(EPrisonState::LOCKDOWN)) != 0)
 		{
 			APlayerController* PC = GetWorld()->GetFirstPlayerController();
 
@@ -197,8 +200,6 @@ void UDamage::HandleDeath(AController* CharacterController)
 
 				DScreen->AddToViewport();
 				
-				PC->SetInputMode(FInputModeUIOnly());
-				PC->SetPause(true); 
 			}
 		} // else get cutscene, refresh everything, clear chest and everything with contraband
 		else

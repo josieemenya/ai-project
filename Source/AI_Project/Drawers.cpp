@@ -110,7 +110,7 @@ void ADrawers::OnClickedDraw(AActor* ClickedActor, FKey ButtonPress)
 		StealingData.SignalLifeSpan = 5.f; 
 		StealingData.StimulusLocation = InteractingCharacter->GetActorLocation();
 		
-		GetWorld()->GetGameInstance()->GetSubsystem<USignalManagement>()->ActivateSignal(StealingData, StealingData.StimulusLocation); //😀
+		GetWorld()->GetSubsystem<USignalManagement>()->ActivateSignal(StealingData, StealingData.StimulusLocation); //😀
 	}
 }
 

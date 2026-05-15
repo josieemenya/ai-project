@@ -67,7 +67,7 @@ void UPlannerComponent::AddToAvailableActions(UAction* NewAction)
 	//AvailableActions.Add(NewAction);
 }
 
-TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldState DesiredState)
+TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& InitialWorldState, FWorldState DesiredState)
 {
 	
 	//UE_LOG(LogTemp, Warning, TEXT("Planning"));
@@ -78,7 +78,7 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 	
 
 	auto StartNode = new Node {
-		CurrentState,
+		DesiredState,
 		{},
 		nullptr,
 		0, 
@@ -92,9 +92,18 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 	StartNode->fCost = remainingActions;
 
 	Open.Add(StartNode);
+	
+	int32 count = 0; 
 
 	while (!Open.IsEmpty())
 	{
+		count++;
+		
+		if (count > 100)
+		{
+			UE_LOG(LogTemp, Error, TEXT("PLANNER GOT STUCK IN INFINITE LOOP, PLEASE DEBUG!!!!!!!"));
+			break;
+		}
 		// find lowestCost
 		Open.Sort([](const Node& A, const Node& B) { return A.fCost < B.fCost; });
 		Node* CurrentNode = Open[0];
@@ -104,11 +113,19 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 		UE_LOG(LogTemp, Warning, TEXT("NODE EXPAND START"));
 		
 		// check for completion
-		if (CurrentNode->State.Satisfies(DesiredState))
+		if (CurrentNode->State.StateValues.IsEmpty())
 		{
 			auto Path = BuildPlan(CurrentNode);		
 
 			ToDoStack = Path; 
+			
+			UE_LOG(LogTemp, Warning, TEXT("----Starting Action Stack----"))
+			for (UAction* Action : ToDoStack)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Printing ToDoStack Action: %s"), *Action->Name.ToString())
+			}
+			UE_LOG(LogTemp, Warning, TEXT("----Ending Action Stack----"))
+			
 			for (auto n : Open)
 				delete n;
 			for (auto n : Close) 
@@ -121,14 +138,15 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 		
 		
 		
-		auto validActions = FilterAvailableActions(ActionList, CurrentNode->State);
+		auto validActions = ActionList; //FilterAvailableActions(ActionList, CurrentNode->State);
 		
-		UE_LOG(LogTemp, Warning, TEXT("ValidActions = %d"), validActions.Num());
+		//UE_LOG(LogTemp, Warning, TEXT("[GOAP] ValidActions = %d"), validActions.Num());
 		
 		// filter actions that satisfy our goal, 
-		//auto satisfyingActions = GetSatisfyingActions(validActions, DesiredState);
-
-		for (const auto &possibleAction : validActions)
+		auto satisfyingActions = FilterSatisfyingActions(validActions, CurrentNode->State);
+		UE_LOG(LogTemp, Warning, TEXT("[GOAP] SatisfyingActions = %d"), satisfyingActions.Num());
+		
+		for (const auto &possibleAction : satisfyingActions)
 		{
 			//auto newWorld = new Node(UAction{"", CurrentNode.Action.Effects, []()->bool {return false; }}, nullptr, 0, 0, 0);
 			Node* Child = new Node(CurrentNode->State);
@@ -136,9 +154,20 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 			
 
 			
+			for (auto& Precondition : possibleAction->Preconditions.StateValues)
+			{
+				Child->State.StateValues.Add(Precondition);
+			}
+			
 			for (auto& Effect : possibleAction->Effects.StateValues)
 			{
-				Child->State.StateValues.Add(Effect.Key, Effect.Value);
+				if (Effect.Value == true) // if the effect satisfies goal, delete out of list
+				{
+					Child->State.StateValues.Remove(Effect.Key);
+				} else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Negative effect no supposrted. for now."))
+				}
 			}
 
 			Child->Action = possibleAction;
@@ -153,10 +182,30 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& CurrentState, FWorldSt
 		
 		}
 	}
-
+	
+	for (auto n : Open)
+		delete n;
+	for (auto n : Close) 
+		delete n;
+	
 	return TArray<UAction*>();
 }
 
+TArray<UAction*> UPlannerComponent::FilterSatisfyingActions(TArray<UAction*> Actions, FWorldState& DesiredState)
+{
+	TArray<UAction*> Result = TArray<UAction*>();
+	
+	for (UAction* PossibleAction : Actions)
+	{
+		// can this action satisfy one of our goals
+		if (PossibleAction->Effects.SatisfiesAny(DesiredState)) // not coorect
+		{
+			Result.Add(PossibleAction);
+		}
+	}
+	
+	return Result;
+}
 
 TArray<UAction*> UPlannerComponent::FilterAvailableActions(TArray<UAction*> Actions, FWorldState CurrentState)
 {
@@ -171,7 +220,7 @@ TArray<UAction*> UPlannerComponent::FilterAvailableActions(TArray<UAction*> Acti
 		
 		UE_LOG(LogTemp, Warning, TEXT("Checking action %s"), *Instance->Name.ToString());
 		
-		if (CurrentState.Satisfies(Instance->Context))
+		if (CurrentState.SatisfiesAll(Instance->Context))
 		{
 			ResultActionList.Add(Instance);
 			UE_LOG(LogTemp, Warning, TEXT("Action %s is valid"), *Instance->Name.ToString());
@@ -298,17 +347,17 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
     		LastAction = CurrentAction;
 			ToDoStack.RemoveAt(0);
             CurrentAction = nullptr;
-            break;
+            return;
     	
 		case EExitSequenceType::FAILURE:
     		UE_LOG(LogTemp, Error, TEXT("%s's Action execution ended in failure, please see Execute action for details."), CurrentAction ? *CurrentAction->Name.ToString() : TEXT("UnknownAction"))
     		CurrentAction = nullptr;
     		OnPlanInvalid.Broadcast();
-    		break; 
+    		return; 
     	
 		case EExitSequenceType::DEFAULT:
     		UE_LOG(LogTemp, Error, TEXT("Hidden Enum Type reached, check %s's Execute function to see if it has not been overriden"), CurrentAction ? *CurrentAction->Name.ToString() : TEXT("UnknownAction"));
-    		break;
+    		return;
     	
     	default:
     		UE_LOG(LogTemp, Error, TEXT("Impossible Result Type Reached. Please check %s's Execute."), CurrentAction ? *CurrentAction->Name.ToString() : TEXT("UnknownAction"));
@@ -326,7 +375,7 @@ TArray<UAction*> UPlannerComponent::BuildPlan(Node* Last)
 			Plan.Add(Last->Action);
 		Last = Last->Parent;
 	}
-	Algo::Reverse(Plan);
+	//Algo::Reverse(Plan);
 	return Plan;
 }
 
