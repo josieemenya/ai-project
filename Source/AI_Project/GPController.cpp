@@ -190,6 +190,22 @@ bool AGPController::RegisterSeePlayer(UPlannerComponent* MyPlanner)
 	return false;
 }
 
+void AGPController::SyncWorldState_Implementation(FWorldState State, UBlackboardComponent* BBlackboard)
+{
+	// 
+	
+	
+	CurrentState.StateValues.FindOrAdd("HasPlayer", IsValid(BBlackboard->GetValueAsObject("Player")));
+	CurrentState.StateValues.FindOrAdd("CloseToPlayer", BBlackboard->GetValueAsFloat("DistanceToPlayer") <= 30.f);
+	CurrentState.StateValues.FindOrAdd("KnockedOut", BBlackboard->GetValueAsBool("KnockedOut"));
+	CurrentState.StateValues.FindOrAdd("GoodHealth", BBlackboard->GetValueAsFloat("Health") >= 45.f);
+	CurrentState.StateValues.FindOrAdd("Engaged", BBlackboard->GetValueAsBool("Engaged"));
+	CurrentState.StateValues.FindOrAdd("InCombat", BBlackboard->GetValueAsBool("InCombat"));
+	CurrentState.StateValues.FindOrAdd("HasTarget", IsValid(BBlackboard->GetValueAsObject("Target")));
+	CurrentState.StateValues.FindOrAdd("HasSignal", BBlackboard->GetValueAsBool("SeenSignal"));
+	CurrentState.StateValues.FindOrAdd("IsInvestigating", BBlackboard->GetValueAsBool("Investigating"));
+
+}
 
 void AGPController::OnCharacterDeathAnim(AController* ParentController)
 {
@@ -284,10 +300,11 @@ void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulu
 	
 	for (auto x : Blackboard->GetBlackboardAsset()->Keys)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Key: %s, Value: %s"), *x.EntryName.ToString(), *Blackboard->GetValueAsObject(x.EntryName)->GetName())
+		//UE_LOG(LogTemp, Warning, TEXT("Key: %s, Value: %s"), *x.EntryName.ToString(), *Blackboard->GetValueAsObject(x.EntryName)->GetName())
 	}
 	if (Actor)
 	{
+		check (Blackboard)
 		if (AAI_ProjectCharacter* PC = Cast<AAI_ProjectCharacter>(Actor))
 		{
 			Blackboard->SetValueAsObject("Player", PC);
