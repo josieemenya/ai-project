@@ -317,4 +317,3 @@ TArray<UAction*> UPlannerComponent::BuildPlan(Node* Last)
 	Algo::Reverse(Plan);
 	return Plan;
 }
-
