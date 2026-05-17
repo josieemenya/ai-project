@@ -33,6 +33,9 @@ class DESIGNER_FRIENDLY_GOAP_API UAction : public UDataAsset
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FWorldState Context; // context needed to perform action, such as target location, target actor, etc.
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FWorldState Preconditions;
+
 	UFUNCTION(BlueprintNativeEvent)
 	EExitSequenceType Execute(AActor* Owner);
 	

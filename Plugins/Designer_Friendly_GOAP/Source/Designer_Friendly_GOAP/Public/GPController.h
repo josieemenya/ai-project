@@ -72,7 +72,13 @@ public:
 	
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool ShouldInterruptCurrentPlan;
+
+	UFUNCTION(BlueprintCallable)
+	void SyncToWorldState(); 
+	
 
 protected:
 	//void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

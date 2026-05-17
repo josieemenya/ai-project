@@ -8,7 +8,7 @@ bool FWorldState::operator==(const FWorldState& Other) const
 	return StateValues.OrderIndependentCompareEqual(Other.StateValues);
 }
 
-bool FWorldState::Satisfies(const FWorldState& Other) const
+bool FWorldState::SatisfiesAll(const FWorldState& Other) const
 {
 		for (auto& X : Other.StateValues)
 		{
@@ -26,3 +26,20 @@ bool FWorldState::Satisfies(const FWorldState& Other) const
 		return true;
 }
 
+bool FWorldState::SatisfiesAny(const FWorldState& Other) const
+{
+	for (auto& Pair : Other.StateValues)
+	{
+		FString OtherKey = Pair.Key;
+		bool OtherValue = Pair.Value;
+			
+		const bool* MyValue = StateValues.Find(OtherKey);
+		bool Val = (MyValue) ? *MyValue : false; 
+			
+		if (OtherValue == Val)
+		{
+			return true;
+		}
+	}
+	return false;
+}

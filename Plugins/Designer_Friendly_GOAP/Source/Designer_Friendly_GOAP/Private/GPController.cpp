@@ -4,6 +4,7 @@
 #include "GPController.h"
 #include "BrainComponent.h"
 #include "PlannerComponent.h"
+#include "UtilityWorldSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Engine/SceneCapture2D.h"
 #include "Kismet/GameplayStatics.h"
@@ -68,7 +69,11 @@ void AGPController::StartPlanning()
 	
 		Planner->UpdateSmartObjects(BaseCurrentState); 
 		
-		CurrentGoal = GetBestGoal(); 
+		CurrentGoal = GetBestGoal(); // switch to
+		
+		GetWorld()->GetSubsystem<UUtilityWorldSystem>()->ScoreGoals(InstancedGoals, Blackboard); 
+		// then
+		CurrentGoal = InstancedGoals[0]; 
 		
 		if (!CurrentGoal) return;
 		
@@ -150,21 +155,11 @@ bool AGPController::RegisterSeePlayer(UPlannerComponent* MyPlanner)
 	if (SeeActors.Num() > 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Registering SeeActors"));
-		auto FoundPlayer = SeeActors.Find(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 		
-		if (FoundPlayer != INDEX_NONE)
-		{
-			//UE_LOG(LogTemp, Warning, TEXT("Can See Player"));
-			CurrentState.StateValues.FindOrAdd("Player", true); 
-			
-			auto PlayerinWorld = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0); 
-			Blackboard->SetValueAsObject("Player", PlayerinWorld);
-			return true; 
-		}
 	
 	} else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Perceived Jack Shit"));
+		UE_LOG(LogTemp, Warning, TEXT("Percieved Nothing"));
 	}
 	
 	//UE_LOG(LogTemp, Warning, TEXT("No player found"));
@@ -258,30 +253,6 @@ void AGPController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulu
 	{
 		if (auto PC = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
 		{
-			
-			// debug on
-			UBlackboardComponent* BB = GetBlackboardComponent();
-			if (BB)
-			{
-				BB->SetValueAsObject("Player", PC);
-                
-				// IMMEDIATELY VERIFY
-				UObject* TestGet = BB->GetValueAsObject("Player");
-				if (TestGet)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("SUCCESS: Set Player to %s"), *TestGet->GetName());
-				}
-				else
-				{
-					UE_LOG(LogTemp, Error, TEXT("FAILED: SetValueAsObject didn't work! Player is still NULL!"));
-				}
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("GetBlackboardComponent returned NULL!"));
-			}
-			
-			// debug off
 			if (Stimulus.WasSuccessfullySensed())
 			{
 

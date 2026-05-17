@@ -1,0 +1,72 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Subsystems/WorldSubsystem.h"
+#include "UtilityWorldSystem.generated.h"
+
+/**
+ * 
+ */
+
+class UBlackboardComponent;
+class UGoal;
+
+UCLASS(Blueprintable)
+class UUtilityReasoner : public UActorComponent
+{
+	GENERATED_BODY()
+public:
+	
+	void Initialize(AAIController* InController, UPlannerComponent* InPlanner);
+
+	void StartThinking();
+
+	UFUNCTION()
+	void HandlePlanFinished();
+
+	UFUNCTION()
+	void HandlePlanInvalid();
+
+protected:
+	virtual void BeginPlay() override;
+
+	void Think();
+
+	UGoal* ChooseBestGoal();
+
+	void RequestPlan(UGoal* Goal);
+
+protected:
+
+	UPROPERTY(EditAnywhere, Category="Utility AI")
+	TArray<TSubclassOf<UGoal>> GoalClasses;
+
+	UPROPERTY()
+	TArray<UGoal*> Goals;
+
+	UPROPERTY()
+	TObjectPtr<UGoal> CurrentGoal;
+	
+	
+
+	UPROPERTY()
+	TObjectPtr<UPlannerComponent> Planner;
+
+	UPROPERTY()
+	TObjectPtr<AAIController> OwnerController;
+
+	FTimerHandle ThinkTimer;
+};
+
+UCLASS()
+class DESIGNER_FRIENDLY_GOAP_API UUtilityWorldSystem : public UWorldSubsystem
+{
+	GENERATED_BODY()
+	
+	public:
+	
+	UGoal* ScoreAndChooseGoals(TArray<UGoal*>& InstancedGoals, UBlackboardComponent* Blackboard);
+	
+};

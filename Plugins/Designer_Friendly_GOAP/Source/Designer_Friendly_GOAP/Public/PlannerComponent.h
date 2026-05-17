@@ -117,7 +117,9 @@ public:
 	
 	
 	UFUNCTION(BlueprintCallable, Category="Planner")
-	void AddToAvailableActions(UAction* NewAction); 
+	void AddToAvailableActions(UAction* NewAction);
+
+	TArray<UAction*> FilterSatisfyingActions(TArray<UAction*> Array, const FWorldState& State);
 	
 	UFUNCTION(BlueprintCallable, Category="Planner")
 	TArray<UAction*> PlanGoal(FWorldState& CurrentState, FWorldState DesiredState); // keep in planner
@@ -161,4 +163,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Planner")
 	void SetGoal(TSubclassOf<UGoal> GoalClass);
 	
+	UFUNCTION(BlueprintCallable, Category="Planner")
+	FORCEINLINE bool HasPlan() const { return ToDoStack.Num() > 0; } 
+	
+	UFUNCTION(BlueprintCallable, Category="Planner")
+	FORCEINLINE void AbortPlan() { ToDoStack.Empty(); }
 };
