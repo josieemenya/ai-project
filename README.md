@@ -59,5 +59,42 @@ Through the editor : In the Project Directory, run the .uproject "AI_Project", t
 ---
 Visual Snippets of mechanics: 
 
+AI Following Routine through GOAP:
+
+![Routine](VisualContent/AI_Demonsttrating_Routine_GOAP.gif)
+
+AI attack system + Game Over Screen:
 
 ![Attack AI System, don't mind the flying player](VisualContent/AI_Demonsttrating_Attack_GOAP.gif)
+
+Inventory minimal visual UI:
+
+![Inventory UI](VisualContent/Inventory.gif)
+
+Inventory transfter : 
+
+![Inventory transfer](VisualContent/Inventory_Transfer.gif)
+
+AI Reactive hit animations, and reactive hitboxes above their heads : 
+
+![React](VisualContent/Reactive_animations_and_hitboxes.gif)
+
+In Game Clock System :
+
+![Clock](VisualContent/TimeSystem_picture.gif)
+
+Crafting + Minimal Craft menu UI : 
+
+![Craft](VisualContent/craft_menu_fail_success.gif)
+
+Inventory Hot Bar + Drag and Drop Operation 😀 : 
+
+![HB](VisualContent/drag_and_drop_hot_bar.gif)
+
+Drop Item from Inventory : 
+
+![Drop](VisualContent/drag_and_drop_inventory.gif)
+
+Win Condition: 
+
+![WC](VisualContent/win_condition.gif)
