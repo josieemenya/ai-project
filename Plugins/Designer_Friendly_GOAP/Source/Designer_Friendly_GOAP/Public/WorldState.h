@@ -17,7 +17,7 @@ struct FWorldState
 	GENERATED_BODY()
 	
 	public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WorldSTate")
 	TMap<FString, bool> StateValues;
 	
 	FWorldState() = default;

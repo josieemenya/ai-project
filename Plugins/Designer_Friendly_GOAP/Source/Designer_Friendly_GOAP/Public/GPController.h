@@ -27,31 +27,31 @@ public:
 	
 	AGPController();
 	
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category="GP")
 	UAIPerceptionComponent* PerceptionComp;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="GP")
 	class UPlannerComponent* Planner;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="GP")
 	TArray<TSubclassOf<UGoal>> Goals;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="GP")
 	TArray<UGoal*> InstancedGoals;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="GP")
 	UGoal* CurrentGoal; 
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="GP")
 	FWorldState CurrentState;
 	
 	// should i mark with UFUNCTION() ? leaning towards no.
 	UGoal* GetBestGoal(); 
 	
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category="GP")
 	void StartPlanning();
 	
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category="GP")
 	void Replan(); 
 	
 	void InstantiateGoals(); 
@@ -73,7 +73,7 @@ public:
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="GP")
 	bool ShouldInterruptCurrentPlan;
 
 	

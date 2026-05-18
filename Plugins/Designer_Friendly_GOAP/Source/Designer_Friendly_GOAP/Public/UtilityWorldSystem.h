@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "WorldState.h"
+#include "Components/ActorComponent.h"
 #include "UtilityWorldSystem.generated.h"
 
 /**

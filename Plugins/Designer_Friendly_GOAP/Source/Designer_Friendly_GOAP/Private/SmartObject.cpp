@@ -2,7 +2,7 @@
 
 
 #include "SmartObject.h"
-#include "SmartObjectManager.h"
+#include "SmartObjectsManager.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
 
@@ -29,7 +29,7 @@ void ASmartObject::BeginPlay()
 
 	if (UWorld* World = GetWorld())
 	{
-	    if (auto GI = World->GetGameInstance()->GetSubsystem<USmartObjectManager>())
+	    if (auto GI = World->GetGameInstance()->GetSubsystem<USmartObjectsManager>())
 	    {
 	        GI->SmartObjects.Add(ObjectID, this);
 	    }

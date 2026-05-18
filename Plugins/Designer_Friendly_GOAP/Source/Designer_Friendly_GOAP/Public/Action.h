@@ -24,22 +24,22 @@ class DESIGNER_FRIENDLY_GOAP_API UAction : public UDataAsset
 	
 	public:
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Action")
 	AActor* OwningActor; 
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Action")
 	FName Name; // the name of the action, used for debugging and identification
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Action")
 	FWorldState Preconditions;
 
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintNativeEvent, Category="Action")
 	EExitSequenceType Execute(AActor* Owner);
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Action")
 	FWorldState Effects; 
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Action")
 	float Cost; // the cost of performing the action, used for planning
 	
 	UAction() = default;

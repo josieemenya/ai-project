@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "SmartObject.h"
 #include "Components/ActorComponent.h"
+#include "Engine/DeveloperSettings.h"
 #include "PlannerComponent.generated.h"
 
 class UBlackboardComponent;
@@ -23,7 +24,7 @@ class DESIGNER_FRIENDLY_GOAP_API UPlannerLoggerSettings : public UDeveloperSetti
 	
 public:
 	
-	UPROPERTY(EditAnywhere, Config)
+	UPROPERTY(EditAnywhere, Config, Category="Planner Log")
 	bool bShouldShowLogs; 
 };
 
@@ -46,19 +47,19 @@ public :
 	// add contecxt values for goal
 	// put comnditions on the goals
 	GENERATED_BODY()
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Goal")
 	FString Name;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Goal")
 	bool bRequiresSmartObject; 
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Goal")
 	FWorldState DesiredState; // the desired world state that satisfies the goal
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Goal")
 	int32 Priority; // the priority of the goal, used for selecting between multiple goals
 	
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintNativeEvent, Category="Goal")
 	float GetUtility(const UBlackboardComponent* BlackBoard); // needs BBlackboard
 	
 	bool operator==(const UGoal& Other) const
@@ -152,25 +153,25 @@ public:
 	TArray<UAction*> BuildPlan(Node* Last); // keep in planner
 	TArray<UAction*> FilterAvailableActions(TArray<UAction*> Actions, FWorldState CurrentState); // keep in planner
 	
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category="Planner")
 	void UpdateSmartObjects(FWorldState& Current);
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Planner")
 	TArray<AActor*> AllSmartObjectsNearby; 
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<USmartObjectContainer> LastSmartObjectContainer; 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Planner")
+	TObjectPtr<USmartObjectsContainer> LastSmartObjectContainer; 
 
 	
 	
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Planner")
 	TArray<UAction*> ToDoStack;  
 	
 	UGoal* DesiredGoal; 
 	TArray<TSubclassOf<UGoal>> Goals;
 	
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category="Planner")
 	void UpdateStack(AActor* OwningActor);
 	
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlanInvalid);
@@ -182,10 +183,10 @@ public:
 	UAction* CurrentAction;
 	UAction* LastAction; // for debugging purposes only
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Planner")
 	TArray<TSubclassOf<UAction>> AvailableActions; // the actions that the planner can use to achieve goals, this should be populated by the actor that implements the planner interfac
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Planner")
 	TArray<UAction*> ActionList;
 	
 	UFUNCTION(BlueprintCallable, Category="Planner")

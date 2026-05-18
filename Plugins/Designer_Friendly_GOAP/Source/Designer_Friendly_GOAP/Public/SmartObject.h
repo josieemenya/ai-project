@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/World.h"
 #include "Action.h"
 #include "SmartObject.generated.h"
 
@@ -31,10 +32,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SmartObjects)
 	FName ObjectName;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SmartObjects)
 	FWorldState RepresentedState;
 	
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = SmartObjects)
 	void WriteToWorldState(FWorldState& TargetState); 
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SmartObjects)
@@ -66,10 +67,10 @@ inline void ASmartObject::WriteToWorldState(FWorldState& TargetState)
 
 
 UCLASS(Blueprintable)
-class DESIGNER_FRIENDLY_GOAP_API USmartObjectContainer : public UObject
+class DESIGNER_FRIENDLY_GOAP_API USmartObjectsContainer : public UObject
 {
 	GENERATED_BODY()
 public:	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SmartObjects)
 	TArray<ASmartObject*> RegisteredObjects;
 };

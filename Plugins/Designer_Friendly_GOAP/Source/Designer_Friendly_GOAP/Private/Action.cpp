@@ -2,7 +2,7 @@
 
 
 #include "Action.h"
-#include "SmartObjectManager.h"
+#include "SmartObjectsManager.h"
 
 EExitSequenceType UAction::Execute_Implementation(AActor* Owner)
 {

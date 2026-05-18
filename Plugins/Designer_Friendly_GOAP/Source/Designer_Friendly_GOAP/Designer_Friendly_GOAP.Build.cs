@@ -28,12 +28,12 @@ public class Designer_Friendly_GOAP : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
-				"EnhancedInput",  
 				"AIModule", 
 				"GameplayTasks", 
 				"NavigationSystem", 
 				"UMG", 
-				"DeveloperSettings"
+				"DeveloperSettings",
+				"Projects"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

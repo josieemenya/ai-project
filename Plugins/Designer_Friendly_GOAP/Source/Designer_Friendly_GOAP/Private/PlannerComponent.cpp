@@ -54,7 +54,7 @@ void UPlannerComponent::BeginPlay()
 		BB_Planner = AIController->GetBlackboardComponent();
 	}
 
-	LastSmartObjectContainer = NewObject<USmartObjectContainer>(this);
+	LastSmartObjectContainer = NewObject<USmartObjectsContainer>(this);
 	for (TSubclassOf<UAction> ActionClass : AvailableActions)
 	{
 		UAction* InstanceAction = NewObject<UAction>(this, ActionClass.Get());

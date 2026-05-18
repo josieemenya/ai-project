@@ -5,13 +5,13 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "SmartObject.h"
-#include "SmartObjectManager.generated.h"
+#include "SmartObjectsManager.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class DESIGNER_FRIENDLY_GOAP_API USmartObjectManager : public UGameInstanceSubsystem
+class DESIGNER_FRIENDLY_GOAP_API USmartObjectsManager : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 	
