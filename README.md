@@ -60,4 +60,4 @@ Through the editor : In the Project Directory, run the .uproject "AI_Project", t
 Link to YT video : 
 ---
 Visual Snippets of mechanics: 
-<img src="VisualCOntent/AI_Demonsttrating_Attack_GOAP.gif" width="40" height="40" />
+<img src="VisualContent/AI_Demonsttrating_Attack_GOAP.gif" width="40" height="40" />
