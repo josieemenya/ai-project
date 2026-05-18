@@ -12,7 +12,6 @@ Some technical Interesting Elements In my Game Are:
 - A GOAP Planner (made in C++) that is exposed to the Unreal Editor
 - GOAP World State, Actions and Goals (all made in C++) that are also designed to be designer friendly and also designed in editor
 - Finite State Machines (C++)
-- Behavior Trees (C++)
 - Damage and Attack Systems (C++)
 - Smart Objects(C++)
 - A Custom Blackboard (C++) // depriciated
