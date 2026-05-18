@@ -5,6 +5,7 @@
 
 #include "PlannerComponent.h"
 #include "UtilityWorldSystem.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 
 // Sets default values
@@ -14,6 +15,7 @@ AExampleController::AExampleController()
 	PrimaryActorTick.bCanEverTick = true;
 	Planner = CreateDefaultSubobject<UPlannerComponent>("Planner");
 	Reasoner = CreateDefaultSubobject<UUtilityReasoner>("Reasoner");
+	BlackboardComponent = CreateDefaultSubobject<UBlackboardComponent>("BComp"); 
 }
 
 // Called when the game starts or when spawned
@@ -31,6 +33,8 @@ void AExampleController::BeginPlay()
 		Reasoner,
 		&UUtilityReasoner::HandlePlanInvalid
 	);
+	
+	Blackboard = BlackboardComponent; 
 }
 
 // Called every frame

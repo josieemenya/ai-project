@@ -6,6 +6,5 @@
 
 EExitSequenceType UAction::Execute_Implementation(AActor* Owner)
 {
-	
 	return EExitSequenceType::RUNNING; 
 }

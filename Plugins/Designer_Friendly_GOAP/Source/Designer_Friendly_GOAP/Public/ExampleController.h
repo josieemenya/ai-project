@@ -26,6 +26,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite);
+	class UBlackboardComponent* BlackboardComponent; 
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GOAP System")
 	TObjectPtr<UUtilityReasoner> Reasoner; 
 	

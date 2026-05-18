@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "WorldState.h"
 #include "UtilityWorldSystem.generated.h"
 
 /**
@@ -31,6 +32,9 @@ public:
 	UFUNCTION()
 	void HandlePlanInvalid();
 
+	UPROPERTY(BlueprintReadWrite, Category = "GOAP")
+	FWorldState InternalAgentState; 
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -39,6 +43,8 @@ protected:
 	UGoal* ChooseBestGoal();
 
 	void RequestPlan(UGoal* Goal);
+	
+	
 
 protected:
 
@@ -50,8 +56,6 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UGoal> CurrentGoal;
-	
-	
 
 	UPROPERTY()
 	TObjectPtr<UPlannerComponent> Planner;

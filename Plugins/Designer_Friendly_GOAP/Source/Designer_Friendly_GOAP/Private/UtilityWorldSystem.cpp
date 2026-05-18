@@ -101,13 +101,13 @@ void UUtilityReasoner::RequestPlan(UGoal* Goal)
 		return;
 	}
 	
-	FWorldState InitialWorldState;
+	FWorldState CurrentLiveState = Planner->AgentStateValue; 
+
+	Planner->UpdateSmartObjects(CurrentLiveState);
 	
-	Planner->UpdateSmartObjects(InitialWorldState);
+	SyncToWorldState(CurrentLiveState);
 	
-	SyncToWorldState(InitialWorldState);
-	
-	TArray<UAction*> GeneratedPlan = Planner->PlanGoal(InitialWorldState, Goal->DesiredState);
+	TArray<UAction*> GeneratedPlan = Planner->PlanGoal(CurrentLiveState, Goal->DesiredState);
 	
 	if (GeneratedPlan.IsEmpty())
 	{

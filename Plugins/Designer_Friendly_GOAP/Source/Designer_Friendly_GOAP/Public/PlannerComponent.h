@@ -196,4 +196,6 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category="Planner")
 	FORCEINLINE void AbortPlan() { ToDoStack.Empty(); }
+
+	FWorldState AgentStateValue; 
 };
