@@ -10,6 +10,8 @@
 #include "GameFramework/Character.h"
 #include "InventoryUI.h"
 #include "Components/ScrollBox.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/StaticMeshComponent.h"
 
 ADrawers::ADrawers()
 {
@@ -17,6 +19,7 @@ ADrawers::ADrawers()
 	SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComponent");
 	InventoryRef = CreateDefaultSubobject<UInventory>("Inventory");
 	RootComponent = SphereComp;
+	DrawersMesh->SetupAttachment(SphereComp); 
 }
 
 void ADrawers::OnOverlapSphere(UPrimitiveComponent* OverlappingComp, AActor* OtherActor,
@@ -50,22 +53,24 @@ void ADrawers::BeginPlay()
 		ItemTable->GetAllRows<FInventoryItem>(ContextString, Items); 
 	
 	
-	
-	const int32 NumItems = 4; 
-	
-	for (int i = 0; i < NumItems; i++)
+	if (!bNoRefill)
 	{
-		if (ItemTable)
+		const int32 NumItems = 4; 
+	
+		for (int i = 0; i < NumItems; i++)
 		{
-			int RandomIndex = FMath::RandRange(0, Items.Num() - 1);
-			if (InventoryRef) // defensive programming
+			if (ItemTable)
 			{
-				InventoryRef->OnAddRefToInventory(*Items[RandomIndex]);
+				int RandomIndex = FMath::RandRange(0, Items.Num() - 1);
+				if (InventoryRef) // defensive programming
+				{
+					InventoryRef->OnAddRefToInventory(*Items[RandomIndex]);
+				}
 			}
 		}
-	}
 	
-	DrawerWidget = CreateWidget<UInventoryUI>(GetWorld(), DrawerWidgetClass);
+		DrawerWidget = CreateWidget<UInventoryUI>(GetWorld(), DrawerWidgetClass);
+	}
 }
 
 void ADrawers::InitInventoryUI()

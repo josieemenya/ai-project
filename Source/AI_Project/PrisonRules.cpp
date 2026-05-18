@@ -392,7 +392,21 @@ void URollcall::HandleRollCall()
 
 		float Dist =  FVector::Dist(PC->GetPawn()->GetActorLocation(), RollCallLocation["MorningRollcall"]);
 		
-		if (Dist > 40)
+		TArray<AActor*> OverlappingAreas;
+		
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AAreaObject::StaticClass(), OverlappingAreas);
+		
+		bool InRolecall = false;
+		
+		for (AActor* Area : OverlappingAreas)
+		{
+			if (PC->GetPawn()->IsOverlappingActor(Area))
+			{
+				InRolecall = true;
+			}
+		}
+		
+		if (!InRolecall)
 		{
 			bMissingRollcall = true;
 			FSignalData SignalData = FSignalData();
@@ -405,9 +419,7 @@ void URollcall::HandleRollCall()
 
 			
 			GetWorld()->GetSubsystem<USignalManagement>()->ActivateSignal(SignalData, SignalData.StimulusLocation); 
-			GetWorld()->GetSubsystem<UPrisonManagementSystem>()->AddFlag(EPrisonState::LOCKDOWN); 
-			
-			
+			GetWorld()->GetSubsystem<UPrisonManagementSystem>()->AddFlag(EPrisonState::LOCKDOWN);
 		}
 	}
 	
@@ -430,6 +442,20 @@ void URollcall::HandleRollCall()
 			
 			GetWorld()->GetSubsystem<USignalManagement>()->ActivateSignal(SignalData, SignalData.StimulusLocation); 
 			GetWorld()->GetSubsystem<UPrisonManagementSystem>()->AddFlag(EPrisonState::LOCKDOWN);
+		}
+	}
+}
+
+void AWinArea::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+	ATriggerBox::NotifyActorBeginOverlap(OtherActor);
+	if (OtherActor && OtherActor != this && OtherActor == UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
+	{
+		UUserWidget* WinScreen = CreateWidget(GetWorld(), WinScreenClass);
+		if (WinScreen)
+		{
+			WinScreen->AddToViewport(); 
+			UGameplayStatics::SetGamePaused(GetWorld(), true); 
 		}
 	}
 }

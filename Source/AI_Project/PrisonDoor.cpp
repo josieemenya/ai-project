@@ -35,21 +35,6 @@ void APrisonDoor::OnOverlapCapsule(UPrimitiveComponent* OverlappedComponent, AAc
 	UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	
-	if (OtherActor == this) return;
-	
-	InteractingPlayerCharacter = Cast<AAI_ProjectCharacter>(OtherActor);
-	UInventory* Inventory = nullptr;
-	if (InteractingPlayerCharacter)
-	{
-		Inventory = InteractingPlayerCharacter->Inventory;
-		if (Inventory)
-		{
-			if (auto Key = Inventory->FindItemNameInInventory(DoorKeyName))
-			{
-				bIsOpen = true; 
-			}
-		}
-	}
 }
 
 void APrisonDoor::OnClickDoor(AActor* TouchedActor, FKey Key)
@@ -92,5 +77,26 @@ void APrisonDoor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void APrisonDoor::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved,
+	FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
+{
+	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
+	if (Other == this) return;
+	
+	InteractingPlayerCharacter = Cast<AAI_ProjectCharacter>(Other);
+	UInventory* Inventory = nullptr;
+	if (InteractingPlayerCharacter)
+	{
+		Inventory = InteractingPlayerCharacter->Inventory;
+		if (Inventory)
+		{
+			if (auto Key = Inventory->FindItemNameInInventory(DoorKeyName))
+			{
+				bIsOpen = true; 
+			}
+		}
+	}
 }
 

@@ -352,6 +352,7 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
 		case EExitSequenceType::FAILURE:
     		UE_LOG(LogTemp, Error, TEXT("%s's Action execution ended in failure, please see Execute action for details."), CurrentAction ? *CurrentAction->Name.ToString() : TEXT("UnknownAction"))
     		CurrentAction = nullptr;
+    		Cast<AAIController>(GetOwner())->StopMovement();
     		OnPlanInvalid.Broadcast();
     		return; 
     	

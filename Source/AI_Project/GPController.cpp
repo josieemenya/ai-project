@@ -126,8 +126,7 @@ void AGPController::Replan()
 {
 	if (Planner->ToDoStack.Num() > 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("TASK TASK"));
-		return;
+		Planner->ToDoStack.Empty();
 	}
 
 	Planner->UpdateSmartObjects(CurrentState);

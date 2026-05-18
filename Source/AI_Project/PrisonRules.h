@@ -7,9 +7,15 @@
 #include "TimeSystem.h"
 #include "Components/ActorComponent.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
+#include "Engine/TargetPoint.h"
+#include "Engine/TriggerBox.h"
 #include "PrisonRules.generated.h"
 
+
+class UUserWidget;
 class UWorld;
+class USoundWave; 
+class ACharacter; 
 
 UENUM(BlueprintType)
 enum class EActionType : uint8
@@ -198,4 +204,24 @@ class URollcall : public UWorldSubsystem
 	bool DoesSupportWorldType(const EWorldType::Type WorldType) const override {
 		return WorldType == EWorldType::PIE or WorldType == EWorldType::Game;	
 	}
+};
+
+UCLASS(Blueprintable)
+class AAreaObject : public ATriggerBox
+{
+	GENERATED_BODY()
+
+};
+
+UCLASS(Blueprintable)
+class AWinArea : public ATriggerBox
+{
+public:
+	void NotifyActorBeginOverlap(AActor* OtherActor) override;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UUserWidget> WinScreenClass; 
+
+private:
+	GENERATED_BODY()
 };

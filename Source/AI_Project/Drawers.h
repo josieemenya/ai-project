@@ -12,6 +12,7 @@
 
 class UInventoryUI;
 class UInventory;
+class ACharacter;
 
 UCLASS()
 class AI_PROJECT_API ADrawers : public ASmartObject
@@ -47,6 +48,10 @@ class AI_PROJECT_API ADrawers : public ASmartObject
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UInventoryUI* DrawerWidget;
+	
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bNoRefill; 
 	
 	// add a ref for inventory UI
 	
