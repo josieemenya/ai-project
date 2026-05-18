@@ -57,9 +57,7 @@ As An Application : Navigate to the Build->Windows Folder of the project directo
 Through the editor : In the Project Directory, run the .uproject "AI_Project", the compatible editor to run the project is Unreal Engine 5.4.4
 
 ---
-Link to YT video : 
----
 Visual Snippets of mechanics: 
 
 
-![Alt Text](VisualContent/AI_Demonsttrating_Attack_GOAP.gif)
+![Attack AI System, don't mind the flying player](VisualContent/AI_Demonsttrating_Attack_GOAP.gif)
