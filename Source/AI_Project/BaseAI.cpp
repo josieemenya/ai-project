@@ -27,7 +27,7 @@ void ABaseAI::BeginPlay()
 	Super::BeginPlay();
 	//Lock = new LockAndKey();
 	
-	PlannerComponent->OnPlanInvalid.AddUObject(this, &ABaseAI::Replan);
+	PlannerComponent->OnPlanInvalid.AddDynamic(this, &ABaseAI::Replan);
 	GetWorldTimerManager().SetTimerForNextTick([this](){
 		PlannerComponent->UpdateSmartObjects(CurrentState);
 		StartPlanning();

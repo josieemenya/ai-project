@@ -22,6 +22,20 @@ float UGoal::GetUtility_Implementation(const UBlackboardComponent* BlackBoard)
 	return 0.f; 
 }
 
+void UPlannerLogger::Log(const FString& Message)
+{
+	if (ShouldShowLogs)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *Message);
+	}
+}
+
+void UPlannerLogger::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+	ShouldShowLogs = GetDefault<UPlannerLoggerSettings>()->bShouldShowLogs; 
+}
+
 // Sets default values for this component's properties
 UPlannerComponent::UPlannerComponent()
 {
@@ -69,7 +83,7 @@ void UPlannerComponent::AddToAvailableActions(UAction* NewAction)
 TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& InitialWorldState, FWorldState DesiredState)
 {
 	
-	//UE_LOG(LogTemp, Warning, TEXT("Planning"));
+	GetWorld()->GetSubsystem<UPlannerLogger>()->Log("Planning"); 
 	
 	TArray<Node*> Open = TArray<Node*>();
 	TArray<Node*> Close = TArray<Node*>();
@@ -109,7 +123,7 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& InitialWorldState, FWo
 		Open.RemoveAt(0);
 		Close.Add(CurrentNode);
 		
-		UE_LOG(LogTemp, Warning, TEXT("NODE EXPAND START"));
+		GetWorld()->GetSubsystem<UPlannerLogger>()->Log("NODE EXPAND START");
 		
 		// check for completion
 		if (CurrentNode->State.StateValues.IsEmpty())
@@ -118,12 +132,12 @@ TArray<UAction*> UPlannerComponent::PlanGoal(FWorldState& InitialWorldState, FWo
 
 			ToDoStack = Path; 
 			
-			UE_LOG(LogTemp, Warning, TEXT("----Starting Action Stack----"))
+			GetWorld()->GetSubsystem<UPlannerLogger>()->Log("----Starting Action Stack----"); 
 			for (UAction* Action : ToDoStack)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Printing ToDoStack Action: %s"), *Action->Name.ToString())
 			}
-			UE_LOG(LogTemp, Warning, TEXT("----Ending Action Stack----"))
+			GetWorld()->GetSubsystem<UPlannerLogger>()->Log("----Ending Action Stack----"); 
 			
 			for (auto n : Open)
 				delete n;
@@ -328,9 +342,9 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
             return;
 
         case EExitSequenceType::INVALID:
-            OnPlanInvalid.Broadcast();
 			LastAction = CurrentAction;
             CurrentAction = nullptr;
+    		OnPlanInvalid.Broadcast();
             return;
 
         case EExitSequenceType::SUCCESS:
@@ -346,6 +360,10 @@ void UPlannerComponent::UpdateStack(AActor* Owner)
     		LastAction = CurrentAction;
 			ToDoStack.RemoveAt(0);
             CurrentAction = nullptr;
+    		if (ToDoStack.IsEmpty())
+    		{
+    			OnPlanInvalid.Broadcast();
+    		}
             return;
     	
 		case EExitSequenceType::FAILURE:

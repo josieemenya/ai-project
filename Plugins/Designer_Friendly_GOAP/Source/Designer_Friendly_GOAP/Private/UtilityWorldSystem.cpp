@@ -7,6 +7,7 @@
 #include "PlannerComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
+
 void UUtilityReasoner::Initialize(AAIController* InController, UPlannerComponent* InPlanner)
 {
 	OwnerController = InController;
@@ -35,11 +36,16 @@ void UUtilityReasoner::StartThinking()
 
 void UUtilityReasoner::HandlePlanFinished()
 {
-	
+	CurrentGoal = nullptr;
+	// start planning
 }
 
 void UUtilityReasoner::HandlePlanInvalid()
 {
+	Planner->AbortPlan();
+	Planner->CurrentAction = nullptr;
+	
+	// start planning again
 }
 
 void UUtilityReasoner::BeginPlay()
@@ -95,7 +101,23 @@ void UUtilityReasoner::RequestPlan(UGoal* Goal)
 		return;
 	}
 	
-	Planner->PlanGoal(Curre
+	FWorldState InitialWorldState;
+	
+	Planner->UpdateSmartObjects(InitialWorldState);
+	
+	SyncToWorldState(InitialWorldState);
+	
+	TArray<UAction*> GeneratedPlan = Planner->PlanGoal(InitialWorldState, Goal->DesiredState);
+	
+	if (GeneratedPlan.IsEmpty())
+	{
+		HandlePlanInvalid(); 
+	}
+}
+
+void UUtilityReasoner::SyncToWorldState_Implementation(FWorldState CurrentWorldState)
+{
+	// take in any values you want refelected in current world
 }
 
 UGoal* UUtilityWorldSystem::ScoreAndChooseGoals(TArray<UGoal*>& InstancedGoals, UBlackboardComponent* Blackboard)
@@ -105,9 +127,9 @@ UGoal* UUtilityWorldSystem::ScoreAndChooseGoals(TArray<UGoal*>& InstancedGoals, 
 		return nullptr; 	
 	} 
 	
-	InstancedGoals.Sort([&](UGoal* a, UGoal* b) -> bool
+	InstancedGoals.Sort([&](UGoal& a, UGoal& b) -> bool
 	{
-		return a->GetUtility(Blackboard) > b->GetUtility(Blackboard); 
+		return a.GetUtility(Blackboard) > b.GetUtility(Blackboard); 
 	}); 
 	
 	return InstancedGoals[0];

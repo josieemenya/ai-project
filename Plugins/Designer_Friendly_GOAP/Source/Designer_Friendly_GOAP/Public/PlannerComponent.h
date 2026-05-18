@@ -13,6 +13,31 @@ class UBlackboardComponent;
 ////////////////////////////////////////////////////
 ///
 ///
+///
+///
+
+UCLASS(Config=Game, DefaultConfig)
+class DESIGNER_FRIENDLY_GOAP_API UPlannerLoggerSettings : public UDeveloperSettings
+{
+	GENERATED_BODY()
+	
+public:
+	
+	UPROPERTY(EditAnywhere, Config)
+	bool bShouldShowLogs; 
+};
+
+UCLASS()
+class DESIGNER_FRIENDLY_GOAP_API UPlannerLogger : public UWorldSubsystem
+{
+	GENERATED_BODY()
+	
+	bool ShouldShowLogs; 
+public:
+	void Log(const FString& Message);
+
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+};
 
 UCLASS(Blueprintable, BlueprintType,  meta=(ShowWorldContextPin))
 class DESIGNER_FRIENDLY_GOAP_API UGoal : public UDataAsset
@@ -148,8 +173,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UpdateStack(AActor* OwningActor);
 	
-	DECLARE_MULTICAST_DELEGATE(FOnPlanInvalid);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlanInvalid);
 	FOnPlanInvalid OnPlanInvalid;
+	
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlanFinished); 
+	FOnPlanFinished OnPlanFinished;
 	
 	UAction* CurrentAction;
 	UAction* LastAction; // for debugging purposes only

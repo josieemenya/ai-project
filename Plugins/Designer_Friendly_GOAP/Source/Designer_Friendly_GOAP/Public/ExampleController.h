@@ -31,4 +31,7 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Planner Component")
 	TObjectPtr<UPlannerComponent> Planner; 
+	
+	virtual void OnPossess(APawn* InPawn) override;
+	virtual void OnUnPossess() override;
 };

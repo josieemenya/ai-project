@@ -71,7 +71,7 @@ void AGPController::StartPlanning()
 		
 		CurrentGoal = GetBestGoal(); // switch to
 		
-		GetWorld()->GetSubsystem<UUtilityWorldSystem>()->ScoreGoals(InstancedGoals, Blackboard); 
+		GetWorld()->GetSubsystem<UUtilityWorldSystem>()->ScoreAndChooseGoals(InstancedGoals, Blackboard); 
 		// then
 		CurrentGoal = InstancedGoals[0]; 
 		
@@ -205,7 +205,7 @@ void AGPController::BeginPlay()
 		// log returb, same with blackboard
 	}
 
-	Planner->OnPlanInvalid.AddUObject(this, &AGPController::Replan);
+	Planner->OnPlanInvalid.AddDynamic(this, &AGPController::Replan);
 	GetWorldTimerManager().SetTimerForNextTick([this](){
 		Planner->UpdateSmartObjects(CurrentState);
 		StartPlanning();

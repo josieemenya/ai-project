@@ -20,7 +20,17 @@ AExampleController::AExampleController()
 void AExampleController::BeginPlay()
 {
 	Super::BeginPlay();
-	Reasoner->Initialize(this, Planner); 
+	Reasoner->Initialize(this, Planner);
+
+	Planner->OnPlanFinished.AddDynamic(
+		Reasoner,
+		&UUtilityReasoner::HandlePlanFinished
+	);
+
+	Planner->OnPlanInvalid.AddDynamic(
+		Reasoner,
+		&UUtilityReasoner::HandlePlanInvalid
+	);
 }
 
 // Called every frame
@@ -29,3 +39,16 @@ void AExampleController::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void AExampleController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+	if (Reasoner)
+	{
+		Reasoner->StartThinking();
+	}
+}
+
+void AExampleController::OnUnPossess()
+{
+	Super::OnUnPossess();
+}

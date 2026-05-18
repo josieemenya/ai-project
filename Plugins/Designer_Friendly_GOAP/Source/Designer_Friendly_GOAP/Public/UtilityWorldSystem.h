@@ -12,6 +12,8 @@
 
 class UBlackboardComponent;
 class UGoal;
+class AAIController;
+class UPlannerComponent;
 
 UCLASS(Blueprintable)
 class UUtilityReasoner : public UActorComponent
@@ -58,6 +60,9 @@ protected:
 	TObjectPtr<AAIController> OwnerController;
 
 	FTimerHandle ThinkTimer;
+	
+	UFUNCTION(BlueprintNativeEvent, Category="Utility AI", meta = (ToolTip = "This function is called to make up current world state. Please define and add any variables you want to be considered in the plan"))
+	void SyncToWorldState(FWorldState CurrentWorldState); 
 };
 
 UCLASS()

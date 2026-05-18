@@ -76,8 +76,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool ShouldInterruptCurrentPlan;
 
-	UFUNCTION(BlueprintCallable)
-	void SyncToWorldState(); 
 	
 
 protected:
