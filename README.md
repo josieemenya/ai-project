@@ -17,7 +17,7 @@ Some technical Interesting Elements In my Game Are:
 - A Custom Blackboard (C++) // depriciated
 - Inventory(C++)
 - Crafting(C++)
-- UI (Somewhere done in Blueprints, some in C++)
+- UI (Some were done in Blueprints, some in C++)
 - Reactive Animations (the assets were taken from asset stores, edited in the Editor but the functionality came from C++)
 - Blackboard (using ue5 in built Blackboard)
 - In Game Time System (C++)
